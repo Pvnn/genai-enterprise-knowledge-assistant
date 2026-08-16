@@ -1,0 +1,10 @@
+﻿[
+  {
+    "_comment": "P8: populate this file with 30-50 gold QA pairs.",
+    "question": "Example: What is the leave policy for casual leave?",
+    "answer": "Example answer referencing specific document and section.",
+    "document_id": "00000000-0000-0000-0000-000000000000",
+    "section_path": "3 > 3.2 > 3.2.1",
+    "tenant_id": "00000000-0000-0000-0000-000000000000"
+  }
+]
