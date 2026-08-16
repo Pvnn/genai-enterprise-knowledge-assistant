@@ -1,4 +1,4 @@
-﻿# GenAI Enterprise Knowledge Assistant
+# GenAI Enterprise Knowledge Assistant
 
 > **Internal Q&A system over institutional policies, syllabi, circulars, and process documents.**
 > Finds the right *passage*, not just the right document — with citations, refusals, and conflict detection.
@@ -213,7 +213,13 @@ env\Scripts\activate
 source env/bin/activate
 
 # 3. Install dependencies
+# For development (includes linting, type-checking, and test tools):
 pip install -r backend/requirements-dev.txt
+# requirements-dev.txt starts with "-r requirements.txt", so this installs
+# everything in requirements.txt automatically — you do NOT need to run both.
+#
+# For production / CI (runtime dependencies only):
+#   pip install -r backend/requirements.txt
 
 # 4. Copy and populate env file
 cp .env.example .env
