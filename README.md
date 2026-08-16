@@ -608,4 +608,4 @@ Before raising a PR, verify every item applies:
 
 ---
 
-*This README is the team's single operational reference.  If something in your implementation diverges from the contracts in this document or in the engineering spec (`tasks_division.pdf`), open an issue or raise it in the team channel before merging.*
+*This README is the team's single operational reference.  If something in your implementation diverges from the contracts in this document or in the engineering spec (`docs/spec/engineering_spec_v1.pdf`), open an issue or raise it in the team channel before merging.*
