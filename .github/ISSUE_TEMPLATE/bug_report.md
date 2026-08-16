@@ -1,4 +1,4 @@
-﻿---
+--
 name: Bug report
 about: Report a bug in GenAI Enterprise Knowledge Assistant
 labels: bug

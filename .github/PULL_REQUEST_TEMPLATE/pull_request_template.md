@@ -1,4 +1,4 @@
-﻿## Summary
+# Summary
 <!-- What does this PR do? Link to the relevant issue or spec section. -->
 
 ## Owner tag

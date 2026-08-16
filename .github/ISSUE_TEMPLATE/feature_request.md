@@ -1,4 +1,4 @@
-﻿---
+--
 name: Feature / enhancement
 about: Suggest a new feature or improvement
 labels: enhancement
