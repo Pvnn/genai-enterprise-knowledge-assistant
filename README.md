@@ -263,6 +263,7 @@ Copy `.env.example` to `.env` and fill in all required values. **Never commit `.
 | `DENSE_RETRIEVAL_TOP_K` | — | Default: `25` |
 | `RERANKER_TOP_N` | — | Default: `5` |
 | `REFUSAL_SCORE_THRESHOLD` | — | Default: `0.72` |
+| `OCR_DEVICE` | — | `auto` (default) / `cuda` / `cpu` — OCR device for Marker. `auto` detects CUDA at runtime. |
 | `VITE_API_BASE_URL` | — | Default: `http://localhost:8000` |
 
 All settings are read through `app.config.Settings`. **Never call `os.environ` directly outside `config.py`.**
@@ -317,14 +318,44 @@ npm run build      # production build (only when explicitly needed)
 
 ## 10. Running Ingestion
 
-Ingestion is an **offline** job run once per document by P1:
+Ingestion now has **two paths** — both call the same `ingest_document()` function internally:
+
+### Option A — Upload API (recommended for production)
+
+Admin users can upload PDFs through the frontend (`/upload`) or directly via the API:
+
+```bash
+curl -X POST http://localhost:8000/documents/upload \
+  -H "Authorization: Bearer <token>" \
+  -F "file=@path/to/doc.pdf" \
+  -F "department=HR" \
+  -F "doc_type=policy"
+# Returns immediately: { "document_id": "...", "ingestion_status": "pending" }
+
+# Poll for completion:
+curl http://localhost:8000/documents/<document_id>/status \
+  -H "Authorization: Bearer <token>"
+```
+
+### Option B — CLI batch job (P1 dev / bulk loading)
 
 ```bash
 cd backend
-python -m app.ingestion.run_ingestion <path/to/pdf> <tenant_id>
+python -m app.ingestion.run_ingestion <path/to/pdf> <tenant_id> <department> <doc_type>
 ```
 
-After ingestion, run the indexer (P3) to embed chunks:
+### GPU / CPU support
+
+OCR (Marker) runs on **GPU if available, CPU otherwise** — no manual config needed.
+Set `OCR_DEVICE` in your `.env` to override:
+
+| `OCR_DEVICE` | Behaviour |
+|---|---|
+| `auto` (default) | CUDA if `torch.cuda.is_available()`, else CPU |
+| `cuda` | Force GPU (fails if CUDA is not available) |
+| `cpu` | Force CPU (slower, works everywhere) |
+
+### After ingestion — embed chunks (P3)
 
 ```bash
 python -m app.retrieval.indexer
@@ -561,7 +592,7 @@ Before raising a PR, verify every item applies:
 
 | Owner | Hardware needed | Why |
 |---|---|---|
-| **P1** (Ingestion) | NVIDIA GPU, 4–6 GB VRAM minimum (e.g. RTX 4050) | Runs Marker/GOT-OCR2.0 locally. Falls back to CPU (much slower) or Google Colab's free GPU tier if unavailable. |
+| **P1** (Ingestion) | Any machine; NVIDIA GPU optional (4–6 GB VRAM, e.g. RTX 4050) | Marker OCR runs on CPU or GPU. GPU is faster but not required — `OCR_DEVICE=auto` detects and uses CUDA if present, falls back to CPU silently. |
 | **Everyone else** | Any standard machine, no GPU | DB access, embeddings (API), reranking (CPU), LLM calls (API), auth, frontend, eval all run on CPU or go through a network API call. |
 
 ---
@@ -573,7 +604,7 @@ Before raising a PR, verify every item applies:
 | LLM (generation, rewriting, routing, confidence) | `gpt-4o-mini` | One model used consistently everywhere |
 | Embeddings | `text-embedding-3-small` | Chunk embeddings, query embeddings, Stage 2a summary-match |
 | Reranker (Priority 2) | `bge-reranker-base` via FlagEmbedding | CPU-only, no GPU needed |
-| OCR / document parsing | Marker (open-source PDF→structured-markdown) | Fallback: GOT-OCR2.0 |
+| OCR / document parsing | Marker (open-source PDF→structured-markdown) | GPU optional (faster); CPU fully supported. Fallback: GOT-OCR2.0 |
 
 ---
 

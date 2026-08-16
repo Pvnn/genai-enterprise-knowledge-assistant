@@ -52,6 +52,16 @@ class Settings(BaseSettings):
     app_env: str = Field("development")
     log_level: str = Field("INFO")
 
+    # ── Ingestion ─────────────────────────────────────────────────────────────
+    ocr_device: str = Field(
+        "auto",
+        description=(
+            "Device for Marker/OCR model. "
+            "'auto' detects CUDA at runtime and falls back to CPU. "
+            "Set to 'cuda' or 'cpu' to override."
+        ),
+    )
+
     # ── Retrieval ────────────────────────────────────────────────────────────
     dense_retrieval_top_k: int = Field(25)
     reranker_top_n: int = Field(5)

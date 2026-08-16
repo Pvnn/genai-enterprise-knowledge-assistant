@@ -1,4 +1,4 @@
-﻿"""Pydantic models for all structured data crossing function/API boundaries.
+"""Pydantic models for all structured data crossing function/API boundaries.
 
 Owner: P2
 Every other module imports Pydantic models from HERE; no raw dicts cross
@@ -186,3 +186,28 @@ class ChunkDB(BaseModel):
     effective_date: str | None = None
     version_status: str | None = None
     source_path: str | None = None
+
+
+# ── Ingestion upload / status (addendum Section 5) ───────────────────────────
+
+class IngestionStatus(str):
+    """Valid values for documents.ingestion_status (addendum Section 4)."""
+    PENDING = "pending"
+    PROCESSING = "processing"
+    DONE = "done"
+    FAILED = "failed"
+
+
+class UploadResponse(BaseModel):
+    """Response from POST /documents/upload."""
+
+    document_id: UUID
+    ingestion_status: str  # one of IngestionStatus values
+
+
+class DocumentStatusResponse(BaseModel):
+    """Response from GET /documents/{document_id}/status."""
+
+    document_id: UUID
+    ingestion_status: str  # one of IngestionStatus values
+    detail: str | None = None  # human-readable note, e.g. failure reason

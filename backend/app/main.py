@@ -1,4 +1,4 @@
-﻿"""FastAPI application entry-point.
+"""FastAPI application entry-point.
 
 Owner: P2
 Wires all routers together, configures CORS, and sets up global exception
@@ -19,6 +19,7 @@ from app.schemas import ErrorResponse
 from app.auth.router import router as auth_router          # P6
 from app.retrieval.router import router as retrieval_router  # P2
 from app.generation.router import router as generation_router  # P4
+from app.ingestion.router import router as ingestion_router  # P1
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -60,6 +61,7 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
 app.include_router(retrieval_router, tags=["retrieval"])
 app.include_router(generation_router, tags=["generation"])
+app.include_router(ingestion_router, tags=["ingestion"])
 
 
 @app.get("/health", tags=["health"])
