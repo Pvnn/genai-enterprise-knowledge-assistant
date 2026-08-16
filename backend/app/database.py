@@ -1,4 +1,4 @@
-﻿"""Async SQLAlchemy engine and session factory.
+"""Async SQLAlchemy engine and session factory.
 
 Owner: P2
 Provides get_db() dependency for FastAPI route handlers.
@@ -21,10 +21,15 @@ logger = logging.getLogger(__name__)
 
 settings = get_settings()
 
+# Neon's pooled endpoint runs PgBouncer in transaction-pooling mode, which
+# conflicts with asyncpg's default prepared-statement caching. Use Neon's
+# direct (unpooled) connection string, or pass statement_cache_size=0 in
+# asyncpg connect_args if using the pooled endpoint.
 engine = create_async_engine(
     settings.database_url,
     echo=(settings.app_env == "development"),
     pool_pre_ping=True,
+    connect_args={"statement_cache_size": 0},
 )
 
 AsyncSessionLocal = async_sessionmaker(

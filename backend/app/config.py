@@ -1,4 +1,4 @@
-﻿"""Application configuration.
+"""Application configuration.
 
 Owner: P2
 Reads all settings from environment variables via pydantic-settings.
@@ -32,9 +32,15 @@ class Settings(BaseSettings):
     )
     llm_model: str = Field("gpt-4o-mini", description="OpenAI chat model name")
 
-    # ── Database ──────────────────────────────────────────────────────────────
+    # ── Database (Neon serverless Postgres + pgvector) ────────────────────────
     database_url: str = Field(
-        ..., description="Async SQLAlchemy database URL (postgresql+asyncpg://...)"
+        ...,
+        description=(
+            "Async SQLAlchemy URL for Neon Postgres. "
+            "Prefer the direct (unpooled) connection string to avoid PgBouncer "
+            "prepared-statement conflicts. Format: "
+            "postgresql+asyncpg://<user>:<password>@<host>.neon.tech/<dbname>?sslmode=require"
+        ),
     )
 
     # ── Auth / JWT ────────────────────────────────────────────────────────────
