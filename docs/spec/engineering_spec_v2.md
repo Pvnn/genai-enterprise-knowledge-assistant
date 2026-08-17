@@ -1,4 +1,4 @@
-# GenAI Enterprise Knowledge Assistant — Engineering Specification
+# GenAI Enterprise Knowledge Assistant — Engineering Specification (v2)
 
 This is the single source of truth for this project: what it is, how it's built, who owns what, and the exact contracts every piece must follow. It is written to be handed to an AI coding assistant along with a statement of which part a developer owns, so the assistant can generate correct, consistent code without inventing anything that would clash with the other seven people's work.
 
@@ -36,6 +36,7 @@ You are being given this document by one developer on an 8-person team, each bui
 - **Tenant isolation:** every table and every query is scoped by `tenant_id`, no exceptions. No retrieval or generation step may ever see data across tenants.
 - **Bounded cost as the corpus grows:** the expensive operations — LLM-based routing and cross-encoder reranking — must only ever run on an already-narrowed candidate set, never the full corpus.
 - **Graceful degradation:** every Priority 2 stage must have a working Priority 1 fallback, so the system stays fully functional (just less precise) if a given Priority 2 piece isn't built or fails. Priority 2 code should be written so a missing dependency or an exception in it falls back to the Priority 1 behavior rather than crashing the request.
+- **Hardware-independent core path:** Priority 1 ingestion must run to completion on a CPU-only machine, with no unhandled crash or hard dependency on CUDA being available. A GPU should make it faster, not required to make it work. This applies to both batch ingestion and the on-demand upload path (Section 2).
 
 ---
 
@@ -61,6 +62,7 @@ Stage 5 — Grounded Generation, Citation, Refusal / Conflict Check
 | 0 | Per-document summary (short LLM summary, generated once per doc) | Priority 2 | P1 | `ingestion/summarizer.py` |
 | 0 | Section tree extraction (heading hierarchy) | Priority 2 | P1 | `ingestion/section_tree.py` |
 | 0 | Acronym/entity glossary, auto-built from the corpus | Priority 2 | P1 | `ingestion/glossary_builder.py` |
+| 0 | On-demand upload trigger: accepts a file via API, saves it, kicks off the existing ingestion pipeline as a background task, tracks status | Priority 2 (Priority 1 fallback: no upload endpoint — P1 runs `run_ingestion.py` manually against a folder, as today) | P1 | `ingestion/router.py` |
 | 1 | Query rewriting: acronym expansion, metadata predicate extraction, compound-question decomposition, separate BM25/dense phrasings, clarify-then-fallback | Priority 2 (Priority 1 fallback: use the raw query as-is for both BM25 and dense, no auto filter) | P4 | `generation/query_rewriter.py` |
 | 2a | Document-level candidate selection (metadata filter + summary match → top 3-5 docs) | Priority 2 | P2 | `retrieval/routing.py` |
 | 2b | Section-level tree reasoning (LLM picks which section(s) govern the question) | Priority 2 | P2 | `retrieval/routing.py` |
@@ -91,7 +93,10 @@ repo/
 │   │   ├── section_tree.py                     — Stage 0, Priority 2: heading hierarchy
 │   │   ├── glossary_builder.py                  — Stage 0, Priority 2: acronym glossary
 │   │   ├── loader.py                             — writes everything into the DB
-│   │   └── run_ingestion.py                       — runs the full pipeline
+│   │   ├── run_ingestion.py                       — runs the full pipeline
+│   │   └── router.py                              — Stage 0, Priority 2: exposes POST /documents/upload,
+│   │                                                 GET /documents/{id}/status; calls run_ingestion.py's
+│   │                                                 pipeline as a background task
 │   │
 │   ├── retrieval/
 │   │   ├── embeddings.py                [P3] — Stage 0/3: embeddings API wrapper
@@ -119,12 +124,18 @@ repo/
 ├── frontend/src/
 │   ├── main.tsx, App.tsx, api/client.ts     [P7]
 │   ├── auth/                                [P6 — whole folder]
-│   └── chat/                                [P7 — whole folder]
+│   ├── chat/                                [P7 — whole folder]
+│   └── upload/                              [P7 — whole folder]
+│       └── admin-only upload form: file picker, department/doc_type fields, status indicator
 │
 └── eval/gold_qa.json                        [P8]
 ```
 
 **The rule:** need something from a file you don't own? Call the function or hit the endpoint using the exact signature in Section 6. Never edit someone else's file.
+
+**Coordination note (not a violation of file ownership):** `main.py` is owned by P2 and wires all routers together. P1 does **not** edit `main.py`. P1 builds `ingestion/router.py` exposing a standard FastAPI `router` object; P2 adds one `include_router(...)` line for it, same as they already do for `retrieval/router.py` and `generation/router.py`.
+
+**Frontend routing note:** P7 adds minimal routing in `App.tsx` (or the app's existing router entry point) so admin-role users reach `/upload` — a role check plus a route, nothing more. No other restructuring of existing chat/auth frontend code.
 
 ---
 
@@ -136,7 +147,8 @@ users         id, tenant_id, email, password_hash, role
 documents     id, tenant_id, title, department, doc_type,
               effective_date, version_status, source_path,
               summary,           -- Priority 2 (Stage 0), used by Stage 2a
-              section_tree        -- Priority 2 (Stage 0, jsonb), used by Stage 2b
+              section_tree,       -- Priority 2 (Stage 0, jsonb), used by Stage 2b
+              ingestion_status     -- 'pending' | 'processing' | 'ready' | 'failed'
 chunks        id, document_id, tenant_id, text, section_path,
               embedding (vector), text_search (tsvector),
               department, doc_type, effective_date, version_status
@@ -147,7 +159,7 @@ queries       id, tenant_id, user_id, raw_query, rewritten_query,
 feedback      id, query_id, thumbs_up_down, comment
 ```
 
-Owner: P2. Nobody else writes migrations.
+Owner: P2. Nobody else writes migrations. Keep the schema as **one base migration** — no incremental migration files until the schema has real, deployed data to preserve across a change.
 
 **Connection setup note (P2, `database.py`):** Neon's pooled endpoint runs PgBouncer in transaction-pooling mode, which conflicts with asyncpg's default prepared-statement caching under SQLAlchemy async — it throws confusing errors if this isn't accounted for. Use Neon's direct (unpooled) connection string for the app, or set `statement_cache_size=0` in the asyncpg connect args if using the pooled endpoint.
 
@@ -178,6 +190,19 @@ final event:     { type: "final", answer, citations: [ { chunk_id, document_id, 
 
 **POST /feedback** [P6 — Priority 2] → `{ query_id, thumbs_up_down, comment }` → `{ status: "ok" }`
 
+**POST /documents/upload** [P1 — Priority 2] — requires role: admin (via existing `get_current_user`, no new auth work)
+```
+request:  multipart/form-data — file, department, doc_type
+response: { document_id, ingestion_status: "processing" }
+```
+
+**GET /documents/{document_id}/status** [P1 — Priority 2]
+```
+response: { document_id, ingestion_status, error_detail }   -- error_detail null unless status = "failed"
+```
+
+Role gating on `/documents/upload` checks `current_user.role == "admin"`, scoped to the caller's own `tenant_id` — an admin at one enterprise can only upload into that enterprise's corpus, not across tenants. *Open item: the spec has never formally defined valid values for `role` or how an admin account gets assigned per tenant — confirm with the team before relying on this in a demo.*
+
 All error responses use one shared envelope, regardless of endpoint: `{ error: string, detail: string }`.
 
 ---
@@ -192,6 +217,10 @@ All error responses use one shared envelope, regardless of endpoint: `{ error: s
 - `grounding.py` [P5]: `decide_refusal(query, top_chunks, draft_answer) -> { refused, reason, confidence, conflict }`.
 - `conflict_detector.py` [P5]: `check_conflict(top_chunks) -> { conflict, conflicting_chunks }` — called from inside `decide_refusal`.
 - `security.py` [P6]: `get_current_user(token) -> CurrentUser` — imported once into P2's `deps.py`.
+- `ocr.py` [P1]: `parse_document(file_path: str, device: str = "auto") -> str` — returns structured markdown. `device` is read from `config.py`'s `Settings.OCR_DEVICE` (default `"auto"`); `"auto"` detects GPU availability at call time (e.g. `torch.cuda.is_available()`) and uses it if present, otherwise runs on CPU. Never hardcode `"cuda"`.
+- `run_ingestion.py` [P1]: `ingest_document(file_path: str, tenant_id: str, department: str, doc_type: str) -> str` — the canonical importable entry point (returns `document_id`). Internally calls `parse_document` with `device="auto"`. `ingestion/router.py` calls this inside a FastAPI `BackgroundTasks` job, not inline in the request. Independent of `generator.py`'s call order below — a separate entry point triggered by upload or by the batch script, not part of the query-time pipeline.
+
+**Test coverage:** per Section 10's testing convention, `tests/test_ingestion.py` should have stub tests for `parse_document(device=...)`, `ingest_document()`, and both new router endpoints (including the admin-role-gate case on upload). Stubs are enough at this stage — mark assertions `TODO(P1)`.
 
 **Call order inside `generation/generator.py` [P4]** — the actual pipeline. Build the Priority 1 version first; add each Priority 2 step behind a check that falls back cleanly if the step isn't built or raises:
 
@@ -212,7 +241,7 @@ All error responses use one shared envelope, regardless of endpoint: `{ error: s
 | LLM (generation, rewriting, routing/reasoning, self-confidence) | **OpenAI API — gpt-4o-mini** | `generator.py`, `query_rewriter.py`, `routing.py`, `grounding.py` | One model, used consistently everywhere. |
 | Embeddings | **OpenAI API — text-embedding-3-small** | `embeddings.py` | Used for chunk embeddings, query embeddings, and Stage 2a's summary-match. |
 | Reranker (Priority 2) | **bge-reranker-base**, via `FlagEmbedding`/`sentence-transformers` | `reranker.py` | CPU-only, no GPU needed. |
-| OCR / document parsing | **Marker** (open-source PDF→structured-markdown) | `ocr.py` | Used for every PDF, not just scans — plain text extraction loses table/heading/layout structure even on born-digital PDFs. Fallback if VRAM is tight: **GOT-OCR2.0**. |
+| OCR / document parsing | **Marker** (open-source PDF→structured-markdown) | `ocr.py` | Used for every PDF, not just scans — plain text extraction loses table/heading/layout structure even on born-digital PDFs. **Must run on CPU or GPU** — device is auto-detected, not assumed (Section 6). GPU is faster but not required. Fallback if VRAM is tight or a document fails to parse: **GOT-OCR2.0**. |
 
 ---
 
@@ -220,9 +249,17 @@ All error responses use one shared envelope, regardless of endpoint: `{ error: s
 
 **Database:** Neon (serverless Postgres + pgvector), one shared instance — all tags connect to the same DB from Day 1, not a local Postgres per machine. This matters because P1, P2, P4, P5, and P8 are all reading or writing the same tables (`documents`, `chunks`, `queries`, `feedback`, etc.) from five different machines — without a shared, always-reachable DB from Day 1, everyone's local data silently diverges.
 
+**GPU is preferred, not required, for ingestion.** P1's ingestion pipeline — both the batch path and the on-demand upload path — must run correctly on CPU-only hardware, just slower. Nobody on the team should be blocked from running or testing ingestion because they don't have a GPU, and the live upload endpoint must not assume or require CUDA.
+
+| Scenario | What happens | Notes |
+|---|---|---|
+| GPU available (e.g. 4-6GB+ VRAM) | Marker runs on GPU, fast per-document processing | Preferred path for bulk/batch ingestion of the full corpus |
+| No GPU / CPU-only | Marker runs on CPU automatically (`device="auto"`), noticeably slower per document | Fully functional — a supported path, not a degraded emergency mode |
+| CPU too slow for the full corpus ahead of demo | Use a free hosted GPU (e.g. Google Colab) to batch-run ingestion once ahead of time, then rely on the already-ingested DB for the demo | One-time workaround for bulk pre-ingestion, not something the live app depends on |
+
 | Owner | Hardware needed | Why |
 |---|---|---|
-| **P1** (ingestion) | NVIDIA GPU, 4-6GB VRAM minimum (e.g. RTX 4050) | Runs Marker/GOT-OCR2.0 locally. Falls back to CPU (much slower) or Google Colab's free GPU tier if unavailable. |
+| **P1** (ingestion) | GPU optional — 4-6GB+ VRAM (e.g. RTX 4050) speeds up Marker if present; CPU-only is fully supported | See fallback table above |
 | Everyone else | Any standard machine, no GPU | DB access, embeddings, reranking (CPU), LLM calls, auth, frontend, eval all run on CPU or go through a network API call. |
 
 ---
@@ -254,7 +291,8 @@ both documents are currently marked active.
 - **Typing:** type hints on every function signature. All structured data crossing a function or API boundary is a Pydantic model from `schemas.py` — never a raw `dict`.
 - **Docstrings:** one-line summary, then `Args:` / `Returns:` in Google style, on every public function.
 - **Naming:** `snake_case` for functions/variables/files, `PascalCase` for classes and Pydantic models, `UPPER_SNAKE_CASE` for constants.
-- **Config:** read all settings through `config.py`'s `Settings` object. Never call `os.environ` directly outside that file.
+- **Config:** read all settings through `config.py`'s `Settings` object. Never call `os.environ` directly outside that file. `Settings` must expose `OCR_DEVICE: str = "auto"`; `ocr.py` reads this rather than hardcoding a device.
+- **Dependencies:** `torch` must be listed in `requirements.txt` as a **required** dependency, not optional/extras — `parse_document`'s CPU fallback depends on it being present. Plain `torch` from PyPI installs the CPU-only wheel by default on most platforms, so this doesn't impose a GPU requirement; note in a comment that GPU users can install the CUDA-enabled build instead if they want the speedup.
 - **Errors:** raise typed exceptions defined in your own module; never let a raw, unhandled exception cross into another module's code. API-facing errors always return the shared `{ error, detail }` envelope from Section 5.
 - **Logging:** Python's `logging` module, `logger = logging.getLogger(__name__)` at the top of each file. No `print()` statements in application code.
 - **Imports:** absolute imports rooted at `app.` (e.g. `from app.retrieval.dense_retrieval import retrieve_chunks`), never relative imports, never wildcard imports.
@@ -269,13 +307,13 @@ both documents are currently marked active.
 
 | Tag | Owns (files) | Priority 1 responsibility | Priority 2 responsibility |
 |---|---|---|---|
-| **P1** | `ingestion/*` | OCR-parse real documents into structured markdown (Marker), heading-aware chunking, metadata tagging, load chunks into the DB | Per-document summary, section-tree extraction, acronym/entity glossary — all feed P2's routing and P4's rewriting |
-| **P2** | `database.py`, `config.py`, `deps.py`, `main.py`, `db/migrations/`, `retrieval/dense_retrieval.py`, `hybrid_retrieval.py`, `routing.py`, `retrieval/router.py` | Schema + migrations, dense retrieval with metadata filter as a hard constraint, `/retrieve` endpoint, integrates the whole backend | BM25 + RRF hybrid fusion, coarse routing (document candidate selection + section-tree reasoning) |
+| **P1** | `ingestion/*` | OCR-parse real documents into structured markdown (Marker), heading-aware chunking, metadata tagging, load chunks into the DB. Must run correctly on CPU-only hardware, with GPU auto-detected and used only if present. | Per-document summary, section-tree extraction, acronym/entity glossary — all feed P2's routing and P4's rewriting. On-demand upload endpoint (`POST /documents/upload`) and status endpoint, calling the existing ingestion pipeline as a background task; stub test coverage for both. |
+| **P2** | `database.py`, `config.py`, `deps.py`, `main.py`, `db/migrations/`, `retrieval/dense_retrieval.py`, `hybrid_retrieval.py`, `routing.py`, `retrieval/router.py` | Schema + migrations, dense retrieval with metadata filter as a hard constraint, `/retrieve` endpoint, integrates the whole backend | BM25 + RRF hybrid fusion, coarse routing (document candidate selection + section-tree reasoning). Wire `ingestion/router.py` into `main.py`; add `ingestion_status` directly to the base migration. |
 | **P3** | `retrieval/embeddings.py`, `indexer.py`, `reranker.py` | Embedding wrapper, batch indexing job | Cross-encoder reranking |
 | **P4** | `generation/prompts.py`, `generator.py`, `query_rewriter.py`, `generation/router.py` | Grounded, cited answer generation; `/chat` endpoint; orchestrates the full pipeline call order (Section 6) | Query rewriting: acronym expansion, metadata predicate extraction, decomposition, clarify-then-fallback |
 | **P5** | `generation/grounding.py`, `conflict_detector.py` | Refusal decision logic (confidence thresholds) | Version-conflict detection and dual-surfacing |
 | **P6** | `auth/*`, `frontend/src/auth/*` | Login, JWT, tenant scoping, `get_current_user()` | Feedback capture endpoint |
-| **P7** | `frontend/src/*` (excluding auth) | Chat UI: ask → streamed cited answer / clarifying question / refusal / conflict display | Feedback buttons, UI polish |
+| **P7** | `frontend/src/*` (excluding auth) | Chat UI: ask → streamed cited answer / clarifying question / refusal / conflict display | Feedback buttons, UI polish. Admin-only upload form (file + department/doc_type + status indicator), gated on `role`; minimal `App.tsx` routing to reach it. |
 | **P8** | `eval/*`, `eval/gold_qa.json` | Gold Q&A set (30-50 questions), eval harness scoring retrieval hit-rate@k, answer faithfulness, hallucination rate | Failure-by-stage attribution report (routing / retrieval / generation) |
 
 ---
