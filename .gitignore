@@ -29,6 +29,7 @@ htmlcov/
 coverage.xml
 *.cover
 .hypothesis/
+backend/app/ingestion/tests/fixtures/
 
 # ─── Type checking ───────────────────────────────────────────────────────────
 .mypy_cache/
