@@ -1,4 +1,4 @@
-"""Task 1 - Docling sanity check script.
+"""Docling sanity check script.
 
 Runs Docling against every PDF in fixtures/sample_pdfs/ using native
 PyTorch inference on GPU (RTX 4050) or CPU, no vLLM/server required.
