@@ -1,4 +1,4 @@
-﻿# ─── Python ──────────────────────────────────────────────────────────────────
+# ─── Python ──────────────────────────────────────────────────────────────────
 __pycache__/
 *.py[cod]
 *$py.class
@@ -13,13 +13,15 @@ pip-wheel-metadata/
 *.pyo
 *.pyd
 
-# ─── Virtual environments ─────────────────────────────────────────────────────
+# ─── Virtual environments & package managers ───────────────────────────────
 env/
 venv/
 .venv/
 ENV/
 env.bak/
 venv.bak/
+uv.lock
+.uv/
 
 # ─── Pytest / coverage ───────────────────────────────────────────────────────
 .pytest_cache/

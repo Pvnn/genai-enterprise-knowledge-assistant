@@ -5,7 +5,7 @@ Import shared fixtures from conftest.py (owned by P2).  Do NOT define
 new fixture setups that duplicate what conftest.py already provides.
 
 Strategy:
-- All tests stub the OpenAI client with unittest.mock so no real network
+- All tests stub the Gemini client with unittest.mock so no real network
   calls are made.
 - Assertions about exact vector values are marked TODO(P3) pending a real
   integration test environment with a valid API key.
@@ -13,8 +13,7 @@ Strategy:
 
 from __future__ import annotations
 
-import importlib
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -23,20 +22,24 @@ from app.retrieval.embeddings import EmbeddingError, embed_batch, embed_text
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
+
 def _make_fake_response(vectors: list[list[float]]) -> MagicMock:
-    """Build a mock object that mimics the shape of openai.types.CreateEmbeddingResponse."""
+    """Build a mock object that mimics the shape of a Gemini EmbedContentResponse.
+
+    The real response has an ``embeddings`` attribute — a list of objects
+    each with a ``values`` attribute holding the float vector.
+    """
     response = MagicMock()
     items = []
-    for idx, vec in enumerate(vectors):
+    for vec in vectors:
         item = MagicMock()
-        item.embedding = vec
-        item.index = idx
+        item.values = vec
         items.append(item)
-    response.data = items
+    response.embeddings = items
     return response
 
 
-FAKE_VECTOR_1536 = [0.1] * 1536
+FAKE_VECTOR_768 = [0.1] * 768
 
 
 # ── embed_text ─────────────────────────────────────────────────────────────────
@@ -44,21 +47,21 @@ FAKE_VECTOR_1536 = [0.1] * 1536
 
 @pytest.mark.asyncio
 async def test_embed_text_returns_list_of_floats() -> None:
-    """embed_text() should return a list of floats of length 1536."""
-    fake_response = _make_fake_response([FAKE_VECTOR_1536])
+    """embed_text() should return a list of floats of length 768."""
+    fake_response = _make_fake_response([FAKE_VECTOR_768])
 
     with patch(
         "app.retrieval.embeddings._get_client",
         return_value=MagicMock(
-            embeddings=MagicMock(
-                create=AsyncMock(return_value=fake_response)
-            )
+            models=MagicMock(
+                embed_content=MagicMock(return_value=fake_response),
+            ),
         ),
     ):
         result = await embed_text("hello world")
 
     assert isinstance(result, list)
-    # TODO(P3): assert len(result) == 1536 once integration env is available
+    # TODO(P3): assert len(result) == 768 once integration env is available
     assert all(isinstance(v, float) for v in result)
 
 
@@ -70,16 +73,16 @@ async def test_embed_text_raises_value_error_on_empty_string() -> None:
 
 
 @pytest.mark.asyncio
-async def test_embed_text_wraps_openai_error_as_embedding_error() -> None:
-    """embed_text() must raise EmbeddingError when the OpenAI call fails."""
-    from openai import OpenAIError
-
+async def test_embed_text_wraps_gemini_error_as_embedding_error() -> None:
+    """embed_text() must raise EmbeddingError when the Gemini call fails."""
     with patch(
         "app.retrieval.embeddings._get_client",
         return_value=MagicMock(
-            embeddings=MagicMock(
-                create=AsyncMock(side_effect=OpenAIError("API down"))
-            )
+            models=MagicMock(
+                embed_content=MagicMock(
+                    side_effect=Exception("API down"),
+                ),
+            ),
         ),
     ):
         with pytest.raises(EmbeddingError):
@@ -92,15 +95,15 @@ async def test_embed_text_wraps_openai_error_as_embedding_error() -> None:
 @pytest.mark.asyncio
 async def test_embed_batch_returns_aligned_vectors() -> None:
     """embed_batch() must return one vector per input text, in order."""
-    vectors = [[float(i)] * 1536 for i in range(3)]
+    vectors = [[float(i)] * 768 for i in range(3)]
     fake_response = _make_fake_response(vectors)
 
     with patch(
         "app.retrieval.embeddings._get_client",
         return_value=MagicMock(
-            embeddings=MagicMock(
-                create=AsyncMock(return_value=fake_response)
-            )
+            models=MagicMock(
+                embed_content=MagicMock(return_value=fake_response),
+            ),
         ),
     ):
         result = await embed_batch(["a", "b", "c"])
@@ -127,16 +130,16 @@ async def test_embed_batch_raises_value_error_on_empty_string_element() -> None:
 
 
 @pytest.mark.asyncio
-async def test_embed_batch_wraps_openai_error_as_embedding_error() -> None:
-    """embed_batch() must raise EmbeddingError when the OpenAI call fails."""
-    from openai import OpenAIError
-
+async def test_embed_batch_wraps_gemini_error_as_embedding_error() -> None:
+    """embed_batch() must raise EmbeddingError when the Gemini call fails."""
     with patch(
         "app.retrieval.embeddings._get_client",
         return_value=MagicMock(
-            embeddings=MagicMock(
-                create=AsyncMock(side_effect=OpenAIError("rate limit"))
-            )
+            models=MagicMock(
+                embed_content=MagicMock(
+                    side_effect=Exception("rate limit"),
+                ),
+            ),
         ),
     ):
         with pytest.raises(EmbeddingError):
@@ -146,20 +149,28 @@ async def test_embed_batch_wraps_openai_error_as_embedding_error() -> None:
 @pytest.mark.asyncio
 async def test_embed_batch_single_item_matches_embed_text() -> None:
     """embed_batch(['x']) should return the same result as embed_text('x')."""
-    fake_response = _make_fake_response([FAKE_VECTOR_1536])
+    fake_response = _make_fake_response([FAKE_VECTOR_768])
     mock_client = MagicMock(
-        embeddings=MagicMock(
-            create=AsyncMock(return_value=fake_response)
-        )
+        models=MagicMock(
+            embed_content=MagicMock(return_value=fake_response),
+        ),
     )
 
-    with patch("app.retrieval.embeddings._get_client", return_value=mock_client):
+    with patch(
+        "app.retrieval.embeddings._get_client",
+        return_value=mock_client,
+    ):
         batch_result = await embed_batch(["singleton"])
 
     # Reconstruct the same fake response for the single-text call.
-    mock_client.embeddings.create.return_value = _make_fake_response([FAKE_VECTOR_1536])
+    mock_client.models.embed_content.return_value = _make_fake_response(
+        [FAKE_VECTOR_768],
+    )
 
-    with patch("app.retrieval.embeddings._get_client", return_value=mock_client):
+    with patch(
+        "app.retrieval.embeddings._get_client",
+        return_value=mock_client,
+    ):
         single_result = await embed_text("singleton")
 
     # TODO(P3): assert batch_result[0] == single_result once integration env is available
