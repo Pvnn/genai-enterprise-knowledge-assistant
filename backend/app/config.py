@@ -20,15 +20,16 @@ class Settings(BaseSettings):
     """
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=(".env", "../.env"),
         env_file_encoding="utf-8",
         case_sensitive=False,
     )
 
-    # ── OpenAI ────────────────────────────────────────────────────────────────
-    openai_api_key: str = Field(..., description="OpenAI API key")
+    # ── Google Gemini / LLM ───────────────────────────────────────────────────
+    gemini_api_key: str = Field(..., description="Google Gemini API key")
+    openai_api_key: str | None = Field(default=None, description="OpenAI API key (optional)")
     embedding_model: str = Field(
-        "text-embedding-3-small", description="OpenAI embedding model name"
+        "gemini-embedding-001", description="Gemini embedding model name"
     )
     llm_model: str = Field("gpt-4o-mini", description="OpenAI chat model name")
 
@@ -62,7 +63,14 @@ class Settings(BaseSettings):
         ),
     )
 
-    # ── Retrieval ────────────────────────────────────────────────────────────
+    # ── Retrieval / Embeddings ────────────────────────────────────────────────
+    embedding_dimension: int = Field(768, description="Embedding vector dimension")
+    embed_batch_size: int = Field(
+        256, description="Maximum number of chunks sent to the embedding API in a single call"
+    )
+    embedding_max_retries: int = Field(
+        3, description="Maximum retry attempts for transient embedding failures"
+    )
     dense_retrieval_top_k: int = Field(25)
     reranker_top_n: int = Field(5)
     refusal_score_threshold: float = Field(0.72)

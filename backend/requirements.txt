@@ -19,6 +19,7 @@ pydantic>=2.7.0
 pydantic-settings>=2.2.0
 
 # ── LLM / Embeddings ──────────────────────────────────────────────────────────
+google-genai>=1.0.0
 openai>=1.30.0
 
 # ── OCR / Document parsing (P1 – GPU required for full performance) ────────────
