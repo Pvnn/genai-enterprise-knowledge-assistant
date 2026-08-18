@@ -62,6 +62,8 @@ async def decide_refusal(
         logger.warning("Failed to check conflict, falling back: %s", e)
 
     # Priority 1: LLM self-rate confidence
+    # Retry with binary exponential backoff on transient failures.
+    MAX_RETRIES = 2
     client = AsyncOpenAI(api_key=settings.openai_api_key)
     chunk_texts = "\n\n".join([f"Chunk: {c.text}" for c in top_chunks[:5]])
     
@@ -73,26 +75,42 @@ async def decide_refusal(
         "Reply with exactly one word: 'high', 'medium', or 'low'."
     )
     
-    confidence_val = 0.0
-    try:
-        response = await client.chat.completions.create(
-            model=settings.llm_model,
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.0,
-            max_tokens=10,
+    confidence_val = None
+    for attempt in range(MAX_RETRIES + 1):
+        try:
+            response = await client.chat.completions.create(
+                model=settings.llm_model,
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.0,
+                max_tokens=10,
+            )
+            rating = response.choices[0].message.content.strip().lower()
+            if "high" in rating:
+                confidence_val = 1.0
+            elif "medium" in rating:
+                confidence_val = 0.5
+            else:
+                confidence_val = 0.0
+            break
+        except Exception as e:
+            wait_seconds = 2 ** attempt  # 1s, 2s, 4s
+            logger.warning(
+                "LLM call failed in decide_refusal (attempt %d/%d): %s. Retrying in %ds...",
+                attempt + 1, MAX_RETRIES + 1, e, wait_seconds,
+            )
+            if attempt < MAX_RETRIES:
+                import asyncio
+                await asyncio.sleep(wait_seconds)
+
+    # If all retries exhausted, default to medium confidence rather than
+    # refusing a potentially valid answer just because the API had a hiccup.
+    if confidence_val is None:
+        logger.error(
+            "All %d LLM retries exhausted in decide_refusal. "
+            "Defaulting to medium confidence.",
+            MAX_RETRIES + 1,
         )
-        rating = response.choices[0].message.content.strip().lower()
-        if "high" in rating:
-            confidence_val = 1.0
-        elif "medium" in rating:
-            confidence_val = 0.5
-            
-    except Exception as e:
-        logger.error("LLM call failed in decide_refusal: %s", e)
-        # If API fails, we don't automatically refuse unless we have to, but 
-        # to be safe, let's assume medium confidence so we don't block valid answers completely due to an API blip,
-        # or we just refuse. Let's refuse.
-        pass
+        confidence_val = 0.5
 
     refused = confidence_val == 0.0
     
