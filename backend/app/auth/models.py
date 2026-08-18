@@ -42,7 +42,7 @@ class Enterprise(Base):
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
 
     users: Mapped[list["User"]] = relationship("User", back_populates="enterprise")
     documents: Mapped[list["Document"]] = relationship("Document", back_populates="enterprise")
