@@ -26,7 +26,7 @@ from app.retrieval.indexer import EMBED_BATCH_SIZE, IndexerError, index_chunks
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 _TENANT_ID = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
-_FAKE_VECTOR = [0.1] * 1536
+_FAKE_VECTOR = [0.1] * 768
 
 
 def _make_rows(n: int) -> list[tuple[str, str]]:
@@ -170,7 +170,7 @@ async def test_index_chunks_embedding_error_propagates() -> None:
 
     with patch(
         "app.retrieval.indexer.embed_batch",
-        new=AsyncMock(side_effect=EmbeddingError("OpenAI rate limit")),
+        new=AsyncMock(side_effect=EmbeddingError("Gemini rate limit")),
     ):
         with pytest.raises(EmbeddingError):
             await index_chunks(session, _TENANT_ID)

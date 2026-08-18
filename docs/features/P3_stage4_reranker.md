@@ -81,13 +81,3 @@ Done
 `backend/tests/test_reranker.py` — 7 tests (happy path, boundary cases,
 three distinct fallback paths: model load failure flag, `ImportError`,
 `compute_score` exception, and unexpected `_load_model` exception)
-
-## Coding conventions (all followed)
-
-- `snake_case` functions/variables, `PascalCase` classes (`RerankerError`),
-  `UPPER_SNAKE_CASE` constants (`_BGE_MODEL_NAME` uses leading underscore
-  to indicate module-private).
-- Google-style docstrings on every public function.
-- `logging.getLogger(__name__)` — no `print()`.
-- Absolute imports rooted at `app` (`from app.schemas import ChunkResult`).
-- `black`-formatted (4-space indent, double quotes, trailing commas).

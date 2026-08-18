@@ -5,19 +5,24 @@ Import shared fixtures from conftest.py (owned by P2).  Do NOT define
 new fixture setups that duplicate what conftest.py already provides.
 
 Strategy:
-- All tests stub the Gemini client with unittest.mock so no real network
-  calls are made.
-- Assertions about exact vector values are marked TODO(P3) pending a real
-  integration test environment with a valid API key.
+- Unit tests stub the Gemini client with unittest.mock.
+- Retry tests verify binary exponential backoff on transient errors.
+- Live integration tests verify real API calls when GEMINI_API_KEY is available.
 """
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, call, patch
 
 import pytest
 
-from app.retrieval.embeddings import EmbeddingError, embed_batch, embed_text
+from app.config import get_settings
+from app.retrieval.embeddings import (
+    EMBEDDING_DIMENSION,
+    EmbeddingError,
+    embed_batch,
+    embed_text,
+)
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -61,7 +66,7 @@ async def test_embed_text_returns_list_of_floats() -> None:
         result = await embed_text("hello world")
 
     assert isinstance(result, list)
-    # TODO(P3): assert len(result) == 768 once integration env is available
+    assert len(result) == 768
     assert all(isinstance(v, float) for v in result)
 
 
@@ -75,18 +80,19 @@ async def test_embed_text_raises_value_error_on_empty_string() -> None:
 @pytest.mark.asyncio
 async def test_embed_text_wraps_gemini_error_as_embedding_error() -> None:
     """embed_text() must raise EmbeddingError when the Gemini call fails."""
-    with patch(
-        "app.retrieval.embeddings._get_client",
-        return_value=MagicMock(
-            models=MagicMock(
-                embed_content=MagicMock(
-                    side_effect=Exception("API down"),
+    with patch("asyncio.sleep", new=AsyncMock()):
+        with patch(
+            "app.retrieval.embeddings._get_client",
+            return_value=MagicMock(
+                models=MagicMock(
+                    embed_content=MagicMock(
+                        side_effect=Exception("API down"),
+                    ),
                 ),
             ),
-        ),
-    ):
-        with pytest.raises(EmbeddingError):
-            await embed_text("hello")
+        ):
+            with pytest.raises(EmbeddingError):
+                await embed_text("hello")
 
 
 # ── embed_batch ────────────────────────────────────────────────────────────────
@@ -109,9 +115,10 @@ async def test_embed_batch_returns_aligned_vectors() -> None:
         result = await embed_batch(["a", "b", "c"])
 
     assert len(result) == 3
-    # TODO(P3): assert result[0][0] == 0.0 once integration env is available
+    assert result[0][0] == 0.0
     for vec in result:
         assert isinstance(vec, list)
+        assert len(vec) == 768
         assert all(isinstance(v, float) for v in vec)
 
 
@@ -131,19 +138,20 @@ async def test_embed_batch_raises_value_error_on_empty_string_element() -> None:
 
 @pytest.mark.asyncio
 async def test_embed_batch_wraps_gemini_error_as_embedding_error() -> None:
-    """embed_batch() must raise EmbeddingError when the Gemini call fails."""
-    with patch(
-        "app.retrieval.embeddings._get_client",
-        return_value=MagicMock(
-            models=MagicMock(
-                embed_content=MagicMock(
-                    side_effect=Exception("rate limit"),
+    """embed_batch() must raise EmbeddingError when all retries fail."""
+    with patch("asyncio.sleep", new=AsyncMock()):
+        with patch(
+            "app.retrieval.embeddings._get_client",
+            return_value=MagicMock(
+                models=MagicMock(
+                    embed_content=MagicMock(
+                        side_effect=Exception("rate limit"),
+                    ),
                 ),
             ),
-        ),
-    ):
-        with pytest.raises(EmbeddingError):
-            await embed_batch(["text"])
+        ):
+            with pytest.raises(EmbeddingError, match="after 3 retries"):
+                await embed_batch(["text"])
 
 
 @pytest.mark.asyncio
@@ -162,7 +170,6 @@ async def test_embed_batch_single_item_matches_embed_text() -> None:
     ):
         batch_result = await embed_batch(["singleton"])
 
-    # Reconstruct the same fake response for the single-text call.
     mock_client.models.embed_content.return_value = _make_fake_response(
         [FAKE_VECTOR_768],
     )
@@ -173,6 +180,82 @@ async def test_embed_batch_single_item_matches_embed_text() -> None:
     ):
         single_result = await embed_text("singleton")
 
-    # TODO(P3): assert batch_result[0] == single_result once integration env is available
+    assert batch_result[0] == single_result
     assert isinstance(batch_result[0], list)
     assert isinstance(single_result, list)
+
+
+# ── Retry & Backoff tests ──────────────────────────────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_embed_batch_retries_with_exponential_backoff() -> None:
+    """embed_batch() should retry with exponential backoff on transient failure and succeed."""
+    fake_response = _make_fake_response([FAKE_VECTOR_768])
+    mock_embed_content = MagicMock(
+        side_effect=[
+            Exception("503 Service Unavailable"),
+            Exception("429 Too Many Requests"),
+            fake_response,
+        ]
+    )
+    mock_client = MagicMock(models=MagicMock(embed_content=mock_embed_content))
+
+    with patch("asyncio.sleep", new=AsyncMock()) as mock_sleep:
+        with patch("app.retrieval.embeddings._get_client", return_value=mock_client):
+            result = await embed_batch(["retry text"])
+
+    assert len(result) == 1
+    assert len(result[0]) == 768
+    assert mock_embed_content.call_count == 3
+    # First backoff: 2**0 = 1s, Second backoff: 2**1 = 2s
+    assert mock_sleep.await_args_list == [call(1), call(2)]
+
+
+# ── Live Integration tests (when API key is available) ─────────────────────────
+
+
+def _has_valid_gemini_key() -> bool:
+    """Check if a real GEMINI_API_KEY is configured."""
+    try:
+        settings = get_settings()
+        key = settings.gemini_api_key
+        return bool(key and not key.startswith("your-") and len(key) > 10)
+    except Exception:
+        return False
+
+
+@pytest.mark.asyncio
+async def test_embed_text_live() -> None:
+    """Live test calling Google Gemini embedding API with a real key."""
+    if not _has_valid_gemini_key():
+        pytest.skip("No valid GEMINI_API_KEY available for live integration test")
+
+    result = await embed_text("Enterprise search knowledge retrieval test")
+    assert isinstance(result, list)
+    assert len(result) == EMBEDDING_DIMENSION
+    assert all(isinstance(v, float) for v in result)
+    # Check that vector is non-trivial (has non-zero values)
+    assert any(abs(v) > 1e-6 for v in result)
+
+
+@pytest.mark.asyncio
+async def test_embed_batch_live() -> None:
+    """Live test calling Google Gemini embedding API in batch mode."""
+    if not _has_valid_gemini_key():
+        pytest.skip("No valid GEMINI_API_KEY available for live integration test")
+
+    texts = [
+        "First document paragraph regarding corporate leave policy",
+        "Second document paragraph detailing travel reimbursement guidelines",
+    ]
+    results = await embed_batch(texts)
+    assert isinstance(results, list)
+    assert len(results) == 2
+    for vec in results:
+        assert isinstance(vec, list)
+        assert len(vec) == EMBEDDING_DIMENSION
+        assert all(isinstance(v, float) for v in vec)
+        assert any(abs(v) > 1e-6 for v in vec)
+    # Both vectors should be distinct
+    assert results[0] != results[1]

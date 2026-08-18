@@ -13,15 +13,13 @@ pip-wheel-metadata/
 *.pyo
 *.pyd
 
-# ─── Virtual environments & package managers ───────────────────────────────
+# ─── Virtual environments ─────────────────────────────────────────────────────
 env/
 venv/
 .venv/
 ENV/
 env.bak/
 venv.bak/
-uv.lock
-.uv/
 
 # ─── Pytest / coverage ───────────────────────────────────────────────────────
 .pytest_cache/

@@ -4,16 +4,15 @@ Owner: P3  |  Priority: 1
 Reads un-embedded chunks from the DB, calls embed_batch(), and writes the
 vectors back to chunks.embedding as a JSON-serialised list of floats (stored
 in the Text column; P2 owns the Alembic migration that converts it to
-vector(1536) on production Neon).
+vector(768) on production Neon).
 
 Designed to run as an offline job after loader.py has populated the chunks
 table.  Safe to re-run: chunks whose embedding column is already populated
 are skipped (idempotent).
 
-Batch size is fixed at EMBED_BATCH_SIZE so we never send more than OpenAI's
-limit of 2 048 items per call.  Batches are processed sequentially to keep
-memory use predictable; increase EMBED_BATCH_SIZE for higher throughput if
-the API quota allows.
+Batch size is configured via Settings.embed_batch_size (default: 256).
+Batches are processed sequentially to keep memory use predictable;
+increase embed_batch_size for higher throughput if the API quota allows.
 """
 
 from __future__ import annotations
@@ -25,11 +24,12 @@ from uuid import UUID
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import get_settings
 from app.retrieval.embeddings import EmbeddingError, embed_batch
 
 logger = logging.getLogger(__name__)
 
-# Maximum number of chunks sent to the embedding API in a single call.
+# Default maximum number of chunks sent to the embedding API in a single call.
 EMBED_BATCH_SIZE: int = 256
 
 
@@ -63,10 +63,9 @@ async def index_chunks(session: AsyncSession, tenant_id: str) -> int:
 
     Raises:
         IndexerError: If a database query fails or the tenant_id is invalid.
-        EmbeddingError: Propagated from embed_batch() if the OpenAI API fails
-            after all batches have been attempted; partial progress is *not*
-            rolled back — successfully embedded batches are committed
-            individually so the job can be resumed.
+        EmbeddingError: Propagated from embed_batch() if the Gemini embeddings API
+            fails after retries; partial progress is *not* rolled back — successfully
+            embedded batches are committed individually so the job can be resumed.
     """
     try:
         tenant_uuid = UUID(tenant_id)
@@ -78,6 +77,9 @@ async def index_chunks(session: AsyncSession, tenant_id: str) -> int:
     # on how P1 chose to organise it.  We use a raw text query against the
     # 'chunks' table so this module has zero dependency on the ORM class.
     from sqlalchemy import text  # noqa: PLC0415  (deferred import is intentional)
+
+    settings = get_settings()
+    batch_size = getattr(settings, "embed_batch_size", EMBED_BATCH_SIZE)
 
     logger.info("Starting indexing for tenant_id=%s", tenant_id)
 
@@ -104,21 +106,21 @@ async def index_chunks(session: AsyncSession, tenant_id: str) -> int:
         "Found %d unindexed chunk(s) for tenant_id=%s; batch_size=%d",
         len(rows),
         tenant_id,
-        EMBED_BATCH_SIZE,
+        batch_size,
     )
 
     total_indexed = 0
 
     # Process in batches.
-    for batch_start in range(0, len(rows), EMBED_BATCH_SIZE):
-        batch = rows[batch_start : batch_start + EMBED_BATCH_SIZE]
+    for batch_start in range(0, len(rows), batch_size):
+        batch = rows[batch_start : batch_start + batch_size]
         batch_ids = [str(row[0]) for row in batch]
         batch_texts = [row[1] for row in batch]
 
         logger.debug(
             "Embedding batch %d/%d (size=%d)",
-            batch_start // EMBED_BATCH_SIZE + 1,
-            (len(rows) + EMBED_BATCH_SIZE - 1) // EMBED_BATCH_SIZE,
+            batch_start // batch_size + 1,
+            (len(rows) + batch_size - 1) // batch_size,
             len(batch),
         )
 
