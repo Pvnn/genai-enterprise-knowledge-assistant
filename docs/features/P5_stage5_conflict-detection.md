@@ -27,4 +27,5 @@ Done
 The spec signature for `check_conflict` does not take the `query`, so the LLM is prompted to find general contradictions among the retrieved chunks rather than specifically checking against the query. The user confirmed this is the intended approach to strictly follow the Section 6 signature.
 
 ## Tests
-not yet written
+`backend/tests/test_conflict_detector.py`
+

@@ -8,11 +8,21 @@ Fallback: if this module is unavailable, conflict is reported as False.
 """
 
 import logging
+from pydantic import BaseModel, Field
+import openai
 from openai import AsyncOpenAI
 from app.schemas import ChunkResult, ConflictResult
 from app.config import get_settings
 
 logger = logging.getLogger(__name__)
+
+
+class ConflictLLMResponse(BaseModel):
+    """Internal structured output schema for the conflict-detection LLM call."""
+
+    has_contradiction: bool = Field(
+        description="True if the excerpts directly contradict each other, False otherwise."
+    )
 
 
 async def check_conflict(top_chunks: list[ChunkResult]) -> ConflictResult:
@@ -41,31 +51,54 @@ async def check_conflict(top_chunks: list[ChunkResult]) -> ConflictResult:
         
     prompt = (
         "You are an expert policy analyst. Review the following excerpts from current policy documents.\n"
-        "Determine if any of these excerpts directly contradict each other regarding the same topic.\n"
-        "Reply with exactly one word: 'YES' if there is a contradiction, or 'NO' if there is no contradiction.\n\n"
+        "Determine if any of these excerpts directly contradict each other regarding the same topic.\n\n"
         f"{chunk_texts}"
     )
     
-    try:
-        client = AsyncOpenAI(api_key=settings.openai_api_key)
-        response = await client.chat.completions.create(
-            model=settings.llm_model,
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.0,
-            max_tokens=10,
-        )
-        answer = response.choices[0].message.content.strip().lower()
-        
-        if "yes" in answer:
-            conflict_pair = [current_chunks[0]]
-            for c in current_chunks[1:]:
-                if c.document_id != conflict_pair[0].document_id:
-                    conflict_pair.append(c)
-                    break
-            return ConflictResult(conflict=True, conflicting_chunks=conflict_pair)
-            
-    except Exception as e:
-        logger.error("LLM call failed in check_conflict: %s", e)
-        return ConflictResult(conflict=False)
+    TRANSIENT_ERRORS = (
+        openai.RateLimitError,
+        openai.APITimeoutError,
+        openai.APIConnectionError,
+        openai.InternalServerError,
+        TimeoutError,
+        ConnectionError,
+    )
+
+    # Retry with binary exponential backoff on transient failures.
+    MAX_RETRIES = 2
+    client = AsyncOpenAI(api_key=settings.openai_api_key)
+    result = None
+    for attempt in range(MAX_RETRIES + 1):
+        try:
+            response = await client.beta.chat.completions.parse(
+                model=settings.llm_model,
+                messages=[{"role": "user", "content": prompt}],
+                response_format=ConflictLLMResponse,
+                temperature=0.0,
+            )
+            result = response.choices[0].message.parsed
+            break
+        except TRANSIENT_ERRORS as e:
+            wait_seconds = 2 ** attempt  # 1s, 2s
+            logger.warning(
+                "Transient LLM call failed in check_conflict (attempt %d/%d): %s. Retrying in %ds...",
+                attempt + 1, MAX_RETRIES + 1, e, wait_seconds,
+            )
+            if attempt < MAX_RETRIES:
+                import asyncio
+                await asyncio.sleep(wait_seconds)
+        except Exception as e:
+            logger.error("Non-transient error in check_conflict: %s. Aborting retries.", e)
+            break
+
+    if result is not None and result.has_contradiction:
+        conflict_pair = [current_chunks[0]]
+        for c in current_chunks[1:]:
+            if c.document_id != conflict_pair[0].document_id:
+                conflict_pair.append(c)
+                break
+        return ConflictResult(conflict=True, conflicting_chunks=conflict_pair)
 
     return ConflictResult(conflict=False)
+
+

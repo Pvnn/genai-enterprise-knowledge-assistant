@@ -26,4 +26,5 @@ Done
 The spec required asking the LLM for high/medium/low confidence, but `schemas.py` defines `confidence` as a float. I have mapped the LLM's text output to floats (high=1.0, medium=0.5, low=0.0).
 
 ## Tests
-not yet written
+`backend/tests/test_grounding.py`
+
