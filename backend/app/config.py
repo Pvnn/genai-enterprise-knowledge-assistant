@@ -8,7 +8,7 @@ No other file should call os.environ directly.
 import logging
 from functools import lru_cache
 
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 logger = logging.getLogger(__name__)
@@ -40,9 +40,17 @@ class Settings(BaseSettings):
             "Async SQLAlchemy URL for Neon Postgres. "
             "Prefer the direct (unpooled) connection string to avoid PgBouncer "
             "prepared-statement conflicts. Format: "
-            "postgresql+asyncpg://<user>:<password>@<host>.neon.tech/<dbname>?sslmode=require"
+            "postgresql+asyncpg://<user>:<password>@<host>.neon.tech/<dbname>?ssl=require"
         ),
     )
+
+    @field_validator("database_url", mode="after")
+    @classmethod
+    def sanitize_database_url(cls, v: str) -> str:
+        """asyncpg requires ssl instead of sslmode."""
+        if "sslmode=" in v:
+            v = v.replace("sslmode=", "ssl=")
+        return v
 
     # ── Auth / JWT ────────────────────────────────────────────────────────────
     jwt_secret_key: str = Field(..., description="HMAC secret for JWT signing")
