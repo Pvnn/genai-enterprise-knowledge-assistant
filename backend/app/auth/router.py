@@ -11,16 +11,16 @@ without any changes to this file.
 """
 
 import logging
-from uuid import uuid4
 
 from fastapi import APIRouter, HTTPException, status
 from passlib.context import CryptContext
-from sqlalchemy import select, text
+from sqlalchemy import select
 
 from app.auth.models import User
 from app.auth.security import create_access_token
 from app.auth.tenancy import resolve_tenant
 from app.deps import CurrentUserDep, DbDep
+from app.models import Feedback
 from app.schemas import (
     CurrentUser,
     FeedbackRequest,
@@ -131,9 +131,8 @@ async def submit_feedback(
 
     POST /auth/feedback  →  { status: "ok" }
 
-    Uses a raw SQL insert rather than an ORM class because the Feedback
-    ORM model is not yet defined in app/models.py (P2 owns that file).
-    The feedback table is created by the existing Alembic migration.
+    Uses the Feedback ORM class from app.models (defined by P2).
+    query_id must reference an existing row in the queries table.
 
     Args:
         request: FeedbackRequest with query_id, thumbs_up_down, comment.
@@ -143,18 +142,12 @@ async def submit_feedback(
     Returns:
         FeedbackResponse: { status: "ok" }
     """
-    await session.execute(
-        text(
-            "INSERT INTO feedback (id, query_id, thumbs_up_down, comment) "
-            "VALUES (:id, :query_id, :thumbs_up_down, :comment)"
-        ),
-        {
-            "id": str(uuid4()),
-            "query_id": str(request.query_id),
-            "thumbs_up_down": request.thumbs_up_down,
-            "comment": request.comment,
-        },
+    feedback = Feedback(
+        query_id=request.query_id,
+        thumbs_up_down=request.thumbs_up_down,
+        comment=request.comment,
     )
+    session.add(feedback)
     await session.commit()
     logger.info(
         "Feedback recorded: query_id=%s user_id=%s thumbs_up_down=%s",
@@ -163,4 +156,3 @@ async def submit_feedback(
         request.thumbs_up_down,
     )
     return FeedbackResponse(status="ok")
-

@@ -23,9 +23,9 @@ from passlib.context import CryptContext
 from sqlalchemy.ext.asyncio import AsyncSession
 
 # ── SQLite compat: treat JSONB as JSON in the test DB ─────────────────────────
-# app/models.py uses `JSONB` (PostgreSQL-specific). conftest.py creates tables
-# in SQLite which can't render JSONB. Patch the SQLite compiler once — before
-# any model import — so create_all succeeds. Does not affect production code.
+# app/models.py currently uses `JSONB` (PostgreSQL-specific). P2 is switching
+# to JSON in their branch. Until that merges, patch SQLite's type compiler so
+# create_all succeeds. Remove this block after P2's branch is merged.
 from sqlalchemy.dialects.sqlite.base import SQLiteTypeCompiler
 SQLiteTypeCompiler.visit_JSONB = SQLiteTypeCompiler.visit_JSON  # type: ignore[method-assign]
 
