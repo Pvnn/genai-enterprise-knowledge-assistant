@@ -26,7 +26,7 @@ exclude = ["env/", "venv/", "migrations/"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
-testpaths = ["backend/tests", "tests"]
+testpaths = ["backend/tests", "eval/tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
