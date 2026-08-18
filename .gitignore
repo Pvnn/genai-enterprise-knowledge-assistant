@@ -87,3 +87,6 @@ models/
 *.bak
 *.tmp
 .cache/
+results.json
+results_fixed.json
+*.json

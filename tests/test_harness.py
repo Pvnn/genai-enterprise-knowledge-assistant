@@ -10,7 +10,7 @@ from pathlib import Path
 from dataclasses import asdict
 
 # Add the project root to the path so we can import the harness
-sys.path.insert(0, str(Path(__file__).parent.parent))
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from eval.harness import (
     load_gold_questions,
