@@ -1,14 +1,16 @@
-﻿"""Alembic migrations environment.
+"""Alembic migrations environment.
 
 Owner: P2
 Do NOT modify the migration files owned by other people.
 All schema changes go through Alembic; never ALTER TABLE manually.
 """
 
+import asyncio
 from logging.config import fileConfig
 
 from alembic import context
-from sqlalchemy import engine_from_config, pool
+from sqlalchemy import pool
+from sqlalchemy.ext.asyncio import create_async_engine
 
 from app.config import get_settings
 from app.database import Base  # noqa: F401 – ensures all models are imported
@@ -28,16 +30,26 @@ def run_migrations_offline() -> None:
         context.run_migrations()
 
 
-def run_migrations_online() -> None:
-    connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
-        prefix="sqlalchemy.",
+def do_run_migrations(connection):
+    context.configure(connection=connection, target_metadata=target_metadata)
+    with context.begin_transaction():
+        context.run_migrations()
+
+
+async def run_async_migrations() -> None:
+    url = get_settings().database_url
+    connectable = create_async_engine(
+        url,
         poolclass=pool.NullPool,
+        connect_args={"statement_cache_size": 0},
     )
-    with connectable.connect() as connection:
-        context.configure(connection=connection, target_metadata=target_metadata)
-        with context.begin_transaction():
-            context.run_migrations()
+    async with connectable.connect() as connection:
+        await connection.run_sync(do_run_migrations)
+    await connectable.dispose()
+
+
+def run_migrations_online() -> None:
+    asyncio.run(run_async_migrations())
 
 
 if context.is_offline_mode():
