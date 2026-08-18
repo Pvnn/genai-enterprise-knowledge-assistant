@@ -110,7 +110,7 @@ class Query(Base):
     retrieved_chunk_ids: Mapped[dict | list | None] = mapped_column(JSON, nullable=True)
     confidence_score: Mapped[float | None] = mapped_column(Float, nullable=True)
     answered_or_refused: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
 
     feedback: Mapped[list[Feedback]] = relationship("Feedback", back_populates="query")
 
