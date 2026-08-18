@@ -36,11 +36,14 @@ import DocumentsLibrary from "./DocumentsLibrary";
 
 const DEFAULT_TENANT_ID =
   localStorage.getItem("tenant_id") || "00000000-0000-0000-0000-000000000001";
-
 const STORAGE_KEY_CONVERSATIONS = "genai_assistant_conversations";
 const STORAGE_KEY_THEME = "genai_assistant_theme";
 
-export const ChatPage: React.FC = () => {
+interface ChatPageProps {
+  onLogout?: () => void;
+}
+
+export const ChatPage: React.FC<ChatPageProps> = ({ onLogout }) => {
   // Theme state
   const [darkMode, setDarkMode] = useState<boolean>(() => {
     const saved = localStorage.getItem(STORAGE_KEY_THEME);
@@ -401,6 +404,7 @@ export const ChatPage: React.FC = () => {
         onToggleDarkMode={() => setDarkMode(!darkMode)}
         isOpen={sidebarOpen}
         onCloseMobile={() => setSidebarOpen(false)}
+        onLogout={onLogout}
       />
 
       {/* Central Viewport */}

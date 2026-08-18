@@ -33,9 +33,9 @@ Done
 
 ## Known issues / open questions
 
+- **Auth context & logout integration:** P7 has provided the Logout UI button and action hook in `ChatSidebar.tsx` and `App.tsx`. P6 owns authentication (`frontend/src/auth/*`) and needs to export an auth provider / hook (e.g. `useAuth().logout()`) that manages session state, token invalidation, and auth redirect.
 - **query_id schema gap:** `query_id` is required by `POST /feedback` (Section 5) but is omitted from the `FinalEvent` schema in `POST /chat`. This schema gap is owned by P2 (`schemas.py`) and P4 (`generator.py` / `/chat` router). The frontend uses a temporary local message-bound ID placeholder pending backend confirmation.
 - **Unconfirmed conflict shape:** The internal structure of the `conflict` field/event is not fully specified in Section 6. The `ConflictAlert` component has been built defensively to handle raw text answers and optional citation lists without rigid structural assumptions.
-- **Auth context integration:** Confirm with P6 whether `auth/*` exposes custom hooks for auth context or if `client.ts` fetchers should be utilized directly.
 
 ## Tests
 

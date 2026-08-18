@@ -20,6 +20,15 @@ export const App: React.FC = () => {
   // TODO: confirm with P6 whether auth/* already exposes these via a hook or context.
   const currentUserRole = localStorage.getItem("user_role") || "member";
 
+  const handleLogout = () => {
+    // TODO: Delegate to P6 auth module (e.g. useAuth().logout()) once P6 exposes a logout function/hook.
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("tenant_id");
+    localStorage.removeItem("user_role");
+    window.history.pushState({}, "", "/login");
+    setCurrentPath("/login");
+  };
+
   if (currentPath === "/login") {
     return <Login />;
   }
@@ -50,7 +59,7 @@ export const App: React.FC = () => {
     return <UploadPage />;
   }
 
-  return <ChatPage />;
+  return <ChatPage onLogout={handleLogout} />;
 };
 
 export default App;

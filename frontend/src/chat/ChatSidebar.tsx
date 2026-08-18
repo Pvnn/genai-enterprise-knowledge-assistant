@@ -2,8 +2,8 @@
  * ChatSidebar Component.
  * Owner: P7
  *
- * Provides conversation thread history, view switching, tenant scope, and theme toggling.
- * Sidebar no longer displays sample questions per user request.
+ * Provides conversation thread history, view switching, tenant scope, theme toggling, and logout UI hook.
+ * Styled with Claude-inspired Civic Indigo, Warm Paper, Deep Slate, and Seal Gold palette.
  */
 
 import React from "react";
@@ -16,6 +16,7 @@ import {
   Buildings,
   Files,
   X,
+  SignOut,
 } from "@phosphor-icons/react";
 import { Conversation } from "./types";
 
@@ -33,6 +34,7 @@ interface ChatSidebarProps {
   onToggleDarkMode: () => void;
   isOpen: boolean;
   onCloseMobile: () => void;
+  onLogout?: () => void;
 }
 
 export const ChatSidebar: React.FC<ChatSidebarProps> = ({
@@ -48,6 +50,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
   onToggleDarkMode,
   isOpen,
   onCloseMobile,
+  onLogout,
 }) => {
   return (
     <>
@@ -194,7 +197,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
           </div>
         </div>
 
-        {/* Footer info & theme toggle */}
+        {/* Footer info, theme toggle, and logout */}
         <div className="p-3 border-t border-hairline space-y-2 text-xs">
           <div className="px-2 py-1.5 rounded-lg bg-surface flex items-center justify-between border border-hairline text-ink-muted">
             <span className="text-[11px]">Tenant Scope:</span>
@@ -216,6 +219,19 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
               {darkMode ? "ON" : "OFF"}
             </span>
           </button>
+
+          {onLogout && (
+            <button
+              type="button"
+              onClick={onLogout}
+              className="w-full flex items-center justify-between px-3 py-2 rounded-xl border border-hairline bg-surface text-ink hover:text-rose-600 dark:hover:text-rose-400 hover:border-rose-500/30 transition-colors shadow-2xs"
+            >
+              <span className="flex items-center gap-2">
+                <SignOut size={15} className="text-ink-muted" />
+                <span>Log Out</span>
+              </span>
+            </button>
+          )}
         </div>
       </aside>
     </>
