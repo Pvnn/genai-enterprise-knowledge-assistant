@@ -29,12 +29,7 @@ async def load_chunks(session: AsyncSession, chunks: list[ChunkDB]) -> None:
     
     # 1. Generate embeddings for all chunk texts
     texts = [chunk.text for chunk in chunks]
-    try:
-        embeddings = await embed_batch(texts)
-    except NotImplementedError:
-        logger.warning("embeddings.embed_batch() not implemented by P3 yet. Mocking embeddings for development.")
-        # Create a mock embedding of 1536 dimensions (OpenAI text-embedding-3-small)
-        embeddings = [[0.0] * 1536 for _ in texts]
+    embeddings = await embed_batch(texts)
     
     # 2. Bulk insert into the `chunks` table
     # We use raw SQL with SQLAlchemy text() since P2 may not have finished the Chunk ORM model yet,
