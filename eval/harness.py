@@ -375,11 +375,10 @@ async def run_evaluation(
 
     # Setup chat client
     if mock:
-        chat_client = MockChatAPI()
-        # Need to wrap mock to match async interface
+        mock_api = MockChatAPI()  # ← Changed variable name
         class MockWrapper:
             async def chat(self, question):
-                return await chat_client.chat(question)
+                return await mock_api.chat(question)  # ← Use the new name
         chat_client = MockWrapper()
     else:
         if not api_url:
