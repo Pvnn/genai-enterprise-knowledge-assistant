@@ -24,7 +24,7 @@ openai>=1.30.0
 
 # ── OCR / Document parsing (P1 – GPU required for full performance) ────────────
 torch>=2.0.0            # Required for CPU fallback device detection. For GPU, install CUDA wheels manually.
-marker-pdf>=0.2.0       # Marker: PDF → structured markdown
+docling>=2.0.0          # Docling: PDF → structured markdown
 # GOT-OCR2_0            # Fallback OCR model (install separately if needed)
 
 # ── Reranker (P3 – CPU-only) ──────────────────────────────────────────────────
