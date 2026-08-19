@@ -1,83 +1,108 @@
-"""Stage 0 – Full ingestion pipeline runner.
+"""Stage 0 (Priority 1) - Ingestion Pipeline Orchestrator.
 
 Owner: P1
-Provides:
-  - ingest_document()  — importable callable used by ingestion/router.py
-                         (BackgroundTasks) and any programmatic caller.
-  - ingest_file()      — thin wrapper kept for backward-compat.
-  - CLI entry-point    — python -m app.ingestion.run_ingestion <path> <tenant_id>
-                         <department> <doc_type>
-
-Orchestrates ocr -> chunker -> metadata_tagger -> loader.
-Invokes Priority 2 stages (summarizer, section_tree, glossary_builder)
-when available, silently skipping them on ImportError or exception.
-GPU is optional; device selection is delegated to ocr.parse_document().
 """
-
 import logging
-import sys
-from pathlib import Path
+from uuid import UUID
+
+from sqlalchemy import update, select
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.database import AsyncSessionLocal
+
+from app.models import Document, IngestionStatus
+from app.ingestion.ocr import parse_document
+from app.ingestion.chunker import chunk_document
+from app.ingestion.metadata_tagger import tag_chunks
+from app.ingestion.loader import load_chunks
 
 logger = logging.getLogger(__name__)
 
 
 async def ingest_document(
     file_path: str,
-    tenant_id: str,
-    department: str,
-    doc_type: str,
-) -> str:
-    """Run the full ingestion pipeline for a single PDF file.
-
-    This is the canonical importable entry-point.  Called by
-    ingestion/router.py inside a FastAPI BackgroundTasks job.
-
+    document_id: UUID,
+    tenant_id: UUID,
+    department: str | None,
+    doc_type: str | None,
+) -> None:
+    """Orchestrate the end-to-end ingestion pipeline for a single document.
+    
     Args:
-        file_path: Absolute path to the PDF file on disk.
-        tenant_id: Tenant to which this document belongs.
-        department: Department metadata tag (e.g. "HR", "Finance").
-        doc_type: Document type tag (e.g. "policy", "circular").
-
-    Returns:
-        str: UUID of the newly created document record.
+        file_path: Absolute path to the saved PDF file.
+        document_id: The UUID of the document row created by the API.
+        tenant_id: The UUID of the tenant.
+        department: The department assigned to this document.
+        doc_type: The document type assigned.
     """
-    raise NotImplementedError("P1: implement ingest_document() in run_ingestion.py")
-
-
-async def ingest_file(source_path: str | Path, tenant_id: str) -> None:
-    """Backward-compatible wrapper around ingest_document().
-
-    Kept so existing batch callers that only pass (path, tenant_id) continue
-    to work.  department and doc_type default to empty strings; P1 should
-    extract them from the document itself inside ingest_document().
-
-    Args:
-        source_path: Path to the PDF.
-        tenant_id: Tenant to which this document belongs.
-    """
-    await ingest_document(
-        file_path=str(source_path),
-        tenant_id=tenant_id,
-        department="",
-        doc_type="",
-    )
-
-
-if __name__ == "__main__":
-    import asyncio
-
-    if len(sys.argv) < 5:
-        print(
-            "Usage: python -m app.ingestion.run_ingestion "
-            "<path> <tenant_id> <department> <doc_type>"
-        )
-        sys.exit(1)
-
-    asyncio.run(
-        ingest_document(
-            file_path=sys.argv[1],
-            tenant_id=sys.argv[2],
-            department=sys.argv[3],
-            doc_type=sys.argv[4],
-        )
-    )
+    logger.info("Starting ingestion pipeline for document %s", document_id)
+    
+    async with AsyncSessionLocal() as session:
+        try:
+            # 1. Fetch the Document to get its metadata and update status
+            result = await session.execute(
+                select(Document).where(Document.id == document_id)
+            )
+            doc = result.scalars().first()
+            if not doc:
+                raise ValueError(f"Document {document_id} not found in database")
+                
+            # Default version_status to 'current' if not set
+            if not doc.version_status:
+                doc.version_status = "current"
+                
+            doc_effective_date = doc.effective_date
+            doc_version_status = doc.version_status
+            
+            doc.ingestion_status = IngestionStatus.PROCESSING.value
+            await session.commit()
+            
+            # 2. Stage 0.1 - OCR Parsing
+            logger.info("Parsing document with Docling (OCR)...")
+            # In a real environment, we'd read OCR_DEVICE from config. We let the default handle it here.
+            markdown_text = parse_document(file_path)
+            
+            # 3. Stage 0.2 - Chunking
+            logger.info("Chunking markdown output...")
+            raw_chunks = chunk_document(markdown_text)
+            
+            # 4. Stage 0.3 - Metadata Tagging
+            logger.info("Tagging chunks with document metadata...")
+            tagged_chunks = tag_chunks(
+                chunks=raw_chunks,
+                document_id=document_id,
+                tenant_id=tenant_id,
+                department=department,
+                doc_type=doc_type,
+                effective_date=doc_effective_date,
+                version_status=doc_version_status,
+                source_path=file_path
+            )
+            
+            # 5. Stage 0.4 - Loading (Embeddings & Database Insert)
+            logger.info("Loading chunks into database...")
+            await load_chunks(session, tagged_chunks)
+            
+            # 6. Mark as DONE
+            await session.execute(
+                update(Document)
+                .where(Document.id == document_id)
+                .values(ingestion_status=IngestionStatus.DONE.value)
+            )
+            await session.commit()
+            logger.info("Successfully ingested document %s", document_id)
+            
+        except Exception as e:
+            logger.error("Ingestion failed for document %s: %s", document_id, str(e), exc_info=True)
+            # Attempt to roll back any pending chunk inserts
+            await session.rollback()
+            
+            # Mark as FAILED
+            try:
+                await session.execute(
+                    update(Document)
+                    .where(Document.id == document_id)
+                    .values(ingestion_status=IngestionStatus.FAILED.value)
+                )
+                await session.commit()
+            except Exception as fallback_err:
+                logger.error("Failed to update document status to FAILED: %s", fallback_err)
