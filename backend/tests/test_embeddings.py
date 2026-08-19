@@ -63,9 +63,7 @@ def _make_fake_settings(
 ) -> MagicMock:
     """Create a mock Settings object with customized embedding configuration."""
     mock = MagicMock(spec=Settings)
-    mock.gemini_embedding_model = gemini_model
     mock.embedding_model = gemini_model
-    mock.gemini_embedding_dimension = dimension
     mock.embedding_dimension = dimension
     mock.embedding_max_retries = max_retries
     mock.gemini_api_key = gemini_api_key

@@ -409,16 +409,8 @@ async def embed_batch(texts: list[str]) -> list[list[float]]:
 
     settings = get_settings()
 
-    gemini_model = getattr(
-        settings,
-        "gemini_embedding_model",
-        getattr(settings, "embedding_model", "gemini-embedding-001"),
-    )
-    dimension = getattr(
-        settings,
-        "gemini_embedding_dimension",
-        getattr(settings, "embedding_dimension", EMBEDDING_DIMENSION),
-    )
+    gemini_model = getattr(settings, "embedding_model", "gemini-embedding-001")
+    dimension = getattr(settings, "embedding_dimension", EMBEDDING_DIMENSION)
     max_retries = getattr(settings, "embedding_max_retries", MAX_RETRIES)
 
     logger.debug(
