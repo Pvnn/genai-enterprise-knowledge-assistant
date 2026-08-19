@@ -7,7 +7,7 @@
  * the keys read by App.tsx and ChatPage.tsx), then navigates to /chat.
  */
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Eye, EyeSlash, BuildingOffice, EnvelopeSimple, LockSimple, ArrowRight, WarningCircle } from "@phosphor-icons/react";
 import { login } from "../api/client";
 
@@ -30,6 +30,14 @@ const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // If the user already has a valid token, skip the login page
+  useEffect(() => {
+    if (localStorage.getItem("access_token")) {
+      window.history.replaceState({}, "", "/chat");
+      window.dispatchEvent(new PopStateEvent("popstate"));
+    }
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setError(null);
