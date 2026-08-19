@@ -1,27 +1,65 @@
 /**
- * Root application component – wires routing between Auth and Chat.
+ * Root application component. Wires routing between Auth, Chat, and Upload.
  * Owner: P7
  */
-import React from "react";
+
+import React, { useState, useEffect } from "react";
+import ChatPage from "./chat/ChatPage";
+import Login from "./auth/Login";
 import UploadPage from "./upload/UploadPage";
 
-// TODO P7: implement proper router (e.g. react-router-dom) between /login, /chat, and /upload
-// This is a minimal placeholder showing how the role routes to the upload page.
-const App: React.FC = () => {
-  // TODO(P6): Replace this direct localStorage read with a proper auth context / hook (e.g., useAuth())
-  // once the P6 auth module implements one. This is a stopgap for the upload routing.
+export const App: React.FC = () => {
+  const [currentPath, setCurrentPath] = useState(window.location.pathname);
+
+  useEffect(() => {
+    const handlePopState = () => setCurrentPath(window.location.pathname);
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  // TODO: confirm with P6 whether auth/* already exposes these via a hook or context.
   const currentUserRole = localStorage.getItem("user_role") || "member";
-  
-  // Basic routing stub
-  const path = window.location.pathname;
-  if (path === "/upload") {
+
+  const handleLogout = () => {
+    // TODO: Delegate to P6 auth module (e.g. useAuth().logout()) once P6 exposes a logout function/hook.
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("tenant_id");
+    localStorage.removeItem("user_role");
+    window.history.pushState({}, "", "/login");
+    setCurrentPath("/login");
+  };
+
+  if (currentPath === "/login") {
+    return <Login />;
+  }
+
+  if (currentPath === "/upload") {
     if (currentUserRole !== "admin") {
-      return <div>Access Denied. Admins only.</div>; // Or redirect to /chat
+      return (
+        <div className="flex h-screen items-center justify-center bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200">
+          <div className="text-center p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm">
+            <h2 className="text-base font-bold mb-2">Access Restricted</h2>
+            <p className="text-xs text-slate-500 mb-4">
+              Document upload is restricted to administrative personnel.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                window.history.pushState({}, "", "/chat");
+                setCurrentPath("/chat");
+              }}
+              className="px-4 py-2 text-xs font-medium rounded-xl bg-sky-600 hover:bg-sky-700 text-white transition-colors"
+            >
+              Return to Chat
+            </button>
+          </div>
+        </div>
+      );
     }
     return <UploadPage />;
   }
 
-  return <div>GenAI Enterprise Knowledge Assistant</div>;
+  return <ChatPage onLogout={handleLogout} />;
 };
 
 export default App;

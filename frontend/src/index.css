@@ -1,0 +1,131 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    /* Claude-inspired Light Palette */
+    --color-bg-canvas: #FAF8F4;
+    --color-bg-surface: #FFFFFF;
+    --color-bg-surface-muted: #F3EFEA;
+    --color-bg-surface-elevated: #FFFFFF;
+    --color-text-ink: #1D2430;
+    --color-text-ink-muted: #5B6472;
+    --color-primary-brand: #25406E;
+    --color-primary-brand-hover: #1c3156;
+    --color-primary-brand-subtle: #EAEFF7;
+    --color-accent-gold: #B8863C;
+    --color-accent-gold-subtle: #FDF6EB;
+    --color-border-hairline: #E4E0D6;
+    --color-border-strong: #D5CEBE;
+  }
+
+  .dark {
+    /* Claude-inspired Dark Palette */
+    --color-bg-canvas: #151A22;
+    --color-bg-surface: #1E252F;
+    --color-bg-surface-muted: #18202A;
+    --color-bg-surface-elevated: #242D39;
+    --color-text-ink: #EDEAE2;
+    --color-text-ink-muted: #9AA3B0;
+    --color-primary-brand: #5B7FBB;
+    --color-primary-brand-hover: #7598D4;
+    --color-primary-brand-subtle: #1C2B42;
+    --color-accent-gold: #D9A75C;
+    --color-accent-gold-subtle: #332817;
+    --color-border-hairline: #2C3440;
+    --color-border-strong: #3D4857;
+  }
+
+  html, body {
+    background-color: var(--color-bg-canvas);
+    color: var(--color-text-ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100dvh;
+    margin: 0;
+  }
+}
+
+/* Semantic utility helpers */
+.bg-canvas {
+  background-color: var(--color-bg-canvas);
+}
+
+.bg-surface {
+  background-color: var(--color-bg-surface);
+}
+
+.bg-surface-muted {
+  background-color: var(--color-bg-surface-muted);
+}
+
+.bg-surface-elevated {
+  background-color: var(--color-bg-surface-elevated);
+}
+
+.text-ink {
+  color: var(--color-text-ink);
+}
+
+.text-ink-muted {
+  color: var(--color-text-ink-muted);
+}
+
+.border-hairline {
+  border-color: var(--color-border-hairline);
+}
+
+.text-primary-brand {
+  color: var(--color-primary-brand);
+}
+
+.bg-primary-brand {
+  background-color: var(--color-primary-brand);
+}
+
+.text-accent-gold {
+  color: var(--color-accent-gold);
+}
+
+.bg-accent-gold {
+  background-color: var(--color-accent-gold);
+}
+
+.border-accent-gold {
+  border-color: var(--color-accent-gold);
+}
+
+/* Custom smooth scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.35);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.6);
+}
+
+/* Keyframes for token stream cursor pulse */
+@keyframes stream-cursor-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.15;
+  }
+}
+
+.animate-cursor-pulse {
+  animation: stream-cursor-pulse 0.85s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
