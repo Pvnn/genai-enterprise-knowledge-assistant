@@ -1,36 +1,23 @@
-# Document Summarizer
+# Stage 0: Summarizer
 
-**Owner:** P1
-**Stage:** 0
 **Priority:** 2
-**Files:** `backend/app/ingestion/summarizer.py`
+**Owner:** P1
 
-## What it does
+## Overview
+The Summarizer is executed per document during the ingestion pipeline. It generates a concise summary (<=200 words) of the document's content, which is stored in `documents.summary`. This is utilized by Stage 2a routing to narrow the candidate document set.
 
-It generates a concise summary (<= 200 words) of the ingested document via the configured LLM (e.g., `gpt-4o-mini` / `gpt-oss-120b`). This populates the `documents.summary` field, which is used by Stage 2a routing to narrow the candidate document set based on semantic content.
+## Implementation Details
+The summarizer leverages the LLM via OpenAI's structured outputs (`responses.parse`). The logic resides in `backend/app/ingestion/summarizer.py`.
 
-## Example
+### Structured Output Generation
+To guarantee a machine-readable string, the prompt strictly requests the core purpose and key rules without introductory fluff. We enforce this constraint by using a Pydantic schema:
 
-**Input:** Full structured markdown of a 20-page document
-**Output:** "This document outlines the PG 1st Year Fee Structure for the 2025-2026 session, including tuition, exam, and miscellaneous fees for standard and foreign students. It also details the fee concession policy for meritorious female students."
+```python
+class SummaryResponse(BaseModel):
+    summary: str = Field(description="A concise summary of the document, up to 200 words. Extract the core purpose and key rules of the provided document. Do not include introductory fluff.")
+```
 
-## Depends on / called by
+The request is sent using `_client.responses.parse(..., text_format=SummaryResponse)`. The returned validated object ensures we only capture the pure summary string.
 
-- Called by: `run_ingestion.py` after parsing the document.
-- Depends on: `OpenAI`/LLM configuration to generate the summary.
-
-## Fallback behavior
-
-If `summarizer.py` is unavailable, or the LLM call fails (e.g. missing API key or timeout), the exception is caught and logged. The `documents.summary` field is left `NULL`, and Stage 2a falls back gracefully to metadata-only filtering without the semantic summary.
-
-## Status
-
-Done
-
-## Known issues / open questions
-
-N/A
-
-## Tests
-
-`backend/tests/test_ingestion.py`
+## Fallback Behavior
+In accordance with the fallback requirements, if the API key is missing, or the API call times out/fails (e.g., due to rate limits or API outage), the exception is logged and caught smoothly in `run_ingestion.py`. The `documents.summary` field is left `NULL`, and Stage 2a falls back to metadata-only filtering without crashing the ingestion pipeline.

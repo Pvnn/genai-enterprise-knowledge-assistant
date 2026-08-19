@@ -1,36 +1,33 @@
-# Acronym & Entity Glossary Builder
+# Stage 0: Glossary Builder
 
-**Owner:** P1
-**Stage:** 0
 **Priority:** 2
-**Files:** `backend/app/ingestion/glossary_builder.py`
+**Owner:** P1
 
-## What it does
+## Overview
+The Glossary Builder is responsible for auto-building a corpus-wide acronym and entity glossary during the document ingestion phase. This glossary is later used by Stage 1 query rewriting (Priority 4) to seamlessly expand user acronyms and improve search recall.
 
-It auto-builds a corpus-wide acronym and entity glossary from the document's chunks using the configured LLM. The extracted terms and expansions are stored in the `glossary` table, scoped by `tenant_id`. This glossary is later used by Stage 1 query rewriting (P4) to expand acronyms in user questions before searching, improving dense retrieval accuracy.
+## Implementation Details
+We implement the glossary extraction using a highly optimized, robust Regex heuristic approach. This bypasses the need for an LLM entirely, saving tokens, time, and entirely avoiding context length limits and JSON-validation errors on large chunks. 
 
-## Example
+The implementation lives in `backend/app/ingestion/glossary_builder.py`.
 
-**Input:** "The students of Undergraduate Courses of DDCE will report to the HoD."
-**Output:** `[{"term": "DDCE", "expansion": "Directorate of Distance and Continuing Education"}, {"term": "HoD", "expansion": "Head of Department"}]`
+### 1. Pattern Matching & Regex Heuristics
+The extractor scans document chunks for two primary definition structures:
+*   **Full Expansion (ACRONYM)**: e.g., "Maximal Marginal Relevance (MMR)"
+    `\b((?:[A-Z][a-z0-9\-]+\s+){1,6}[A-Z][a-z0-9\-]+)\s*\(([A-Z0-9]{2,8})\)`
+*   **ACRONYM (Full Expansion)**: e.g., "CRAG (Corrective Retrieval-Augmented Generation)"
+    `\b([A-Z0-9]{2,8})\s*\(([A-Z][A-Za-z0-9\-,\s]{5,70})\)`
 
-## Depends on / called by
+### 2. Validation Pipeline
+Before being inserted into the glossary, candidate matches run through two cleanup functions:
+*   `clean_expansion()`: Strips trailing spaces, normalizes whitespace, and drops leading stopwords (e.g., "the ", "using ", "for ").
+*   `is_valid_acronym_match()`: 
+    *   Verifies acronym length (2–8 characters).
+    *   Checks exact initials matching (e.g., extracting the first letter of each significant word).
+    *   Checks subsequence alignment (ensures the letters in the acronym appear in order within the initials or expansion, efficiently capturing "HNSW" -> "Hierarchical Navigable Small World").
 
-- Called by: `run_ingestion.py` after chunks are built and tagged.
-- Depends on: `OpenAI`/LLM configuration to process text and extract structured JSON.
+### 3. Database Persistence
+Valid entries are batched and inserted directly into the PostgreSQL `glossary` table using SQLAlchemy in `backend/app/ingestion/run_ingestion.py`.
 
-## Fallback behavior
-
-If `glossary_builder.py` is unavailable or fails (e.g., LLM context limits, JSON parsing failure, missing API key), the exception is caught and logged. The `run_ingestion.py` pipeline skips inserting new terms. Stage 1 rewriting simply skips acronym expansion if the table is empty.
-
-## Status
-
-Done
-
-## Known issues / open questions
-
-If a document's total chunk size exceeds the context limit of the LLM, the text is truncated to the first 100,000 characters to prevent token limit errors during extraction.
-
-## Tests
-
-`backend/tests/test_ingestion.py`
+## Fallback Behavior
+If regex validation fails or no acronyms are found, the document simply returns an empty list, and the document is ingested successfully without a glossary, per the engineering spec.

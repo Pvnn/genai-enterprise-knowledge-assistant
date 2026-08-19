@@ -1,25 +1,31 @@
-"""Stage 0, Priority 2 – Per-document LLM summary.
+"""Stage 0, Priority 2 - Per-document LLM summary.
 
 Owner: P1  |  Priority: 2
-Generates a short summary of a document via gpt-4o-mini.  The summary is
+Generates a short summary of a document via structured output.  The summary is
 stored in documents.summary and used by Stage 2a routing to narrow the
 candidate document set.
-Fallback: if this module is unavailable or raises, summary is left NULL and
-Stage 2a falls back to metadata-only filtering.
 """
 
 import logging
+from pydantic import BaseModel, Field
 from openai import AsyncOpenAI
 from app.config import get_settings
 
 logger = logging.getLogger(__name__)
 
 settings = get_settings()
-# Rely on environment variables (like OPENAI_BASE_URL) for OpenAI-compatible endpoints
-_client = AsyncOpenAI(api_key=settings.openai_api_key)
+
+client_kwargs = {"api_key": settings.openai_api_key}
+if settings.openai_api_key and settings.openai_api_key.startswith("gsk_"):
+    client_kwargs["base_url"] = "https://api.groq.com/openai/v1"
+
+_client = AsyncOpenAI(**client_kwargs)
+
+class SummaryResponse(BaseModel):
+    summary: str = Field(description="A concise summary of the document, up to 200 words. Extract the core purpose and key rules of the provided document. Do not include introductory fluff.")
 
 async def summarize_document(markdown: str) -> str:
-    """Generate a concise summary of a document using gpt-4o-mini (or configured LLM).
+    """Generate a concise summary of a document.
 
     Args:
         markdown: Full structured markdown of the document.
@@ -31,20 +37,14 @@ async def summarize_document(markdown: str) -> str:
         logger.warning("No OpenAI API key provided. Skipping summarization.")
         raise ValueError("Missing OpenAI API key")
 
-    messages = [
-        {
-            "role": "system",
-            "content": "You are a precise technical summarizer. Extract the core purpose and key rules of the provided document in 200 words or less. Do not include introductory fluff.",
-        },
-        {"role": "user", "content": markdown[:100000]}, # Truncate to avoid context limits if extremely large
-    ]
+    prompt = f"Summarize the following document:\n\n{markdown[:100000]}"
 
-    response = await _client.chat.completions.create(
+    response = await _client.responses.parse(
         model=settings.llm_model,
-        messages=messages,
-        max_tokens=300,
-        temperature=0.3,
+        input=[{"role": "user", "content": prompt}],
+        text_format=SummaryResponse,
+        temperature=0.0,
     )
     
-    summary = response.choices[0].message.content
-    return summary.strip() if summary else ""
+    result = response.output_parsed
+    return result.summary.strip()

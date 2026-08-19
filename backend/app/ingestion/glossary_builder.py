@@ -1,83 +1,96 @@
-"""Stage 0, Priority 2 – Acronym / entity glossary builder.
+"""Stage 0, Priority 2 - Acronym / entity glossary builder.
 
 Owner: P1  |  Priority: 2
 Auto-builds a corpus-wide acronym/entity glossary and stores it in the
 glossary table.  Used by Stage 1 query rewriting (P4) for acronym expansion.
-Fallback: if this module is unavailable, acronym expansion is skipped.
 """
 
-import json
 import logging
-from openai import AsyncOpenAI
-from app.config import get_settings
+import re
 
 logger = logging.getLogger(__name__)
 
-settings = get_settings()
-_client = AsyncOpenAI(api_key=settings.openai_api_key)
+def is_subsequence(sub: str, full: str) -> bool:
+    """Check if characters of sub appear in order in full."""
+    it = iter(full)
+    return all(c in it for c in sub)
+
+def clean_expansion(text: str) -> str:
+    """Normalize whitespace and strip common leading stopwords."""
+    text = re.sub(r'\s+', ' ', text).strip()
+    stopwords = ["the ", "a ", "an ", "using ", "for ", "with ", "in ", "of ", "and "]
+    lower_text = text.lower()
+    for sw in stopwords:
+        if lower_text.startswith(sw):
+            text = text[len(sw):]
+            lower_text = lower_text[len(sw):]
+    return text.strip()
+
+def is_valid_acronym_match(term: str, expansion: str) -> bool:
+    """Validate the acronym against the expansion using heuristics."""
+    if not (2 <= len(term) <= 8):
+        return False
+    if term.upper() == expansion.upper():
+        return False
+        
+    # Extract initials of significant words in the expansion
+    words = [w for w in re.split(r'\W+', expansion) if w]
+    initials = "".join([w[0].upper() for w in words if w])
+    
+    term_upper = term.upper()
+    
+    # Exact initials match
+    if term_upper == initials:
+        return True
+        
+    # Subsequence alignment check
+    # Check if term characters appear in order in the initials
+    if is_subsequence(term_upper, initials):
+        # Allow if match ratio is decent or if it's a known format
+        return True
+        
+    # If not a subsequence of initials, check if it's a subsequence of the full expansion
+    # For example, "HNSW" in "Hierarchical Navigable Small World"
+    if is_subsequence(term_upper, expansion.upper()):
+        return True
+
+    return False
 
 async def build_glossary(tenant_id: str, chunks: list[dict]) -> list[dict]:
-    """Build or update the acronym/entity glossary from ingested chunks.
+    """Build or update the acronym/entity glossary from ingested chunks using regex heuristics.
 
     Args:
         tenant_id: The tenant whose corpus is being indexed.
         chunks: List of chunk dicts (must include text field).
 
     Returns:
-        list[dict]: List of glossary entries, each with keys:
-            - term (str): The acronym or entity.
-            - expansion (str): The expanded form.
+        list[dict]: List of glossary entries.
     """
-    if not settings.openai_api_key:
-        logger.warning("No OpenAI API key provided. Skipping glossary builder.")
-        raise ValueError("Missing OpenAI API key")
-
-    # Combine a sample of text to fit within context limits
-    combined_text = "\n\n".join([c.get("text", "") for c in chunks])
-    combined_text = combined_text[:100000]  # Truncate to avoid context limits
-
-    prompt = (
-        "Extract all unique acronyms and their full expansions from the following text.\n"
-        "Return the result ONLY as a valid JSON list of objects, with each object having exactly two string keys: 'term' and 'expansion'.\n"
-        "If no acronyms are found, return an empty JSON list [].\n"
-        "Do not include any markdown formatting like ```json ... ```, just output the raw JSON array.\n\n"
-        f"Text:\n{combined_text}"
-    )
-
-    messages = [
-        {"role": "system", "content": "You are a helpful assistant that extracts acronyms and entities into strict JSON format."},
-        {"role": "user", "content": prompt},
-    ]
-
-    response = await _client.chat.completions.create(
-        model=settings.llm_model,
-        messages=messages,
-        temperature=0.1,
-    )
-
-    content = response.choices[0].message.content or "[]"
+    entries_map = {}
     
-    # Clean up common LLM markdown formatting around JSON
-    if content.startswith("```json"):
-        content = content[7:]
-    if content.endswith("```"):
-        content = content[:-3]
-    content = content.strip()
+    # Regex patterns
+    # Pattern 1: Full Expansion (ACRONYM)
+    pat1 = re.compile(r'\b((?:[A-Z][a-z0-9\-]+\s+){1,6}[A-Z][a-z0-9\-]+)\s*\(([A-Z0-9]{2,8})\)')
+    # Pattern 2: ACRONYM (Full Expansion)
+    pat2 = re.compile(r'\b([A-Z0-9]{2,8})\s*\(([A-Z][A-Za-z0-9\-,\s]{5,70})\)')
 
-    try:
-        glossary_entries = json.loads(content)
-        if not isinstance(glossary_entries, list):
-            return []
+    for c in chunks:
+        text = c.get("text", "") if isinstance(c, dict) else getattr(c, "text", "")
         
-        # Validate format
-        valid_entries = []
-        for entry in glossary_entries:
-            if isinstance(entry, dict) and "term" in entry and "expansion" in entry:
-                valid_entries.append({
-                    "term": str(entry["term"]).strip(),
-                    "expansion": str(entry["expansion"]).strip()
-                })
-        return valid_entries
-    except json.JSONDecodeError as e:
-        logger.error(f"Failed to parse glossary JSON: {e}")
-        return []
+        for match in pat1.finditer(text):
+            expansion, term = match.groups()
+            term = term.strip()
+            expansion = clean_expansion(expansion)
+            if is_valid_acronym_match(term, expansion):
+                entries_map[term] = expansion
+                
+        for match in pat2.finditer(text):
+            term, expansion = match.groups()
+            term = term.strip()
+            expansion = clean_expansion(expansion)
+            if term not in entries_map and is_valid_acronym_match(term, expansion):
+                entries_map[term] = expansion
+
+    valid_entries = [{"term": t, "expansion": e} for t, e in entries_map.items()]
+    logger.info(f"Extracted {len(valid_entries)} glossary entries via regex.")
+    return valid_entries
