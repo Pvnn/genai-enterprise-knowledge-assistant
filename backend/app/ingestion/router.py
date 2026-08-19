@@ -165,7 +165,20 @@ async def get_document_content(
     db: DbDep,
     current_user: CurrentUserDep,
 ):
-    """Retrieve the full markdown text of a document from Neon Object Storage."""
+    """Retrieve the full markdown text of a document from Neon Object Storage.
+
+    Args:
+        document_id: UUID of the document to fetch.
+        db: Async database session.
+        current_user: Authenticated user (tenant isolation enforced).
+
+    Returns:
+        PlainTextResponse: The plaintext markdown content of the document.
+
+    Raises:
+        HTTPException 404: If the document does not exist or has no stored content.
+        HTTPException 500: If there is an error retrieving from Neon storage.
+    """
     from sqlalchemy import select
     from fastapi.responses import PlainTextResponse
     from app.models import Document

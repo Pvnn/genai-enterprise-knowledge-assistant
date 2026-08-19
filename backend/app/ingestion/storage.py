@@ -89,10 +89,29 @@ def _get_markdown_sync(object_key: str) -> Optional[str]:
 
 
 async def upload_markdown(object_key: str, content: str) -> None:
-    """Uploads markdown text to Neon Object Storage asynchronously."""
+    """Uploads markdown text to Neon Object Storage asynchronously.
+
+    Args:
+        object_key: The S3 object key where the markdown will be stored.
+        content: The plaintext markdown content to upload.
+
+    Raises:
+        ClientError: If the upload operation to S3 fails.
+    """
     await asyncio.to_thread(_upload_markdown_sync, object_key, content)
 
 
 async def get_markdown(object_key: str) -> Optional[str]:
-    """Downloads markdown text from Neon Object Storage asynchronously."""
+    """Downloads markdown text from Neon Object Storage asynchronously.
+
+    Args:
+        object_key: The S3 object key of the markdown file.
+
+    Returns:
+        Optional[str]: The markdown content as a string, or None if the
+        credentials or bucket are not configured.
+
+    Raises:
+        ClientError: If the download operation from S3 fails.
+    """
     return await asyncio.to_thread(_get_markdown_sync, object_key)
