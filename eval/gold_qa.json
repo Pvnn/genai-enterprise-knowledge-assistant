@@ -1,10 +1,2361 @@
 ﻿[
   {
-    "_comment": "P8: populate this file with 30-50 gold QA pairs.",
-    "question": "Example: What is the leave policy for casual leave?",
-    "answer": "Example answer referencing specific document and section.",
-    "document_id": "00000000-0000-0000-0000-000000000000",
-    "section_path": "3 > 3.2 > 3.2.1",
-    "tenant_id": "00000000-0000-0000-0000-000000000000"
+    "question": "Who does the Human Rights Policy apply to?",
+    "answer": "All directors, officers, and employees of all Cognizant entities, subsidiaries, and joint ventures over which Cognizant has operational control (collectively 'Associates').",
+    "document_id": "human-rights-policy.pdf",
+    "section_path": "Scope",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What international declarations does Cognizant align its human rights principles with?",
+    "answer": "The United Nations Declaration of Human Rights and the International Labour Organization's Declaration on Fundamental Principles and Rights at Work.",
+    "document_id": "human-rights-policy.pdf",
+    "section_path": "Guiding Principles",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Is Cognizant a participant of the UN Global Compact?",
+    "answer": "Yes, Cognizant is a participant of the UN Global Compact and aligns with their Ten Principles surrounding human rights, labor, environment, and anti‑corruption.",
+    "document_id": "human-rights-policy.pdf",
+    "section_path": "Guiding Principles",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is Cognizant's policy on human trafficking?",
+    "answer": "Cognizant strictly prohibits engaging in trafficking in persons, including illegal movement, sexual exploitation, and forced or child labor. Associates must proactively report any suspected trafficking.",
+    "document_id": "human-rights-policy.pdf",
+    "section_path": "Guiding Principles – End human trafficking",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Who should I inform if I suspect human trafficking in Cognizant's business or supply chain?",
+    "answer": "Promptly inform your manager, local HR Manager, or the Ethics & Compliance Helpline.",
+    "document_id": "human-rights-policy.pdf",
+    "section_path": "Guiding Principles – End human trafficking",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is Cognizant's expectation regarding workplace safety?",
+    "answer": "Associates must follow all applicable safety and health laws, regulations, and internal requirements, and immediately report any potential health or safety issues to their manager.",
+    "document_id": "human-rights-policy.pdf",
+    "section_path": "Guiding Principles – Maintain a safe and healthy workplace",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Does Cognizant tolerate human rights abuses in its supply chain?",
+    "answer": "No. Cognizant has zero tolerance for human rights abuses in the supply chain. Supplier Standards of Conduct prohibit such abuses and are embedded into every vendor contract.",
+    "document_id": "human-rights-policy.pdf",
+    "section_path": "Guiding Principles – Consider our supply chain",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Does Cognizant respect the right of Associates to join trade unions?",
+    "answer": "Yes. Cognizant respects the right of all Associates to freely join a trade union, engage in peaceful assembly, and bargain collectively in accordance with the law.",
+    "document_id": "human-rights-policy.pdf",
+    "section_path": "Guiding Principles – Respect freedom of association",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What does Cognizant's policy say about discrimination in employment decisions?",
+    "answer": "Cognizant does not tolerate discrimination based on legally protected characteristics such as race, color, religion, gender identity, pregnancy, age, national origin, sexual orientation, marital status, disability, veteran status, or freedom of association (including political affiliations and union memberships).",
+    "document_id": "human-rights-policy.pdf",
+    "section_path": "Guiding Principles – Ensure fair and merit‑based employment decisions",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What are the four principles reinforced by Cognizant's Code of Ethics?",
+    "answer": "We earn trust. We do the right thing. We respect people and the environment. We live up to our responsibilities.",
+    "document_id": "human-rights-policy.pdf",
+    "section_path": "Guiding Principles – Treat others with dignity and respect",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is the TRUST Framework mentioned in the Human Rights Policy?",
+    "answer": "The TRUST Framework is Cognizant's practical model for embedding Responsible AI across how they design, deliver, and manage AI systems.",
+    "document_id": "human-rights-policy.pdf",
+    "section_path": "Responsible AI",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Which global AI frameworks does Cognizant align with?",
+    "answer": "OECD AI Principles, UNESCO Ethical AI Guidelines, EU AI Act, NIST Risk Management Framework, and ISO AI Standards.",
+    "document_id": "human-rights-policy.pdf",
+    "section_path": "Responsible AI",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "How does Cognizant deliver on its human rights commitments?",
+    "answer": "Via stakeholder engagement, training, and supply chain engagement. They also expect direct suppliers to respect internationally recognized human rights.",
+    "document_id": "human-rights-policy.pdf",
+    "section_path": "Delivering On Our Commitments",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Who is responsible for the day‑to‑day operation of the Ethics and Compliance program?",
+    "answer": "The Chief Ethics and Compliance (E&C) Officer.",
+    "document_id": "human-rights-policy.pdf",
+    "section_path": "Governance",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What mandatory annual training courses does Cognizant provide?",
+    "answer": "Cognizant's Code of Ethics course, and the Preventing Harassment and Discrimination course.",
+    "document_id": "human-rights-policy.pdf",
+    "section_path": "Training and Communication",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What modern slavery statements does Cognizant currently publish?",
+    "answer": "Australian, Norwegian, and UK modern slavery statements.",
+    "document_id": "human-rights-policy.pdf",
+    "section_path": "Modern Slavery Statements",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "How does Cognizant handle risk identification for modern slavery?",
+    "answer": "They conduct risk‑based modern slavery due diligence during supplier onboarding and annually reassess high‑risk suppliers.",
+    "document_id": "human-rights-policy.pdf",
+    "section_path": "Risk Identification",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What are the disciplinary consequences for violating the Human Rights Policy?",
+    "answer": "Subject to local laws, violation could result in disciplinary action, up to and including termination.",
+    "document_id": "human-rights-policy.pdf",
+    "section_path": "Disciplinary Consequences",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Where can someone report a possible violation of the Human Rights Policy?",
+    "answer": "Via Cognizant's Ethics & Compliance Helpline at http://www.cognizant.com/compliance-helpline",
+    "document_id": "human-rights-policy.pdf",
+    "section_path": "Disciplinary Consequences",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "When was the Human Rights Policy initially released and when was it last revised?",
+    "answer": "Initial release: November 2, 2022. Last revision: July 30, 2025.",
+    "document_id": "human-rights-policy.pdf",
+    "section_path": "Version History",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is the definition of 'Human rights' as per this policy?",
+    "answer": "The basic standards of treatment to which all people are entitled.",
+    "document_id": "human-rights-policy.pdf",
+    "section_path": "Key Definitions",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is the definition of 'Child labor' in this policy?",
+    "answer": "Work that deprives any person under 18 of their childhood, potential and dignity, and that is harmful to their physical and/or mental development. It interferes with schooling.",
+    "document_id": "human-rights-policy.pdf",
+    "section_path": "Key Definitions",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is the definition of 'Forced labor' in this policy?",
+    "answer": "Work or service obtained from any person under the threat of a penalty and for which the person has not offered himself or herself voluntarily.",
+    "document_id": "human-rights-policy.pdf",
+    "section_path": "Key Definitions",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is the definition of 'Trafficking in persons'?",
+    "answer": "The use of force, fraud, or coercion to compel persons to provide labor or services or commercial sex.",
+    "document_id": "human-rights-policy.pdf",
+    "section_path": "Key Definitions",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Which related policies are listed alongside the Human Rights Policy?",
+    "answer": "Code of Ethics, Ethics & Compliance Helpline, Supplier Standards of Conduct, Anti‑corruption Policy, Anti‑corruption Compliance for Our Vendors, Statements on Modern Slavery, Whistleblower and Non‑Retaliation Policy.",
+    "document_id": "human-rights-policy.pdf",
+    "section_path": "Related Policies and Processes",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Does Cognizant expect its suppliers, business partners, and clients to uphold human rights principles?",
+    "answer": "Yes. Cognizant expects them to uphold these principles and urges them to adopt similar policies within their own businesses.",
+    "document_id": "human-rights-policy.pdf",
+    "section_path": "Guiding Principles",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What does Cognizant say about retaliation for reporting a policy violation?",
+    "answer": "Cognizant does not tolerate retaliation against any individual who submits a good faith report of a violation or possible violation of law, the Code of Ethics, or other Cognizant policies.",
+    "document_id": "human-rights-policy.pdf",
+    "section_path": "Disciplinary Consequences",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Who has oversight responsibility for the E&C program?",
+    "answer": "The Audit Committee of the Board of Directors.",
+    "document_id": "human-rights-policy.pdf",
+    "section_path": "Governance",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "How many revisions has the Human Rights Policy gone through?",
+    "answer": "Three revisions: Initial release (Nov 2022), Revision in June 2023, and Revision in July 2025.",
+    "document_id": "human-rights-policy.pdf",
+    "section_path": "Version History",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is Cognizant's approach to stakeholder engagement regarding human rights?",
+    "answer": "Their intention to clients, associates, investors, suppliers and communities is to act with integrity. This guides everything they do.",
+    "document_id": "human-rights-policy.pdf",
+    "section_path": "Stakeholders",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Does the policy require associates to avoid discriminatory conduct and harassment?",
+    "answer": "Yes. Associates must engage with professionalism and courtesy and never engage in discriminatory conduct or any form of harassment.",
+    "document_id": "human-rights-policy.pdf",
+    "section_path": "Guiding Principles – Treat others with dignity and respect",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is the exact URL for the Ethics & Compliance Helpline?",
+    "answer": "http://www.cognizant.com/compliance-helpline",
+    "document_id": "human-rights-policy.pdf",
+    "section_path": "Disciplinary Consequences",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What languages are available for translation of this policy?",
+    "answer": "Chinese (Simplified), English, French (Canada), French (France), German, Japanese, Polish, Portuguese (Brazil), Spanish (Latin America).",
+    "document_id": "human-rights-policy.pdf",
+    "section_path": "Translations (header)",
+    "expected_response_type": "factual"
+  },
+  
+  {
+    "question": "Who does the Environmental Health and Safety Policy apply to?",
+    "answer": "Cognizant associates, vendors, and visitors working out of Cognizant facilities.",
+    "document_id": "environmental-health-and-safety-policy-Cognizant.pdf",
+    "section_path": "Scope",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is Cognizant committed to regarding the environment, health, and safety?",
+    "answer": "Protecting the environment, health and safety of associates, vendors, visitors, clients and the global communities where they live and work.",
+    "document_id": "environmental-health-and-safety-policy-Cognizant.pdf",
+    "section_path": "Guiding principles",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What are Cognizant's commitments under the EHS Policy?",
+    "answer": "Meeting all applicable EHS legal requirements; adopting own standards where laws don't provide adequate controls; operating facilities to reduce environmental footprint; encouraging contractors/vendors/suppliers to adopt EHS best practices; and communicating EHS programs to associates.",
+    "document_id": "environmental-health-and-safety-policy-Cognizant.pdf",
+    "section_path": "Guiding principles",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Which key business leaders are involved in EHS performance reviews?",
+    "answer": "The Chief Executive Officer, Chief Financial Officer, and Chief Corporate Affairs Officer.",
+    "document_id": "environmental-health-and-safety-policy-Cognizant.pdf",
+    "section_path": "Guiding principles",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What does the EHS team evaluate and how?",
+    "answer": "The Global EHS Center of Excellence team evaluates EHS performance by monitoring ongoing performance results outlined in the guideline for EHS objectives and targets and through periodic management reviews.",
+    "document_id": "environmental-health-and-safety-policy-Cognizant.pdf",
+    "section_path": "Guiding principles",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is Cognizant's commitment regarding greenhouse gas emissions?",
+    "answer": "Committed to achieving Net Zero GHG emissions and responsible management of natural resource consumption.",
+    "document_id": "environmental-health-and-safety-policy-Cognizant.pdf",
+    "section_path": "Guiding principles",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "How can Associates support the Net Zero commitment?",
+    "answer": "By focusing on energy efficiency management, reducing unnecessary water consumption and waste generation, and encouraging teams to read this and related policies.",
+    "document_id": "environmental-health-and-safety-policy-Cognizant.pdf",
+    "section_path": "Guiding principles",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Are associates encouraged to report environmental, health or safety concerns?",
+    "answer": "Yes, Cognizant encourages them to report any environmental, health or safety concerns.",
+    "document_id": "environmental-health-and-safety-policy-Cognizant.pdf",
+    "section_path": "Guiding principles",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What are the disciplinary consequences for violating the EHS Policy?",
+    "answer": "Subject to local laws and regulations, violation could result in disciplinary action, up to and including termination.",
+    "document_id": "environmental-health-and-safety-policy-Cognizant.pdf",
+    "section_path": "Disciplinary consequences",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Does Cognizant tolerate retaliation against someone who reports an EHS policy violation?",
+    "answer": "No. As stated in the Whistleblower and Non-Retaliation Policy, Cognizant does not tolerate retaliation against any individual who submits a good faith report of a violation.",
+    "document_id": "environmental-health-and-safety-policy-Cognizant.pdf",
+    "section_path": "Disciplinary consequences",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Where can someone report a possible violation of the EHS Policy?",
+    "answer": "Via Cognizant's Ethics & Compliance Helpline at www.cognizant.com/compliance-helpline.",
+    "document_id": "environmental-health-and-safety-policy-Cognizant.pdf",
+    "section_path": "Disciplinary consequences",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is the exact URL for the Ethics & Compliance Helpline?",
+    "answer": "www.cognizant.com/compliance-helpline",
+    "document_id": "environmental-health-and-safety-policy-Cognizant.pdf",
+    "section_path": "Disciplinary consequences",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "When was the EHS Policy initially released?",
+    "answer": "December 16, 2020.",
+    "document_id": "environmental-health-and-safety-policy-Cognizant.pdf",
+    "section_path": "Policy control information",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is the latest revision date of the EHS Policy?",
+    "answer": "June 21, 2023.",
+    "document_id": "environmental-health-and-safety-policy-Cognizant.pdf",
+    "section_path": "Policy control information",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Who is the Policy Owner of the EHS Policy?",
+    "answer": "Kim John, Chief Corporate Affairs Officer.",
+    "document_id": "environmental-health-and-safety-policy-Cognizant.pdf",
+    "section_path": "Policy control information",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Which department owns the EHS Policy?",
+    "answer": "Corporate Real Estate Workplace Services.",
+    "document_id": "environmental-health-and-safety-policy-Cognizant.pdf",
+    "section_path": "Policy control information",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What does the EHS Policy say about adopting own standards?",
+    "answer": "Cognizant will adopt its own standards where laws and regulations do not provide adequate controls.",
+    "document_id": "environmental-health-and-safety-policy-Cognizant.pdf",
+    "section_path": "Guiding principles",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is Cognizant's policy on operating facilities?",
+    "answer": "Operating facilities and continuing conservation efforts to reduce environmental footprint and adhere to environmental (energy, water, and climate change) policies.",
+    "document_id": "environmental-health-and-safety-policy-Cognizant.pdf",
+    "section_path": "Guiding principles",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Does Cognizant encourage its contractors, vendors, suppliers, and partners to adopt EHS best practices?",
+    "answer": "Yes, Cognizant encourages them to adopt EHS best practices.",
+    "document_id": "environmental-health-and-safety-policy-Cognizant.pdf",
+    "section_path": "Guiding principles",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What related policies are listed alongside the EHS Policy?",
+    "answer": "Code of Ethics, Ethics & Compliance Helpline, Outreach Program, Sustainability and Social Responsibility site, UK Statement on Modern Slavery, Whistleblower and Non-Retaliation Policy, and Supplier Code of Conduct.",
+    "document_id": "environmental-health-and-safety-policy-Cognizant.pdf",
+    "section_path": "Related Policies and Processes",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What languages are available for translation of the EHS Policy?",
+    "answer": "Chinese (Simplified), French (Canada), French (France), German, Japanese, Portuguese (Brazilian), Spanish (Latin America).",
+    "document_id": "environmental-health-and-safety-policy-Cognizant.pdf",
+    "section_path": "Translations",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "When was the first revision to the EHS Policy made?",
+    "answer": "January 13, 2021.",
+    "document_id": "environmental-health-and-safety-policy-Cognizant.pdf",
+    "section_path": "Version history",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What change was made on April 30, 2021 to the EHS Policy?",
+    "answer": "Translation was added to the document.",
+    "document_id": "environmental-health-and-safety-policy-Cognizant.pdf",
+    "section_path": "Version history",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "When was the Cognizant commitment updated in the EHS Policy?",
+    "answer": "October 20, 2022.",
+    "document_id": "environmental-health-and-safety-policy-Cognizant.pdf",
+    "section_path": "Version history",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "When was the Scope and commitment last updated?",
+    "answer": "June 21, 2023.",
+    "document_id": "environmental-health-and-safety-policy-Cognizant.pdf",
+    "section_path": "Version history",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is the role of the Global Environment Health and Safety Center of Excellence team?",
+    "answer": "To evaluate EHS performance by monitoring ongoing performance results and through periodic management reviews with key business leadership.",
+    "document_id": "environmental-health-and-safety-policy-Cognizant.pdf",
+    "section_path": "Guiding principles",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "How many revisions are listed in the EHS Policy version history?",
+    "answer": "Five revisions: Initial release (Dec 2020), Jan 2021, Apr 2021, Oct 2022, Jun 2023.",
+    "document_id": "environmental-health-and-safety-policy-Cognizant.pdf",
+    "section_path": "Version history",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Does the EHS Policy require Associates to reduce unnecessary water consumption?",
+    "answer": "Yes, reducing unnecessary water consumption and waste generation is part of how Associates can support the Net Zero commitment.",
+    "document_id": "environmental-health-and-safety-policy-Cognizant.pdf",
+    "section_path": "Guiding principles",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is the effective date of the EHS Policy?",
+    "answer": "December 16, 2020.",
+    "document_id": "environmental-health-and-safety-policy-Cognizant.pdf",
+    "section_path": "Policy control information",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What should an Associate do if they are aware of an EHS policy violation?",
+    "answer": "They have an obligation to report it to the Company.",
+    "document_id": "environmental-health-and-safety-policy-Cognizant.pdf",
+    "section_path": "Disciplinary consequences",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Does the EHS Policy mention anything about climate change?",
+    "answer": "Yes, it mentions adhering to environmental policies including energy, water, and climate change policies.",
+    "document_id": "environmental-health-and-safety-policy-Cognizant.pdf",
+    "section_path": "Guiding principles",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "How many vacation days do full-time employees get per year?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the company policy on remote work?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "How do I apply for a leave of absence for medical reasons?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the dress code for Cognizant offices?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "How much is the annual bonus for a senior manager?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What are the insurance coverage options for associates?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "When are company holidays for the upcoming year?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the policy for using company laptops for personal work?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "Can employees use their own phones for client calls?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What are the performance review cycles and timelines?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "How do I reset my Cognizant network password?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the official social media policy for personal accounts?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "Are there on-site gym facilities at Cognizant offices?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the policy on telemedicine benefits?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "How do I request a desk or office space change?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the travel reimbursement policy for flights and hotels?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "Can I bring my pet to the office?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the policy on overtime pay for hourly employees?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "How do I enroll in the company 401(k) plan?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What are the rules for using company email for personal messages?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "Is there an employee discount program for software purchases?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "How do I book a meeting room using the corporate system?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the company's policy on side businesses or freelancing?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "How do I request a name change in the HR system?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the process for ordering office supplies?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "Does Cognizant offer tuition reimbursement for courses?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the policy on using company vehicles for personal errands?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "How do I get access to a specific software license?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the vacation carryover policy?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "Is there an on-site daycare or childcare facility?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  
+  {
+    "question": "Who does the Supplier Standards of Conduct apply to?",
+    "answer": "All third-party representatives, suppliers, vendors, subcontractors, business development agents and their parent, subsidiary and affiliated entities (collectively Suppliers).",
+    "document_id": "supplier-standards-of-conduct-Cognizant.pdf",
+    "section_path": "Introduction",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is Cognizant's expectation regarding Suppliers and their subcontractors?",
+    "answer": "Suppliers must adopt similar standards within their own businesses and apply those standards to their next-tier suppliers (e.g., subcontractors).",
+    "document_id": "supplier-standards-of-conduct-Cognizant.pdf",
+    "section_path": "Introduction",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What happens if Supplier Standards conflict with existing contractual terms?",
+    "answer": "Any existing contractual terms and conditions will take precedence.",
+    "document_id": "supplier-standards-of-conduct-Cognizant.pdf",
+    "section_path": "Introduction",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What anti-corruption laws must Suppliers comply with?",
+    "answer": "U.S. Foreign Corrupt Practices Act (FCPA), U.K. Bribery Act 2010, India Prevention of Corruption Act of 1988, and local anti-corruption laws.",
+    "document_id": "supplier-standards-of-conduct-Cognizant.pdf",
+    "section_path": "We earn trust",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is a facilitation payment and are they allowed?",
+    "answer": "Small, unofficial cash payments to low-level Government Officials to expedite routine government administrative actions. They are strictly prohibited.",
+    "document_id": "supplier-standards-of-conduct-Cognizant.pdf",
+    "section_path": "We earn trust",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What must Suppliers do regarding risk management and financial crime?",
+    "answer": "Implement robust risk management procedures and internal controls, including due diligence, to detect and respond to all forms of financial crime including bribery, corruption, tax evasion, money laundering, fraud, and terrorism financing.",
+    "document_id": "supplier-standards-of-conduct-Cognizant.pdf",
+    "section_path": "We earn trust",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is the requirement for Suppliers regarding books and records?",
+    "answer": "Maintain accurate books and records, including receipts and expenses, related to Cognizant's business, and make them available for review by Cognizant upon reasonable request.",
+    "document_id": "supplier-standards-of-conduct-Cognizant.pdf",
+    "section_path": "We earn trust",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Are Suppliers prohibited from using subcontractors without notification?",
+    "answer": "Yes. Suppliers must not engage subcontractors in performing work for Cognizant without prior notification and written approval from Cognizant.",
+    "document_id": "supplier-standards-of-conduct-Cognizant.pdf",
+    "section_path": "We earn trust",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Which sanctions laws must Suppliers comply with?",
+    "answer": "Sanctions laws administered by the U.S., India, European Union, U.K., United Nations, and other equivalent bodies.",
+    "document_id": "supplier-standards-of-conduct-Cognizant.pdf",
+    "section_path": "We earn trust",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is Cognizant's policy on modern slavery in the supply chain?",
+    "answer": "Cognizant strictly prohibits all forms of modern slavery in any part of its supply chain, including forced labor, servitude, human trafficking, and child labor.",
+    "document_id": "supplier-standards-of-conduct-Cognizant.pdf",
+    "section_path": "We respect people and the environment – Labor and human rights",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What modern slavery acts must Suppliers comply with?",
+    "answer": "UK Modern Slavery Act 2015, Australian Modern Slavery Act 2018, and Norwegian Transparency Act (Apenhetsloven, 2022).",
+    "document_id": "supplier-standards-of-conduct-Cognizant.pdf",
+    "section_path": "We respect people and the environment – Labor and human rights",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is the prohibition on discrimination for Suppliers?",
+    "answer": "Suppliers must not discriminate against legally protected characteristics including race, color, religion, gender identity, pregnancy, age, national origin, sexual orientation, marital status, disability, veteran status, or freedom of association.",
+    "document_id": "supplier-standards-of-conduct-Cognizant.pdf",
+    "section_path": "We respect people and the environment – Prohibition on Discrimination",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is the minimum age for workers according to the Supplier Standards?",
+    "answer": "Suppliers must not employ workers younger than the greater of (a) 15 years of age (or 14 where local law allows), (b) the age for completing compulsory education, or (c) the minimum age established by law.",
+    "document_id": "supplier-standards-of-conduct-Cognizant.pdf",
+    "section_path": "We respect people and the environment – Prohibition on Child Labor",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is the prohibition on forced labor for Suppliers?",
+    "answer": "All forms of forced or compulsory labor, such as prison labor, bonded labor, indentured labor, forced overtime, and human trafficking are strictly prohibited.",
+    "document_id": "supplier-standards-of-conduct-Cognizant.pdf",
+    "section_path": "We respect people and the environment – Prohibition on Forced Labor",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is the requirement regarding workers' identity documents?",
+    "answer": "Suppliers, their agents, and subagents shall not hold, destroy, conceal, confiscate, or deny workers access to their identity or immigration documents.",
+    "document_id": "supplier-standards-of-conduct-Cognizant.pdf",
+    "section_path": "We respect people and the environment – Prohibition on Forced Labor",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Are Suppliers allowed to charge recruitment fees to workers?",
+    "answer": "No. Suppliers should not charge any recruitment or other related fees to workers for employment. Any such fees found must be repaid immediately.",
+    "document_id": "supplier-standards-of-conduct-Cognizant.pdf",
+    "section_path": "We respect people and the environment – Prohibition on Charging Workers for Employment",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is the requirement for Suppliers regarding working hours?",
+    "answer": "Working hours must not exceed the maximum set by local law. A standard workweek should not exceed 48 hours or 60 hours including overtime, except in emergencies. All overtime must be voluntary and workers must have at least one day off every seven days.",
+    "document_id": "supplier-standards-of-conduct-Cognizant.pdf",
+    "section_path": "We respect people and the environment – Working Hours",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is the requirement regarding Suppliers and freedom of association?",
+    "answer": "Suppliers must respect the right of all workers to form and join trade unions and to bargain collectively. They must prohibit intimidation, harassment, retaliation, and violence against workers exercising these rights.",
+    "document_id": "supplier-standards-of-conduct-Cognizant.pdf",
+    "section_path": "We respect people and the environment – Freedom of Association and Collective Bargaining",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is the prohibition on unlawful eviction for Suppliers?",
+    "answer": "Suppliers shall not unlawfully evict or take land, forest, waters in the acquisition, development, or other use of land, forests, and waters, the use of which secures the livelihood of a person or persons.",
+    "document_id": "supplier-standards-of-conduct-Cognizant.pdf",
+    "section_path": "We respect people and the environment – Prohibition of Unlawful Eviction",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What are conflict minerals and what is the Supplier's obligation?",
+    "answer": "Conflict minerals include tin, tantalum, gold, and tungsten. Suppliers must take steps to determine if their products contain conflict minerals and implement supply chain processes to identify sources and support efforts to eradicate use that finances armed groups in DRC or adjoining countries.",
+    "document_id": "supplier-standards-of-conduct-Cognizant.pdf",
+    "section_path": "We respect people and the environment – Commitment to Responsible Sourcing",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is the German Act on Corporate Due Diligence (LKSG)?",
+    "answer": "The LKSG is the German 'Law on Corporate Due Diligence to Prevent Human Rights Violations in Supply Chains' that requires Suppliers to comply with human rights and environmental due diligence obligations.",
+    "document_id": "supplier-standards-of-conduct-Cognizant.pdf",
+    "section_path": "German Act on Corporate Due Diligence",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is the requirement for Suppliers regarding environmental laws?",
+    "answer": "Suppliers must comply with all local environmental laws applicable to their operations in the countries in which they operate.",
+    "document_id": "supplier-standards-of-conduct-Cognizant.pdf",
+    "section_path": "Environmental responsibility – Compliance with all Applicable Environmental Laws",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is the Minamata Convention requirement for Suppliers?",
+    "answer": "Prohibition on the manufacture, use, and treatment of mercury and mercury-added products/components.",
+    "document_id": "supplier-standards-of-conduct-Cognizant.pdf",
+    "section_path": "Environmental responsibility",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is the Stockholm Convention requirement for Suppliers?",
+    "answer": "Prohibition on the production, use of chemicals, and the handling, collection, storage, and disposal of waste in a manner that is not environmentally sound.",
+    "document_id": "supplier-standards-of-conduct-Cognizant.pdf",
+    "section_path": "Environmental responsibility",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is the Basel Convention requirement for Suppliers?",
+    "answer": "Prohibition on exports of hazardous and other waste and prohibition on the import of hazardous waste under specific circumstances.",
+    "document_id": "supplier-standards-of-conduct-Cognizant.pdf",
+    "section_path": "Environmental responsibility",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is the Net Zero requirement for Suppliers?",
+    "answer": "Suppliers must set a Net Zero science-based greenhouse gas (GHG) emissions reduction target within two years of signing the agreement, and provide annual data regarding the target via the CDP platform.",
+    "document_id": "supplier-standards-of-conduct-Cognizant.pdf",
+    "section_path": "Environmental responsibility – Environmental Management",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What security frameworks must Suppliers maintain?",
+    "answer": "ISO/IEC 27001, SOC 2 Type 2, and NIST CSF.",
+    "document_id": "supplier-standards-of-conduct-Cognizant.pdf",
+    "section_path": "Information security responsibility",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What must Suppliers do regarding Business Continuity Plans?",
+    "answer": "Maintain Business Continuity/Disaster Recovery Management (BCDR) systems following ISO 22301, regularly test and update BCPs, and participate in joint annual continuity exercises with Cognizant.",
+    "document_id": "supplier-standards-of-conduct-Cognizant.pdf",
+    "section_path": "Business continuity responsibility",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What must Suppliers notify Cognizant about regarding security incidents?",
+    "answer": "Notify Cognizant within contractually agreed timeframes of any security incident impacting Cognizant or customers at CSIRT@cognizant.com, and of any change in security management or controls.",
+    "document_id": "supplier-standards-of-conduct-Cognizant.pdf",
+    "section_path": "Information security responsibility",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is the consequence of failing to comply with Supplier Standards?",
+    "answer": "Failure to comply may lead to consequences up to and including termination as a Supplier to Cognizant.",
+    "document_id": "supplier-standards-of-conduct-Cognizant.pdf",
+    "section_path": "Compliance with the supplier standards of conduct",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is the expected response type for questions about vacation days?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+
+  {
+    "question": "What is the Cognizant employee referral bonus amount?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "How do I apply for an internal job transfer?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the policy on working from home?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What are the requirements for getting a promotion?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "How much is the maternity leave benefit?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the company's holiday calendar for 2026?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "How do I access my payslips online?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the process for requesting a new laptop?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "Does Cognizant offer free lunches at the office?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "How do I apply for a sabbatical leave?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the dress code for client meetings?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "How do I submit a travel reimbursement claim?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "Can I use my personal car for business travel?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the policy on workplace meals and snacks?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "How do I register for company training programs?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the Cognizant 401(k) matching percentage?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "How do I get access to the company intranet?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What are the guidelines for using company social media accounts?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "Does Cognizant offer adoption assistance?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "How do I request a change in my work schedule?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the process for ordering business cards?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the company's policy on employee wellbeing programs?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "How do I enroll in the company health insurance plan?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the policy on using company printers for personal use?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "How do I report a technical issue with my laptop?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the company car policy for executives?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "Does Cognizant have a tuition reimbursement program?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the correct format for expense receipts?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "How do I set up my voicemail on the company phone?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the policy on taking personal calls during work hours?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  
+  {
+    "question": "Who does the Whistleblower and Non-Retaliation Policy apply to?",
+    "answer": "All directors, officers, and employees worldwide as well as all Cognizant business units, subsidiaries, and joint ventures over which Cognizant has operational control (collectively 'Associates').",
+    "document_id": "whistleblower-and-non-retaliation-policy-Cognizant.pdf",
+    "section_path": "Scope",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is Cognizant's position on retaliation against someone who reports a concern?",
+    "answer": "Under no circumstances will Cognizant tolerate retaliation against someone for reporting a concern in good faith, even if an investigation finds no violation.",
+    "document_id": "whistleblower-and-non-retaliation-policy-Cognizant.pdf",
+    "section_path": "Guiding Principles",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Can reports be made anonymously under the Whistleblower Policy?",
+    "answer": "Yes, reports can be made anonymously where local law permits.",
+    "document_id": "whistleblower-and-non-retaliation-policy-Cognizant.pdf",
+    "section_path": "Guiding Principles",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What should an Associate do if they receive a report of a suspected violation?",
+    "answer": "Do not conduct your own investigation. Refer to Ethics & Compliance promptly to be addressed by a trained Cognizant investigator.",
+    "document_id": "whistleblower-and-non-retaliation-policy-Cognizant.pdf",
+    "section_path": "Guiding Principles",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is the definition of retaliation under this policy?",
+    "answer": "Retaliation is broadly defined as any adverse action taken against someone because he or she has reported a concern or participated in an investigation.",
+    "document_id": "whistleblower-and-non-retaliation-policy-Cognizant.pdf",
+    "section_path": "Guiding Principles",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What should an Associate do if they feel they are experiencing retaliation?",
+    "answer": "Contact the Ethics & Compliance Helpline or Chief Ethics & Compliance Officer immediately.",
+    "document_id": "whistleblower-and-non-retaliation-policy-Cognizant.pdf",
+    "section_path": "Guiding Principles",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What are the reporting channels for suspected violations?",
+    "answer": "Cognizant Ethics & Compliance Helpline, any member of Ethics & Compliance, Chief Ethics & Compliance Officer mailbox, any member of Human Resources, EU in-person meeting with HR Country Lead, or by mail to the Chief Ethics & Compliance Officer.",
+    "document_id": "whistleblower-and-non-retaliation-policy-Cognizant.pdf",
+    "section_path": "Reporting Channels",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Can Associates remain anonymous when reporting through the Helpline?",
+    "answer": "Yes, you may remain anonymous when submitting a report online or by telephone through the Cognizant Ethics & Compliance Helpline.",
+    "document_id": "whistleblower-and-non-retaliation-policy-Cognizant.pdf",
+    "section_path": "Reporting Channels",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is the mailing address for the Chief Ethics & Compliance Officer?",
+    "answer": "Cognizant Technology Solutions, Attn: Chief Ethics & Compliance Officer, Glenpointe Centre West, 300 Frank W. Burr Boulevard, Suite 36, 6th Floor, Teaneck, New Jersey 07666 USA.",
+    "document_id": "whistleblower-and-non-retaliation-policy-Cognizant.pdf",
+    "section_path": "Reporting Channels",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What special reporting right do EU-based Associates have?",
+    "answer": "If based in the EU, Associates are entitled to an in-person meeting with their HR Country Lead to report whistleblower concerns confidentially.",
+    "document_id": "whistleblower-and-non-retaliation-policy-Cognizant.pdf",
+    "section_path": "Reporting Channels",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Does this policy prevent Associates from reporting violations to the government?",
+    "answer": "No. Nothing in this Policy precludes any Associate from reporting a suspected violation of law to the government or from cooperating in any government investigation.",
+    "document_id": "whistleblower-and-non-retaliation-policy-Cognizant.pdf",
+    "section_path": "Reporting Channels",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What are the disciplinary consequences for violating this policy?",
+    "answer": "Violations could result in disciplinary action, up to and including termination (subject to local laws and regulations).",
+    "document_id": "whistleblower-and-non-retaliation-policy-Cognizant.pdf",
+    "section_path": "Disciplinary Consequences",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "When was the Whistleblower Policy initially released?",
+    "answer": "January 1, 2017.",
+    "document_id": "whistleblower-and-non-retaliation-policy-Cognizant.pdf",
+    "section_path": "Version History",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "When was the Whistleblower Policy last revised?",
+    "answer": "April 11, 2023.",
+    "document_id": "whistleblower-and-non-retaliation-policy-Cognizant.pdf",
+    "section_path": "Version History",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What changes were made on October 1, 2020 to the Whistleblower Policy?",
+    "answer": "Updated to include reference to country-specific versions of this Policy.",
+    "document_id": "whistleblower-and-non-retaliation-policy-Cognizant.pdf",
+    "section_path": "Version History",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What changes were made on September 1, 2019 to the Whistleblower Policy?",
+    "answer": "Complete update of policy content. Incorporated critical links to related procedures and other resources.",
+    "document_id": "whistleblower-and-non-retaliation-policy-Cognizant.pdf",
+    "section_path": "Version History",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Who is the Policy Owner of the Whistleblower and Non-Retaliation Policy?",
+    "answer": "Marc Levin, Chief Ethics & Compliance Officer.",
+    "document_id": "whistleblower-and-non-retaliation-policy-Cognizant.pdf",
+    "section_path": "Policy Control Information",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Which department owns the Whistleblower Policy?",
+    "answer": "Ethics & Compliance.",
+    "document_id": "whistleblower-and-non-retaliation-policy-Cognizant.pdf",
+    "section_path": "Policy Control Information",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is the effective date of the Whistleblower Policy?",
+    "answer": "January 1, 2017.",
+    "document_id": "whistleblower-and-non-retaliation-policy-Cognizant.pdf",
+    "section_path": "Policy Control Information",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What related policies are listed alongside the Whistleblower Policy?",
+    "answer": "Code of Ethics, Ethics & Compliance Helpline, Whistleblower and Non-Retaliation Microlearning, Company Investigations Web Page, What to Know about Company Investigations, Global Corporate Policies.",
+    "document_id": "whistleblower-and-non-retaliation-policy-Cognizant.pdf",
+    "section_path": "Related Policies and Processes",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Does Cognizant investigate reports of suspected improper activity?",
+    "answer": "Yes. Reports of suspected improper activity will be investigated and treated confidentially to the fullest extent possible.",
+    "document_id": "whistleblower-and-non-retaliation-policy-Cognizant.pdf",
+    "section_path": "Guiding Principles",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What should Associates do if they suspect a possible violation?",
+    "answer": "Report it using one of the channels outlined in the policy.",
+    "document_id": "whistleblower-and-non-retaliation-policy-Cognizant.pdf",
+    "section_path": "Guiding Principles",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Can local laws modify the scope and requirements of this policy?",
+    "answer": "Yes. Local law may require modifications to the scope, applicability, and requirements of this Policy.",
+    "document_id": "whistleblower-and-non-retaliation-policy-Cognizant.pdf",
+    "section_path": "Scope",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Where are country-specific versions of this policy available?",
+    "answer": "On Cognizant's Global Corporate Policies website.",
+    "document_id": "whistleblower-and-non-retaliation-policy-Cognizant.pdf",
+    "section_path": "Scope",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Who can Associates contact if they have questions about reporting to the government?",
+    "answer": "They may direct questions to the Legal Department or the Chief Ethics & Compliance Officer.",
+    "document_id": "whistleblower-and-non-retaliation-policy-Cognizant.pdf",
+    "section_path": "Reporting Channels",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "How many revisions are listed in the Whistleblower Policy version history?",
+    "answer": "Four: Initial release (Jan 2017), Sep 2019, Oct 2020, Apr 2023.",
+    "document_id": "whistleblower-and-non-retaliation-policy-Cognizant.pdf",
+    "section_path": "Version History",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Does Cognizant take violations of this policy seriously?",
+    "answer": "Yes. Cognizant takes violations of this Policy, including protection from retaliation of those who make reports, very seriously.",
+    "document_id": "whistleblower-and-non-retaliation-policy-Cognizant.pdf",
+    "section_path": "Disciplinary Consequences",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is the policy on Associates conducting their own investigations?",
+    "answer": "If you receive a report of a suspected violation, do not conduct your own investigation. Refer to Ethics & Compliance promptly.",
+    "document_id": "whistleblower-and-non-retaliation-policy-Cognizant.pdf",
+    "section_path": "Guiding Principles",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Does Cognizant promote a speak-up culture?",
+    "answer": "Yes. Cognizant promotes a speak-up culture that depends on Associates raising questions and concerns so that appropriate actions can be taken.",
+    "document_id": "whistleblower-and-non-retaliation-policy-Cognizant.pdf",
+    "section_path": "Guiding Principles",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is the full mailing address for sending a report by mail?",
+    "answer": "Cognizant Technology Solutions, Attn: Chief Ethics & Compliance Officer, Glenpointe Centre West, 300 Frank W. Burr Boulevard, Suite 36, 6th Floor, Teaneck, New Jersey 07666 USA.",
+    "document_id": "whistleblower-and-non-retaliation-policy-Cognizant.pdf",
+    "section_path": "Reporting Channels",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "How many sick days do Cognizant employees get per year?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the company policy on taking unpaid leave?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "How do I apply for a new credit card for business expenses?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the process for requesting a desk phone?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "Does Cognizant provide employee wellness programs?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the dress code for non-client-facing roles?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "How do I request a change to my direct deposit information?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the company's policy on using personal devices for work?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "Does Cognizant offer life insurance benefits?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the process for filing a complaint about a colleague?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "How do I book international travel for a client meeting?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the policy on using company email for personal use?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "How do I access the company's training portal?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the company's policy on maternity leave duration?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "Can I use Cognizant's software for personal projects?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "How do I request a salary advance?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What are the qualifications for becoming a team lead?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "Does Cognizant offer gym membership reimbursements?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the parking policy at Cognizant offices?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "How do I report a maintenance issue in my office?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the policy on taking breaks during work hours?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "Does Cognizant offer financial planning services?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the process for ordering stationery supplies?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "How do I request a change in my job title?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the company's mobile phone reimbursement policy?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "Does Cognizant offer relocation assistance for new hires?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the dress code for video conference calls?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "How do I access the company cafeteria menu?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the policy on bringing guests to the office?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "How do I request a company car for business use?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What anti-corruption laws is Cognizant subject to?",
+    "answer": "U.S. Foreign Corrupt Practices Act, UK Bribery Act, India Prevention of Corruption Act, and other financial crime laws and regulations.",
+    "document_id": "anti-corruption-policy-english-cognizant.pdf",
+    "section_path": "Scope",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Who does the Anti-Corruption Policy apply to?",
+    "answer": "All directors, officers, and employees of Cognizant entities, subsidiaries, and joint ventures over which Cognizant has operational control (collectively 'Associates').",
+    "document_id": "anti-corruption-policy-english-cognizant.pdf",
+    "section_path": "Scope",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is Cognizant's policy on bribery and corruption?",
+    "answer": "Cognizant has zero tolerance for bribery, corruption, and any form of fraud.",
+    "document_id": "anti-corruption-policy-english-cognizant.pdf",
+    "section_path": "Guiding principles",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What are facilitation payments and are they allowed?",
+    "answer": "Facilitation payments are small, unofficial cash payments to low-level Government Officials to expedite routine government administrative actions. They are strictly prohibited.",
+    "document_id": "anti-corruption-policy-english-cognizant.pdf",
+    "section_path": "Guiding principles – No bribes",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is the definition of 'Anything of Value' under this policy?",
+    "answer": "Cash, cash equivalents such as gift cards and vouchers, gifts, merchandise, hospitality, meals, goods, services, event tickets, entertainment, airfares, ground transportation, accommodation, training expenses, conference tickets, sightseeing tours, favors, employment or internship opportunities, donations, discounts, loans, or promises of future employment.",
+    "document_id": "anti-corruption-policy-english-cognizant.pdf",
+    "section_path": "Definitions",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is the definition of a 'Government Official' under this policy?",
+    "answer": "Anyone acting in an official capacity for or on behalf of: Government or a government department/agency/division; A company or entity partially or wholly government-owned or controlled; Political party; Public international organization; or Anyone acting for/on behalf of any of the above.",
+    "document_id": "anti-corruption-policy-english-cognizant.pdf",
+    "section_path": "Definitions",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What should Associates do before offering or accepting gifts or entertainment?",
+    "answer": "Check the Procedure for Gifts & Entertainment for any pre-approval requirements or restrictions that may apply.",
+    "document_id": "anti-corruption-policy-english-cognizant.pdf",
+    "section_path": "Guiding principles – Offer gifts and entertainment with caution",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is the policy on charitable contributions or sponsorships?",
+    "answer": "They can create conflicts of interest or be used to improperly influence decisions. Associates must follow the Charitable Contribution request process as required by the Global Charitable Giving Policy.",
+    "document_id": "anti-corruption-policy-english-cognizant.pdf",
+    "section_path": "Guiding principles – Charitable contributions or sponsorships",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Is it permissible to make political contributions?",
+    "answer": "It is never permissible to provide a political contribution to improperly influence a government official or in exchange for any improper favor or benefit.",
+    "document_id": "anti-corruption-policy-english-cognizant.pdf",
+    "section_path": "Guiding principles – Political contributions",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is the policy on preferential hiring?",
+    "answer": "Do not offer, promise, or provide employment, internships, or work experience to relatives of a client or Government Official for the purpose of obtaining a business advantage or preferential treatment.",
+    "document_id": "anti-corruption-policy-english-cognizant.pdf",
+    "section_path": "Guiding principles – No preferential hiring",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What should Associates do before engaging third parties?",
+    "answer": "Conduct due diligence prior to engaging third parties. Follow Cognizant's Vendor Onboarding Process and the Anti-Corruption Compliance Procedure for the Selection & Retention of Third Parties.",
+    "document_id": "anti-corruption-policy-english-cognizant.pdf",
+    "section_path": "Guiding principles – No improper conduct by third parties",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is the requirement regarding books and records?",
+    "answer": "Cognizant must maintain books and records that transparently and accurately support all transactions. Associates should submit accurate and complete timesheets, travel and expense reports, financial statements, and customer billing.",
+    "document_id": "anti-corruption-policy-english-cognizant.pdf",
+    "section_path": "Guiding principles – Maintain accurate books & records",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What should be done to mitigate corruption risks in mergers and acquisitions?",
+    "answer": "Ensure appropriate level of anti-corruption due diligence is conducted prior to entering into a joint venture or in connection with a merger or acquisition. Contact the M&A Legal team for assistance.",
+    "document_id": "anti-corruption-policy-english-cognizant.pdf",
+    "section_path": "Guiding principles – Mitigate corruption risks in merger, acquisition, and joint venture activity",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Where can Associates ask questions about the Anti-Corruption Policy?",
+    "answer": "Direct questions to the Ethics & Compliance team and/or via the Q&A tool at www.cognizant.com/compliance-helpline.",
+    "document_id": "anti-corruption-policy-english-cognizant.pdf",
+    "section_path": "Questions and/or reporting violations",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Where can Associates report a violation of the Anti-Corruption Policy?",
+    "answer": "Visit Cognizant's Ethics & Compliance Helpline at www.cognizant.com/compliance-helpline.",
+    "document_id": "anti-corruption-policy-english-cognizant.pdf",
+    "section_path": "Questions and/or reporting violations",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Does Cognizant tolerate retaliation against someone who reports a violation?",
+    "answer": "No. Cognizant does not tolerate retaliation against any individual who submits a good faith report of a violation or possible violation.",
+    "document_id": "anti-corruption-policy-english-cognizant.pdf",
+    "section_path": "Questions and/or reporting violations",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What are the disciplinary consequences for violating the Anti-Corruption Policy?",
+    "answer": "Subject to local laws and regulations, violation could result in disciplinary action, up to and including termination.",
+    "document_id": "anti-corruption-policy-english-cognizant.pdf",
+    "section_path": "Disciplinary consequences",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "When was the Anti-Corruption Policy initially released?",
+    "answer": "January 1, 2011.",
+    "document_id": "anti-corruption-policy-english-cognizant.pdf",
+    "section_path": "Version history",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "When was the Anti-Corruption Policy last revised?",
+    "answer": "May 22, 2026.",
+    "document_id": "anti-corruption-policy-english-cognizant.pdf",
+    "section_path": "Version history",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What change was made on December 1, 2020 to the Anti-Corruption Policy?",
+    "answer": "Update to facilitation payments provision.",
+    "document_id": "anti-corruption-policy-english-cognizant.pdf",
+    "section_path": "Version history",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What change was made on May 22, 2026 to the Anti-Corruption Policy?",
+    "answer": "Updated policy content to reflect enhanced anti-corruption and financial crime provisions.",
+    "document_id": "anti-corruption-policy-english-cognizant.pdf",
+    "section_path": "Version history",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Who is the Policy Owner of the Anti-Corruption Policy?",
+    "answer": "Jemima Coke.",
+    "document_id": "anti-corruption-policy-english-cognizant.pdf",
+    "section_path": "Policy Control Information",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is the revision date of the Anti-Corruption Policy?",
+    "answer": "May 22, 2026.",
+    "document_id": "anti-corruption-policy-english-cognizant.pdf",
+    "section_path": "Policy Control Information",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What related policies are listed alongside the Anti-Corruption Policy?",
+    "answer": "Code of Ethics, Ethics & Compliance Helpline, Anti-Corruption Compliance Procedure for the Selection & Retention of Third Parties, Procedure for Anti-Money Laundering, Financial Stewardship Policy, Global Charitable Giving Policy, Procedure for Gifts & Entertainment, Conflicts of Interest Policy, Talent Acquisition Group, Travel & Expense Policy, United States Political Activities and Gifts to Government Officials Compliance Policy, Whistleblower & Non-Retaliation Policy.",
+    "document_id": "anti-corruption-policy-english-cognizant.pdf",
+    "section_path": "Related Policies and Processes",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What languages is the Anti-Corruption Policy available in?",
+    "answer": "Chinese (Simplified), English, French (Canada), French (France), German, Japanese, Polish, Portuguese, Spanish (Latin America).",
+    "document_id": "anti-corruption-policy-english-cognizant.pdf",
+    "section_path": "Translations",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Is the Anti-Corruption Policy available externally?",
+    "answer": "Yes, the policy availability is both Internal and External.",
+    "document_id": "anti-corruption-policy-english-cognizant.pdf",
+    "section_path": "Policy Control Information",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What should Associates do if they become aware of a violation of this policy?",
+    "answer": "They must speak up and report it.",
+    "document_id": "anti-corruption-policy-english-cognizant.pdf",
+    "section_path": "Questions and/or reporting violations",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Is it permissible to offer gifts to Government Officials?",
+    "answer": "Gifts may create a conflict of interest and must never be provided to influence a business decision or gain an unfair advantage. Check the Procedure for Gifts & Entertainment for requirements.",
+    "document_id": "anti-corruption-policy-english-cognizant.pdf",
+    "section_path": "Guiding principles – Offer gifts and entertainment with caution",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "How many revisions are listed in the Anti-Corruption Policy version history?",
+    "answer": "Six revisions: Jan 2011, Dec 2016, Sep 2019, Dec 2020, May 2023, May 2026.",
+    "document_id": "anti-corruption-policy-english-cognizant.pdf",
+    "section_path": "Version history",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is the full URL for reporting a violation?",
+    "answer": "www.cognizant.com/compliance-helpline.",
+    "document_id": "anti-corruption-policy-english-cognizant.pdf",
+    "section_path": "Questions and/or reporting violations",
+    "expected_response_type": "factual"
+  },
+  
+  {
+    "question": "How many vacation days do employees get after 5 years?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the company's policy on remote work arrangements?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "How do I apply for maternity leave?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the dress code for women employees?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What are the working hours for software engineers?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "Does Cognizant offer transportation services for employees?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "How do I request a change in my health insurance plan?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the policy on working from different offices?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "How do I access my employee benefits portal?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the company's parking policy?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "Can I use company equipment for personal projects?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "How do I report a technical issue with my computer?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the company's policy on social media use?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "Does Cognizant have a tuition reimbursement program?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What are the qualifications for promotion to senior manager?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "How do I order business cards?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the company's policy on employee referrals?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "Does Cognizant offer wellness programs?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the process for requesting a leave of absence?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "How do I update my personal information in the HR system?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the company's policy on office snacks and meals?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "Does Cognizant provide mobile phones to employees?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "How do I request a desk reassignment?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the company's travel booking process?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What are the company's holiday dates for next year?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "How do I enroll in the company's 401(k) plan?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the dress code for casual Friday?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "How do I request a name badge?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the company's policy on moonlighting?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "Does Cognizant offer childcare facilities?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "Who does the Code of Ethics apply to?",
+    "answer": "All Cognizant directors, officers and employees worldwide as well as all Cognizant business units, subsidiaries and joint ventures over which Cognizant has operational control (collectively 'associates').",
+    "document_id": "code-of-ethics-Cognizant.pdf",
+    "section_path": "The right way at Cognizant",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What happens when the Code of Ethics is violated?",
+    "answer": "Violations can result in disciplinary action, up to and including termination of employment. Depending on seriousness, there can even be civil or criminal consequences.",
+    "document_id": "code-of-ethics-Cognizant.pdf",
+    "section_path": "The right way at Cognizant",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What are Cognizant's core values?",
+    "answer": "Work as One, Raise the Bar, Dare to Innovate, Do the Right Thing, and Own It.",
+    "document_id": "code-of-ethics-Cognizant.pdf",
+    "section_path": "Our values, fundamental to our culture",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What are the three Code principles at Cognizant?",
+    "answer": "We earn trust, We respect people and the environment, and We live up to our responsibilities.",
+    "document_id": "code-of-ethics-Cognizant.pdf",
+    "section_path": "Our Code principles",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What should Associates do when faced with an ethical dilemma?",
+    "answer": "Ask yourself: Could the action be against the law? Could it breach our Code? Could it cause harm to Cognizant's reputation? Could others perceive it as improper? When in doubt, seek guidance.",
+    "document_id": "code-of-ethics-Cognizant.pdf",
+    "section_path": "Making ethical decisions",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What should Associates do if they observe unethical behavior?",
+    "answer": "Speak up. Cognizant takes all reported concerns seriously. Associates should use the reporting channel most comfortable for them.",
+    "document_id": "code-of-ethics-Cognizant.pdf",
+    "section_path": "Voicing concerns",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is the Ethics & Compliance Helpline and how can it be accessed?",
+    "answer": "A helpline accessible by phone or web 24/7, allowing Associates to ask questions or share concerns anonymously if they wish.",
+    "document_id": "code-of-ethics-Cognizant.pdf",
+    "section_path": "Voicing concerns",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is Cognizant's policy on retaliation?",
+    "answer": "Cognizant does not tolerate retaliation for reporting ethics and compliance concerns in good faith. Retaliation includes dismissal, demotion, suspension, harassment, or exclusion.",
+    "document_id": "code-of-ethics-Cognizant.pdf",
+    "section_path": "We never allow retaliation",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What are the consequences for Associates engaging in retaliation?",
+    "answer": "Associates engaging in acts of retaliation are subject to disciplinary action, up to and including termination, as permitted by local laws.",
+    "document_id": "code-of-ethics-Cognizant.pdf",
+    "section_path": "We never allow retaliation",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is Cognizant's policy on bribes and corruption?",
+    "answer": "Cognizant does not give or receive bribes. Never authorize, offer, promise or provide anything of value to get business or secure any advantage.",
+    "document_id": "code-of-ethics-Cognizant.pdf",
+    "section_path": "Prevent corrupt activities",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Are facilitation payments allowed at Cognizant?",
+    "answer": "No. Facilitation payments to expedite routine government administrative actions are expressly prohibited.",
+    "document_id": "code-of-ethics-Cognizant.pdf",
+    "section_path": "Prevent corrupt activities",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is Cognizant's policy on gifts and entertainment?",
+    "answer": "Gifts must be of modest value, appropriate, and infrequent. Cash or cash equivalents like gift cards are never acceptable. Refer to the Procedure for Gifts & Entertainment.",
+    "document_id": "code-of-ethics-Cognizant.pdf",
+    "section_path": "We give and receive gifts and business hospitality only as appropriate",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What are the guiding principles of Cognizant's privacy program?",
+    "answer": "Lawfulness, Fairness and transparency, Purpose limitation, Data minimization, Accuracy, Storage limitation, Security, integrity and confidentiality, and Accountability.",
+    "document_id": "code-of-ethics-Cognizant.pdf",
+    "section_path": "Respect data privacy",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What should Associates do if they discover unauthorized disclosure of personal data?",
+    "answer": "Immediately report any unauthorized disclosure, mishandling or loss of personal data using the appropriate data security incident reporting channels.",
+    "document_id": "code-of-ethics-Cognizant.pdf",
+    "section_path": "Respect data privacy",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is Cognizant's policy on competing fairly?",
+    "answer": "Compete vigorously on the merits of talent and offerings, but always do so lawfully and ethically. Never agree with competitors to limit competition.",
+    "document_id": "code-of-ethics-Cognizant.pdf",
+    "section_path": "Compete fairly and honestly",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What should Associates do if a competitor raises competitively sensitive topics?",
+    "answer": "Politely disengage from the interaction and promptly report it to Ethics & Compliance or Legal.",
+    "document_id": "code-of-ethics-Cognizant.pdf",
+    "section_path": "Compete fairly and honestly",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is Cognizant's policy on insider trading?",
+    "answer": "Never trade on the basis of material nonpublic information or allow family or friends to do so. Associates must fully understand and comply with the Insider Trading Policy.",
+    "document_id": "code-of-ethics-Cognizant.pdf",
+    "section_path": "Never engage in insider trading",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What should Associates do before traveling internationally for work?",
+    "answer": "Obtain necessary work permits or visas in consultation with the Global Mobility team and obtain approval from Global Mobility, HR and management.",
+    "document_id": "code-of-ethics-Cognizant.pdf",
+    "section_path": "Adhere to international trade laws and travel requirements",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is Cognizant's policy on money laundering?",
+    "answer": "Cognizant complies with all anti-money laundering laws to prevent third parties from concealing illicit funds. Associates must monitor for suspicious transactions and report them.",
+    "document_id": "code-of-ethics-Cognizant.pdf",
+    "section_path": "Prevent money laundering",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is Cognizant's position on human rights?",
+    "answer": "Cognizant upholds human rights in all global operations. Everyone is entitled to fair wages and hours, and an environment free from discrimination, harassment and retaliation.",
+    "document_id": "code-of-ethics-Cognizant.pdf",
+    "section_path": "Respect human rights",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Does Cognizant condone modern slavery in any form?",
+    "answer": "No. Cognizant is committed to preventing all types of modern slavery and does not use or tolerate child, forced, bonded labor or human trafficking.",
+    "document_id": "code-of-ethics-Cognizant.pdf",
+    "section_path": "Respect human rights",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is Cognizant's policy on workplace safety?",
+    "answer": "Cognizant maintains a safe working environment. Violence, threats, intimidation, bullying, and abuse are not tolerated. Working under the influence of drugs or alcohol is prohibited.",
+    "document_id": "code-of-ethics-Cognizant.pdf",
+    "section_path": "Protect the health and safety of each other",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is Cognizant's policy on discrimination?",
+    "answer": "Cognizant does not discriminate against legally protected characteristics including race, color, religion, gender identity, age, national origin, sexual orientation, marital status, disability, or veteran status.",
+    "document_id": "code-of-ethics-Cognizant.pdf",
+    "section_path": "Treat people fairly and prohibit discrimination and harassment",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What should Associates do if they witness unsafe situations in the workplace?",
+    "answer": "Report it immediately to a manager, Corporate Security, Ethics & Compliance or Human Resources.",
+    "document_id": "code-of-ethics-Cognizant.pdf",
+    "section_path": "Protect the health and safety of each other",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is the policy on using unauthorized software?",
+    "answer": "Do not download or install unauthorized software onto Cognizant or client computers. Use only Cognizant-approved or client-approved devices, tools and software.",
+    "document_id": "code-of-ethics-Cognizant.pdf",
+    "section_path": "Ensure information security",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "How should Associates report information security incidents?",
+    "answer": "Report via the online MyService Portal, email CorporateSecurity@cognizant.com, or call the toll-free numbers: 1800-572-0473 (India), 0800-678-1616 (UK), or 1-866-822-2024 (US).",
+    "document_id": "code-of-ethics-Cognizant.pdf",
+    "section_path": "Ensure information security",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is the definition of confidential information under this policy?",
+    "answer": "Almost any type of nonpublic information relating to business activities, performance, operations or people, including strategic plans, financials, pricing, customer lists, and contract terms.",
+    "document_id": "code-of-ethics-Cognizant.pdf",
+    "section_path": "Protect confidential information and intellectual property",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is a conflict of interest under the Code of Ethics?",
+    "answer": "A conflict arises when outside activities, interests or relationships could create or appear to create a motive to make a decision not in Cognizant's best interests.",
+    "document_id": "code-of-ethics-Cognizant.pdf",
+    "section_path": "Avoid and manage conflicts of interest",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What are Cognizant's Responsible AI Principles?",
+    "answer": "Design for transparency/explainability/traceability, Promote fairness/inclusivity/accessibility, Safeguard personal information, Enable human accountability, Develop robust/safe systems, Produce solutions that grow and adapt over time.",
+    "document_id": "code-of-ethics-Cognizant.pdf",
+    "section_path": "Use emerging technologies and artificial intelligence (AI) responsibly",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is the full URL for the Ethics & Compliance Helpline?",
+    "answer": "http://www.cognizant.com/compliance-helpline",
+    "document_id": "code-of-ethics-Cognizant.pdf",
+    "section_path": "Accessing the Cognizant Ethics & Compliance Helpline",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What are the office hours at Cognizant?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "How do I request paternity leave?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the company's policy on taking unpaid time off?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "Does Cognizant provide free parking for employees?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "How do I apply for a company credit card?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the dress code for employees in India?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "How do I request a transfer to another location?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the company's policy on employee bonuses?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "Does Cognizant offer cab services for employees?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "How do I update my address in the system?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the process for getting a new ID card?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "Can I take study leave for professional certifications?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the company's policy on workplace snacks?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "How do I request a change in my work location?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "Does Cognizant provide fitness center memberships?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the process for ordering IT equipment?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "How do I access my payslips?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the company's policy on employee wellness activities?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "Can I bring visitors to the office?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the policy on using company conference rooms?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "Does Cognizant provide employee assistance programs?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "How do I request a salary certificate?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the company's policy on office seating arrangements?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "Can I work from home on Fridays?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the policy on company-provided mobile phones?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "How do I report a maintenance issue in my cubicle?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "Does Cognizant offer language training programs?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the process for booking a meeting room?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "How do I get reimbursement for business expenses?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is the policy on using office printers for personal use?",
+    "answer": "Refusal",
+    "document_id": "Not in corpus",
+    "section_path": "N/A",
+    "expected_response_type": "refusal"
   }
+
+
+
 ]
+
+
+
+
+
+
