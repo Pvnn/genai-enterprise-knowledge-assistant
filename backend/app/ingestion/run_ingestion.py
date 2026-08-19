@@ -64,6 +64,19 @@ async def ingest_document(
             # In a real environment, we'd read OCR_DEVICE from config. We let the default handle it here.
             markdown_text = parse_document(file_path)
             
+            # Stage 0.1.5 - Upload markdown to Neon Object Storage
+            from app.ingestion.storage import upload_markdown
+            object_key = f"markdowns/{document_id}.md"
+            try:
+                await upload_markdown(object_key, markdown_text)
+                await session.execute(
+                    update(Document)
+                    .where(Document.id == document_id)
+                    .values(source_path=object_key)
+                )
+            except Exception as e:
+                logger.warning("Failed to upload markdown to S3, citations will not have source links: %s", str(e))
+            
             # 3. Stage 0.2 - Chunking & Section Tree (Priority 2)
             logger.info("Chunking markdown output & extracting section tree...")
             raw_chunks = chunk_document(markdown_text)

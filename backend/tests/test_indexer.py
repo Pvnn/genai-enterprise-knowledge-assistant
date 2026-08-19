@@ -64,9 +64,9 @@ async def test_index_chunks_happy_path_returns_count() -> None:
         result = await index_chunks(session, _TENANT_ID)
 
     assert result == 3
-    # embed_batch called exactly once with all 3 texts.
+    # embed_batch called exactly once with all 3 texts in order.
     mock_embed.assert_awaited_once()
-    # TODO(P3): assert mock_embed.call_args[0][0] == [r[1] for r in rows]
+    assert mock_embed.call_args[0][0] == [r[1] for r in rows]
 
     # session.execute: 1 SELECT + 3 UPDATEs = 4 total calls.
     assert session.execute.await_count == 4
@@ -124,8 +124,8 @@ async def test_index_chunks_batching_calls_embed_batch_twice() -> None:
     # First batch: 256 texts; second batch: 44 texts.
     first_call_texts = mock_embed.await_args_list[0][0][0]
     second_call_texts = mock_embed.await_args_list[1][0][0]
-    # TODO(P3): assert len(first_call_texts) == 256
-    # TODO(P3): assert len(second_call_texts) == 44
+    assert len(first_call_texts) == 256
+    assert len(second_call_texts) == 44
     assert len(first_call_texts) + len(second_call_texts) == n
 
 
@@ -180,7 +180,37 @@ async def test_index_chunks_embedding_error_propagates() -> None:
     session.rollback.assert_not_awaited()
 
 
-# ── Case 7: DB write failure raises IndexerError and rolls back ───────────────
+# ── Case 7: vector count mismatch raises IndexerError ────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_index_chunks_vector_count_mismatch_raises_indexer_error() -> None:
+    """If embed_batch() returns fewer vectors than texts, IndexerError is raised
+    before any DB writes occur.
+
+    Without this guard, zip() would silently truncate and some chunks would
+    remain un-indexed while total_indexed over-counted them as successful.
+    """
+    rows = _make_rows(3)
+    session = _mock_session(rows)
+
+    # Return only 2 vectors for 3 texts — simulates a provider bug slipping
+    # through embed_batch()'s own validation.
+    short_vectors = [_FAKE_VECTOR, _FAKE_VECTOR]  # one fewer than len(rows)
+
+    with patch(
+        "app.retrieval.indexer.embed_batch",
+        new=AsyncMock(return_value=short_vectors),
+    ):
+        with pytest.raises(IndexerError, match="returned 2 vector"):
+            await index_chunks(session, _TENANT_ID)
+
+    # No DB writes or commits should have happened.
+    session.commit.assert_not_awaited()
+    session.rollback.assert_not_awaited()
+
+
+# ── Case 8: DB write failure raises IndexerError and rolls back ───────────────
 
 
 @pytest.mark.asyncio

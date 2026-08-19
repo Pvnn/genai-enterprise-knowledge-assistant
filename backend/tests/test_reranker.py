@@ -8,8 +8,9 @@ Strategy:
 - Tests exercise the fail-safe contract: rerank() must never raise.
 - The FlagEmbedding model is always mocked / patched so no model download
   or GPU is required in CI.
-- Assertions about cross-encoder score ordering are marked TODO(P3) pending
-  an integration environment with the model present.
+- Cross-encoder score ordering is asserted where the fake model provides
+  deterministic scores; integration tests with a real model are left for a
+  dedicated evaluation environment.
 """
 
 from __future__ import annotations
@@ -46,9 +47,10 @@ def _make_chunks(n: int) -> list[ChunkResult]:
 
 
 def test_rerank_returns_top_n_with_working_model() -> None:
-    """rerank() should return exactly top_n chunks when model is available."""
-    # Fake model: assign scores in reverse order so last chunk becomes first.
+    """rerank() should return exactly top_n chunks when model is available,
+    sorted by the cross-encoder scores the fake model returns."""
     chunks = _make_chunks(10)
+    # Assign scores in descending order so chunks[0] receives the highest score.
     fake_scores = list(range(10, 0, -1))  # [10, 9, 8, …, 1]
 
     fake_model = MagicMock()
@@ -65,7 +67,8 @@ def test_rerank_returns_top_n_with_working_model() -> None:
         reranker_module._model_load_failed = False
 
     assert len(result) == 5
-    # TODO(P3): assert result[0].text == chunks[0].text once scores are real
+    # chunks[0] has the highest fake score (10.0) and must sort to position 0.
+    assert result[0].text == chunks[0].text
 
 
 def test_rerank_returns_all_when_fewer_than_top_n() -> None:
@@ -116,7 +119,6 @@ def test_rerank_falls_back_when_model_unavailable() -> None:
 
     # Should not raise and should return at most top_n chunks.
     assert len(result) <= 5
-    # TODO(P3): assert result == chunks[:5] once fallback ordering is stable
 
 
 def test_rerank_falls_back_when_model_load_failed_flag_is_set() -> None:
@@ -132,7 +134,8 @@ def test_rerank_falls_back_when_model_load_failed_flag_is_set() -> None:
         reranker_module._model_load_failed = False
 
     assert len(result) == 4
-    # TODO(P3): assert result == chunks[:4]
+    # Fallback returns the original input order, sliced to top_n.
+    assert result == chunks[:4]
 
 
 def test_rerank_falls_back_when_compute_score_raises() -> None:
@@ -165,7 +168,6 @@ def test_rerank_never_raises_even_on_unexpected_exception() -> None:
     with patch.object(
         reranker_module, "_load_model", side_effect=Exception("Unexpected disaster")
     ):
-        # rerank() catches all exceptions internally, so this must not propagate.
         try:
             result = rerank("query", chunks, top_n=5)
             # If _load_model itself raises we may get an exception depending on
@@ -173,3 +175,75 @@ def test_rerank_never_raises_even_on_unexpected_exception() -> None:
             # the fallback is returned.
         except Exception:
             pytest.fail("rerank() must never raise into caller code")
+
+
+# ── Settings integration ──────────────────────────────────────────────────────
+
+
+def test_rerank_reads_top_n_from_settings_when_not_passed() -> None:
+    """When top_n is not supplied, rerank() must use Settings.reranker_top_n.
+
+    NEW TEST: regression guard for the bug where the function signature
+    hardcoded ``top_n=5`` and never read from Settings, so a config change
+    had no effect.
+    """
+    chunks = _make_chunks(10)
+    fake_model = MagicMock()
+    # Return 10 identical scores; ordering doesn't matter for this test.
+    fake_model.compute_score.return_value = [1.0] * 10
+
+    reranker_module._reranker_model = fake_model
+    reranker_module._model_load_failed = False
+
+    mock_settings = MagicMock()
+    mock_settings.reranker_top_n = 3  # different from the old hardcoded default of 5
+
+    try:
+        with patch("app.retrieval.reranker.get_settings", return_value=mock_settings):
+            result = rerank("query", chunks)  # top_n intentionally omitted
+    finally:
+        reranker_module._reranker_model = None
+        reranker_module._model_load_failed = False
+
+    # Must honour the configured value, not the old hardcoded 5.
+    assert len(result) == 3
+
+
+def test_rerank_failsafe_when_get_settings_raises() -> None:
+    """rerank() must not raise even if get_settings() fails; it defaults to 5 chunks."""
+    chunks = _make_chunks(10)
+    fake_model = MagicMock()
+    fake_model.compute_score.return_value = [1.0] * 10
+
+    reranker_module._reranker_model = fake_model
+    reranker_module._model_load_failed = False
+
+    try:
+        with patch("app.retrieval.reranker.get_settings", side_effect=RuntimeError("settings corrupted")):
+            result = rerank("query", chunks)
+    finally:
+        reranker_module._reranker_model = None
+        reranker_module._model_load_failed = False
+
+    assert len(result) == 5
+
+
+def test_rerank_failsafe_when_top_n_is_invalid_or_negative() -> None:
+    """rerank() must handle negative or non-integer top_n safely without crashing."""
+    chunks = _make_chunks(5)
+    fake_model = MagicMock()
+    fake_model.compute_score.return_value = [1.0] * 5
+
+    reranker_module._reranker_model = fake_model
+    reranker_module._model_load_failed = False
+
+    try:
+        # Negative top_n should clamp to 0 and return empty list
+        assert rerank("query", chunks, top_n=-1) == []
+        # Non-numeric string top_n should fall back to default (5) without raising
+        result = rerank("query", chunks, top_n="invalid_number")  # type: ignore[arg-type]
+        assert len(result) == 5
+    finally:
+        reranker_module._reranker_model = None
+        reranker_module._model_load_failed = False
+

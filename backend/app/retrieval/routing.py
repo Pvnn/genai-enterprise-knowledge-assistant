@@ -106,7 +106,10 @@ async def _llm_reason_sections(
         if settings.openai_api_key and not settings.openai_api_key.startswith("sk-...") and not settings.openai_api_key.endswith("..."):
             from openai import AsyncOpenAI
 
-            client = AsyncOpenAI(api_key=settings.openai_api_key, timeout=5.0)
+            client_kwargs: dict = {"api_key": settings.openai_api_key, "timeout": 5.0}
+            if settings.openai_api_key and settings.openai_api_key.startswith("gsk_"):
+                client_kwargs["base_url"] = "https://api.groq.com/openai/v1"
+            client = AsyncOpenAI(**client_kwargs)
             response = await client.chat.completions.create(
                 model=settings.llm_model or "gpt-4o-mini",
                 messages=[{"role": "user", "content": prompt}],

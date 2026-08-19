@@ -22,13 +22,6 @@ from jose import jwt
 from passlib.context import CryptContext
 from sqlalchemy.ext.asyncio import AsyncSession
 
-# ── SQLite compat: treat JSONB as JSON in the test DB ─────────────────────────
-# app/models.py currently uses `JSONB` (PostgreSQL-specific). P2 is switching
-# to JSON in their branch. Until that merges, patch SQLite's type compiler so
-# create_all succeeds. Remove this block after P2's branch is merged.
-from sqlalchemy.dialects.sqlite.base import SQLiteTypeCompiler
-SQLiteTypeCompiler.visit_JSONB = SQLiteTypeCompiler.visit_JSON  # type: ignore[method-assign]
-
 import app.models  # noqa: F401 — registers Document ORM so Enterprise mapper resolves
 from app.auth.models import Enterprise, User
 from app.auth.security import create_access_token
@@ -64,6 +57,17 @@ async def auth_client(db_session: AsyncSession) -> AsyncClient:
     ) as client:
         yield client
     app.dependency_overrides.clear()
+
+
+@pytest_asyncio.fixture(autouse=True)
+async def clean_db(db_session: AsyncSession):
+    """Clean tables before each test to prevent session.commit() side-effects."""
+    from sqlalchemy import text
+    # Delete in correct order to avoid foreign key issues (though SQLite in-memory 
+    # default might not enforce FKs, it's safer).
+    await db_session.execute(text("DELETE FROM users"))
+    await db_session.execute(text("DELETE FROM enterprises"))
+    await db_session.commit()
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
@@ -235,3 +239,153 @@ async def test_me_valid_token_returns_identity(auth_client: AsyncClient, db_sess
     assert data["role"] == "admin"
     assert data["tenant_id"] == TEST_TENANT_ID
     assert data["user_id"] == TEST_USER_ID
+
+
+# ── POST /auth/register/enterprise ──────────────────────────────────────────────
+
+async def test_register_enterprise_success(auth_client: AsyncClient, db_session: AsyncSession):
+    """Registering a new enterprise succeeds and creates admin user."""
+    resp = await auth_client.post(
+        "/auth/register/enterprise",
+        json={
+            "enterprise_name": "New Corp",
+            "admin_email": "admin@newcorp.com",
+            "admin_password": "strongpassword123",
+        },
+    )
+    assert resp.status_code == 201
+    data = resp.json()
+    assert "access_token" in data
+    assert data["role"] == "admin"
+    assert data["tenant_id"] is not None
+    assert data["user_id"] is not None
+
+    # Verify in DB
+    from sqlalchemy import select
+    result = await db_session.execute(select(Enterprise).where(Enterprise.name == "New Corp"))
+    ent = result.scalar_one_or_none()
+    assert ent is not None
+    assert str(ent.id) == data["tenant_id"]
+
+
+async def test_register_enterprise_duplicate_name_returns_400(auth_client: AsyncClient, db_session: AsyncSession):
+    """Registering with an existing enterprise name returns 400."""
+    await _seed(db_session)
+    resp = await auth_client.post(
+        "/auth/register/enterprise",
+        json={
+            "enterprise_name": _TENANT_NAME,  # already seeded
+            "admin_email": "newadmin@acme.com",
+            "admin_password": "password",
+        },
+    )
+    assert resp.status_code == 400
+    assert "already exists" in resp.json()["detail"]
+
+
+# ── POST /auth/register/user ────────────────────────────────────────────────────
+
+async def test_register_user_success(auth_client: AsyncClient, db_session: AsyncSession):
+    """Registering a member user in an existing enterprise succeeds."""
+    await _seed(db_session)
+    resp = await auth_client.post(
+        "/auth/register/user",
+        json={
+            "tenant_code": _TENANT_NAME,
+            "email": "member@acme.com",
+            "password": "password123",
+        },
+    )
+    assert resp.status_code == 201
+    data = resp.json()
+    assert "access_token" in data
+    assert data["role"] == "member"
+    assert data["tenant_id"] == TEST_TENANT_ID
+
+
+async def test_register_user_unknown_tenant_returns_400(auth_client: AsyncClient):
+    """Registering under an unknown enterprise name returns 400."""
+    resp = await auth_client.post(
+        "/auth/register/user",
+        json={
+            "tenant_code": "Fake Corp",
+            "email": "user@fakecorp.com",
+            "password": "password",
+        },
+    )
+    assert resp.status_code == 400
+    assert "Unknown organisation" in resp.json()["detail"]
+
+
+async def test_register_user_duplicate_email_returns_400(auth_client: AsyncClient, db_session: AsyncSession):
+    """Registering a user with an already existing email returns 400."""
+    await _seed(db_session)
+    resp = await auth_client.post(
+        "/auth/register/user",
+        json={
+            "tenant_code": _TENANT_NAME,
+            "email": _EMAIL,  # already seeded
+            "password": "password",
+        },
+    )
+    assert resp.status_code == 400
+    assert "Email is already registered" in resp.json()["detail"]
+
+
+# ── POST /auth/feedback ─────────────────────────────────────────────────────────
+
+from app.models import Query, Feedback
+from uuid import uuid4
+
+async def test_submit_feedback_success(auth_client: AsyncClient, db_session: AsyncSession):
+    """Submitting feedback for an existing query returns 'ok'."""
+    await _seed(db_session)
+    
+    # Create a mock query to attach feedback to
+    mock_query = Query(
+        tenant_id=UUID(TEST_TENANT_ID),
+        user_id=UUID(TEST_USER_ID),
+        raw_query="What is the leave policy?"
+    )
+    db_session.add(mock_query)
+    await db_session.commit()
+    await db_session.refresh(mock_query)
+    
+    # Authenticate
+    token = create_access_token(
+        {"sub": TEST_USER_ID, "tenant_id": TEST_TENANT_ID, "email": _EMAIL, "role": "admin"}
+    )
+    
+    resp = await auth_client.post(
+        "/auth/feedback",
+        headers={"Authorization": f"Bearer {token}"},
+        json={
+            "query_id": str(mock_query.id),
+            "thumbs_up_down": True,
+            "comment": "Great answer!"
+        }
+    )
+    
+    assert resp.status_code == 200
+    assert resp.json() == {"status": "ok"}
+    
+    # Verify in DB
+    from sqlalchemy import select
+    result = await db_session.execute(select(Feedback).where(Feedback.query_id == mock_query.id))
+    feedback = result.scalar_one_or_none()
+    assert feedback is not None
+    assert feedback.thumbs_up_down is True
+    assert feedback.comment == "Great answer!"
+
+async def test_submit_feedback_unauthorized(auth_client: AsyncClient):
+    """Submitting feedback without auth token returns 401."""
+    resp = await auth_client.post(
+        "/auth/feedback",
+        json={
+            "query_id": str(uuid4()),
+            "thumbs_up_down": True,
+            "comment": "Great answer!"
+        }
+    )
+    
+    assert resp.status_code == 401
