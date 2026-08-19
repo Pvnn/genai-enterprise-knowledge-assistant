@@ -16,7 +16,7 @@ from app.main import app
 from app.retrieval.dense_retrieval import retrieve_chunks
 from app.retrieval.hybrid_retrieval import hybrid_retrieve
 from app.retrieval.routing import route_query
-from app.schemas import CurrentUser, MetadataFilters, ScopedSection
+from app.schemas import ChunkResult, CurrentUser, MetadataFilters, ScopedSection
 from httpx import AsyncClient
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -242,3 +242,40 @@ async def test_retrieve_api_endpoint(async_client: AsyncClient, db_session: Asyn
     assert len(data["chunks"]) == 1
     assert "carry forward" in data["chunks"][0]["text"]
     assert data["chunks"][0]["department"] == "HR"
+
+
+@pytest.mark.asyncio
+async def test_dense_retrieval_fallback_on_pgvector_error(db_session: AsyncSession) -> None:
+    """Verify retrieve_chunks rolls back and recovers via fallback if pgvector query raises."""
+    await _seed_test_data(db_session)
+
+    query_vec = [1.0, 0.0, 0.0] + [0.0] * 765
+    filters = MetadataFilters()
+
+    # Force postgresql dialect branch with a simulated pgvector query error
+    with patch.object(db_session.bind.dialect, "name", "postgresql", create=True):
+        with patch("app.retrieval.dense_retrieval._retrieve_pgvector", side_effect=RuntimeError("simulated pgvector crash")):
+            with patch("app.retrieval.dense_retrieval._retrieve_fallback", new_callable=AsyncMock) as mock_fallback:
+                mock_fallback.return_value = [
+                    ChunkResult(
+                        chunk_id=uuid4(),
+                        document_id=DOC_UUID,
+                        text="Employees may carry forward up to 15 days of earned leave each calendar year.",
+                        section_path="2.2.2 Carry-forward",
+                        score=0.99,
+                    )
+                ]
+                with patch.object(db_session, "rollback", wraps=db_session.rollback) as mock_rollback:
+                    results = await retrieve_chunks(
+                        query_embedding=query_vec,
+                        tenant_id=TENANT_UUID,
+                        filters=filters,
+                        top_k=10,
+                        session=db_session,
+                    )
+
+                    mock_rollback.assert_awaited_once()
+                    mock_fallback.assert_awaited_once()
+                    assert len(results) == 1
+                    assert "carry forward" in results[0].text
+
