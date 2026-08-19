@@ -1,37 +1,29 @@
-# Gold QA Set
+# Gold Evaluation Dataset
 
-**Owner:** P8  
-**Stage:** Eval  
-**Priority:** 1  
-**Files:** `eval/gold_qa.json`
+**Owner:** P8
+**Stage:** 5 / Eval
+**Priority:** 1
+**Files:** eval/gold_qa.json, backend/app/eval/gold_set.py
 
 ## What it does
-
-A comprehensive gold standard Q&A dataset with 335 questions covering 6 Cognizant policy documents. Includes 215 factual questions with ground-truth answers and 120 refusal questions (out-of-scope topics). Used to evaluate the RAG pipeline's retrieval accuracy, generation faithfulness, and refusal correctness.
+Provides a structured gold Q&A benchmark dataset covering factual policy queries and explicit out-of-corpus refusal test cases. Used by the eval harness to score hit-rate@k, faithfulness, and hallucination rates.
+Questions : 184 factual + 151 refusal (335 total).
 
 ## Example
-
-**Input:** `python harness.py --gold eval/gold_qa.json --mock`
-**Output:** Evaluation summary with Hit-Rate@5, Hit-Rate@10, MRR, and Refusal Accuracy.
+**Input:** Gold benchmark items with questions, ground-truth answers, expected document_ids, and section paths.
+**Output:** Parsed `GoldQuestion` dataclass objects loaded for evaluation.
 
 ## Depends on / called by
-
-- Depends on: None (created manually from policy PDFs)
-- Called by: P8's `harness.py`
+Called by `backend/app/eval/harness.py` and `backend/app/eval/run_eval.py`.
 
 ## Fallback behavior
-
-N/A - Priority 1 work, this is the spine.
+N/A - no fallback, this is the spine.
 
 ## Status
-
-**Done** – 335 questions created and validated.
+Done
 
 ## Known issues / open questions
-
-- Document IDs are currently filename-based; will need to map to actual database UUIDs once P1 ingests documents
-- Section paths may need adjustment to match P1's section_tree format
+None. Loaded 335 evaluated question pairs cleanly.
 
 ## Tests
-
-`tests/test_harness.py` 
+eval/tests/test_harness.py

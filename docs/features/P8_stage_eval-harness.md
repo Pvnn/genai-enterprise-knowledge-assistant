@@ -1,38 +1,28 @@
-# Evaluation Harness
+# Evaluation Harness & Failure Attribution Report
 
-**Owner:** P8  
-**Stage:** Eval  
-**Priority:** 1  
-**Files:** `eval/harness.py`
+**Owner:** P8
+**Stage:** 5 / Eval
+**Priority:** 2
+**Files:** backend/app/eval/harness.py, backend/app/eval/report.py, backend/app/eval/run_eval.py
 
 ## What it does
-
-An automated evaluation framework that reads the gold QA set, calls the `/chat` endpoint (or a mock), and computes Hit-Rate@k, MRR, Refusal Accuracy, and Faithfulness. Provides both mock mode (for early testing) and real API mode (for production evaluation). Saves detailed per-question results for analysis.
+Scores the RAG system against gold questions for hit-rate@k, faithfulness, and hallucination rates. Generates an ablation failure-attribution report breaking errors down by Stage 2 (Routing), Stage 3 (Retrieval), and Stage 5 (Generation).
 
 ## Example
-
-**Input:** `python harness.py --gold eval/gold_qa.json --mock --output results.json`
-**Output:** Evaluation summary with Hit-Rate@5, Hit-Rate@10, MRR, Refusal Accuracy, and Faithfulness metrics.
+**Input:** Gold question list evaluated across pipeline stages.
+**Output:** Dictionary with summary metrics and `stage_breakdown` (routing, retrieval, generation error counts).
 
 ## Depends on / called by
-
-- Depends on: P4's `/chat` endpoint (real API mode)
-- Called by: The team when evaluating system performance
+Depends on `gold_set.py`. Reports results to CLI runner `run_eval.py`.
 
 ## Fallback behavior
-
-N/A - Priority 1 work, this is the spine.
+If downstream live endpoints are unavailable during development, falls back to standalone mock evaluation.
 
 ## Status
-
-**Done** – Harness fully functional with mock mode; ready for real API integration.
+Done
 
 ## Known issues / open questions
-
-- Faithfulness evaluation requires OpenAI API key
-- Relies on `/chat` endpoint returning `citations` with `document_id` and `section_path`
-- Needs coordination with P4 for endpoint URL and response format
+Refusal threshold calibrated. Live integration ready once P4 `/chat` endpoint is connected.
 
 ## Tests
-
-`tests/test_harness.py` 
+eval/tests/test_harness.py (14 passed)
