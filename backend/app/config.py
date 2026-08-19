@@ -26,7 +26,7 @@ class Settings(BaseSettings):
     )
 
     # ── Google Gemini / LLM ───────────────────────────────────────────────────
-    gemini_api_key: str = Field(..., description="Google Gemini API key")
+    gemini_api_key: str = Field(default="", description="Google Gemini API key")
     openai_api_key: str | None = Field(default=None, description="OpenAI API key (optional)")
     embedding_model: str = Field(
         "gemini-embedding-001", description="Gemini embedding model name"
@@ -64,6 +64,15 @@ class Settings(BaseSettings):
     )
 
     # ── Retrieval / Embeddings ────────────────────────────────────────────────
+    embedding_model: str = Field(
+        "gemini-embedding-001", description="Gemini embedding model name"
+    )
+    gemini_embedding_model: str = Field(
+        "gemini-embedding-001", description="Gemini embedding model name"
+    )
+    gemini_embedding_dimension: int = Field(
+        768, description="Gemini embedding vector dimension"
+    )
     embedding_dimension: int = Field(768, description="Embedding vector dimension")
     embed_batch_size: int = Field(
         256, description="Maximum number of chunks sent to the embedding API in a single call"

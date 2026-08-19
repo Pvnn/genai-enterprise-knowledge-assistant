@@ -19,6 +19,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
+from app.config import get_settings
 from app.schemas import ChunkResult
 
 logger = logging.getLogger(__name__)
@@ -78,10 +79,15 @@ def _load_model() -> Any:
         return None
 
 
+# ── Sentinel for unset top_n ──────────────────────────────────────────────────
+
+_UNSET: object = object()
+
+
 # ── Public API ────────────────────────────────────────────────────────────────
 
 
-def rerank(query: str, chunks: list[ChunkResult], top_n: int = 5) -> list[ChunkResult]:
+def rerank(query: str, chunks: list[ChunkResult], top_n: int | object = _UNSET) -> list[ChunkResult]:
     """Cross-encoder rerank a list of candidate chunks.
 
     Scores each (query, chunk.text) pair using bge-reranker-base and returns
@@ -96,12 +102,24 @@ def rerank(query: str, chunks: list[ChunkResult], top_n: int = 5) -> list[ChunkR
         chunks: Candidate chunks from Stage 3 (dense or hybrid retrieval).
                 Typically ~25 candidates.
         top_n: Number of top chunks to return after reranking.  Defaults to
-               the value of ``Settings.reranker_top_n`` (5 by spec).
+               ``Settings.reranker_top_n`` (currently 5).  Pass an explicit
+               integer to override the configured value for a single call.
 
     Returns:
         list[ChunkResult]: Top-n chunks sorted by cross-encoder score (desc).
         If reranking fails, returns ``chunks[:top_n]`` in original order.
     """
+    # FIX (BUG 4): the original signature hardcoded ``top_n: int = 5``.
+    # The docstring claimed the default came from Settings.reranker_top_n, but
+    # the code never read from Settings, so a config change had no effect unless
+    # the caller explicitly forwarded it.  We now read from Settings when the
+    # caller uses the default, keeping the public API fully backward-compatible.
+    if top_n is _UNSET:
+        top_n = get_settings().reranker_top_n
+
+    # top_n is now always an int; cast for the type checker.
+    top_n = int(top_n)  # type: ignore[arg-type]
+
     if not chunks:
         return []
 
