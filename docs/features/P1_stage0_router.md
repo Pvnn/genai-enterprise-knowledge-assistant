@@ -22,5 +22,14 @@ Accepts a `multipart/form-data` request containing the document file, alongside 
 Allows the client to poll the processing status of a previously uploaded document.
 * **Returns:** The current state of the document. E.g., `{ "document_id": UUID, "ingestion_status": "done", "error_detail": null }`.
 
+### `GET /documents/{document_id}/content`
+Acts as a private backend proxy to Neon Object Storage. Returns the raw markdown content of the fully ingested document.
+* **Security:** Enforces tenant isolation (the document must belong to the user's tenant).
+* **Returns:** `PlainTextResponse` containing the raw markdown, or a 404 if the document/content does not exist.
+
+### `GET /glossary`
+Allows the frontend to retrieve the extracted enterprise glossary terms for the tenant.
+* **Returns:** A list of `{ "term": string, "expansion": string }` objects scoped to the user's tenant.
+
 ## Fallback Behavior
 If the upload fails synchronously (e.g., invalid payload or database constraint error), an HTTP 400 or 500 is returned immediately. If the background pipeline fails, the document's `ingestion_status` transitions to `failed`, and `error_detail` is populated, which the client learns upon its next polling request.
