@@ -2,44 +2,81 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+:root {
+  /* Design Spec Light Palette (Warm Paper) */
+  --bg: #FAF8F4;
+  --surface: #FFFFFF;
+  --ink: #1D2430;
+  --ink-muted: #5B6472;
+  --primary: #25406E;
+  --primary-hover: #1C3156;
+  --primary-subtle: #EAEFF7;
+  --accent: #B8863C;
+  --accent-subtle: #FDF6EB;
+  --border: #E4E0D6;
+  --border-strong: #D5CEBE;
+
+  /* Aliases for backwards-compatibility */
+  --color-bg-canvas: var(--bg);
+  --color-bg-surface: var(--surface);
+  --color-bg-surface-muted: var(--bg);
+  --color-bg-surface-elevated: var(--surface);
+  --color-text-ink: var(--ink);
+  --color-text-ink-muted: var(--ink-muted);
+  --color-primary-brand: var(--primary);
+  --color-accent-gold: var(--accent);
+  --color-border-hairline: var(--border);
+  --accent-color: var(--accent);
+}
+
+.dark {
+  /* Warm Charcoal Luxury Dark Palette (Claude-inspired Dark Twin) */
+  --bg: #181715;
+  --surface: #22211E;
+  --ink: #EDEAE4;
+  --ink-muted: #9C998F;
+  --primary: #7A9AD6;
+  --primary-hover: #93AFE4;
+  --primary-subtle: rgba(122, 154, 214, 0.15);
+  --accent: #DDA853;
+  --accent-subtle: rgba(221, 168, 83, 0.14);
+  --border: #2E2C27;
+  --border-strong: #3E3C35;
+
+  /* Aliases for backwards-compatibility */
+  --color-bg-canvas: var(--bg);
+  --color-bg-surface: var(--surface);
+  --color-bg-surface-muted: var(--bg);
+  --color-bg-surface-elevated: #2C2B27;
+  --color-text-ink: var(--ink);
+  --color-text-ink-muted: var(--ink-muted);
+  --color-primary-brand: var(--primary);
+  --color-accent-gold: var(--accent);
+  --color-border-hairline: var(--border);
+  --accent-color: var(--accent);
+}
+
+@theme {
+  --color-bg: var(--bg);
+  --color-canvas: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--bg);
+  --color-surface-elevated: var(--color-bg-surface-elevated);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-primary: var(--primary);
+  --color-primary-brand: var(--primary);
+  --color-accent: var(--accent);
+  --color-accent-gold: var(--accent);
+  --color-border: var(--border);
+  --color-border-hairline: var(--border);
+  --color-hairline: var(--border);
+}
+
 @layer base {
-  :root {
-    /* Claude-inspired Light Palette */
-    --color-bg-canvas: #FAF8F4;
-    --color-bg-surface: #FFFFFF;
-    --color-bg-surface-muted: #F3EFEA;
-    --color-bg-surface-elevated: #FFFFFF;
-    --color-text-ink: #1D2430;
-    --color-text-ink-muted: #5B6472;
-    --color-primary-brand: #25406E;
-    --color-primary-brand-hover: #1c3156;
-    --color-primary-brand-subtle: #EAEFF7;
-    --color-accent-gold: #B8863C;
-    --color-accent-gold-subtle: #FDF6EB;
-    --color-border-hairline: #E4E0D6;
-    --color-border-strong: #D5CEBE;
-  }
-
-  .dark {
-    /* Claude-inspired Dark Palette */
-    --color-bg-canvas: #151A22;
-    --color-bg-surface: #1E252F;
-    --color-bg-surface-muted: #18202A;
-    --color-bg-surface-elevated: #242D39;
-    --color-text-ink: #EDEAE2;
-    --color-text-ink-muted: #9AA3B0;
-    --color-primary-brand: #5B7FBB;
-    --color-primary-brand-hover: #7598D4;
-    --color-primary-brand-subtle: #1C2B42;
-    --color-accent-gold: #D9A75C;
-    --color-accent-gold-subtle: #332817;
-    --color-border-hairline: #2C3440;
-    --color-border-strong: #3D4857;
-  }
-
   html, body {
-    background-color: var(--color-bg-canvas);
-    color: var(--color-text-ink);
+    background-color: var(--bg);
+    color: var(--ink);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -48,53 +85,53 @@
   }
 }
 
-/* Semantic utility helpers */
+/* Explicit CSS utility classes for theme variables */
 .bg-canvas {
-  background-color: var(--color-bg-canvas);
+  background-color: var(--bg) !important;
 }
 
 .bg-surface {
-  background-color: var(--color-bg-surface);
+  background-color: var(--surface) !important;
 }
 
 .bg-surface-muted {
-  background-color: var(--color-bg-surface-muted);
+  background-color: var(--bg) !important;
 }
 
 .bg-surface-elevated {
-  background-color: var(--color-bg-surface-elevated);
+  background-color: var(--color-bg-surface-elevated) !important;
 }
 
 .text-ink {
-  color: var(--color-text-ink);
+  color: var(--ink) !important;
 }
 
 .text-ink-muted {
-  color: var(--color-text-ink-muted);
+  color: var(--ink-muted) !important;
 }
 
 .border-hairline {
-  border-color: var(--color-border-hairline);
+  border-color: var(--border) !important;
 }
 
 .text-primary-brand {
-  color: var(--color-primary-brand);
+  color: var(--primary) !important;
 }
 
 .bg-primary-brand {
-  background-color: var(--color-primary-brand);
+  background-color: var(--primary) !important;
 }
 
 .text-accent-gold {
-  color: var(--color-accent-gold);
+  color: var(--accent) !important;
 }
 
 .bg-accent-gold {
-  background-color: var(--color-accent-gold);
+  background-color: var(--accent) !important;
 }
 
 .border-accent-gold {
-  border-color: var(--color-accent-gold);
+  border-color: var(--accent) !important;
 }
 
 /* Custom smooth scrollbar */
@@ -108,12 +145,20 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.35);
+  background: rgba(148, 163, 184, 0.25);
   border-radius: 9999px;
 }
 
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(156, 153, 143, 0.25);
+}
+
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.6);
+  background: rgba(148, 163, 184, 0.45);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 153, 143, 0.45);
 }
 
 /* Keyframes for token stream cursor pulse */
