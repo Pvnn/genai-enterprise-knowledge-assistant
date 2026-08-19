@@ -16,7 +16,8 @@ from fastapi import APIRouter, HTTPException, status
 from passlib.context import CryptContext
 from sqlalchemy import select
 
-from app.auth.models import User
+from app.auth.models import Enterprise, User, UserRole
+from app.auth.schemas import RegisterEnterpriseRequest, RegisterUserRequest
 from app.auth.security import create_access_token
 from app.auth.tenancy import resolve_tenant
 from app.deps import CurrentUserDep, DbDep
@@ -103,6 +104,138 @@ async def login(request: LoginRequest, session: DbDep) -> LoginResponse:
         tenant_id=user.tenant_id,
         user_id=user.id,
         role=user.role,
+    )
+
+
+@router.post("/register/enterprise", response_model=LoginResponse, status_code=status.HTTP_201_CREATED)
+async def register_enterprise(request: RegisterEnterpriseRequest, session: DbDep) -> LoginResponse:
+    """Register a new enterprise and its initial admin user.
+
+    POST /auth/register/enterprise  →  { access_token, tenant_id, user_id, role }
+
+    Args:
+        request: RegisterEnterpriseRequest
+        session: Async database session.
+
+    Returns:
+        LoginResponse: Signed JWT plus user identity fields.
+
+    Raises:
+        HTTPException 400: Enterprise name or email already exists.
+    """
+    # 1. Check if enterprise name already exists (case-insensitive)
+    existing_tenant = await session.execute(
+        select(Enterprise).where(Enterprise.name.ilike(request.enterprise_name))
+    )
+    if existing_tenant.scalar_one_or_none():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Enterprise '{request.enterprise_name}' already exists."
+        )
+
+    # 2. Check if admin email already exists globally
+    existing_user = await session.execute(
+        select(User).where(User.email.ilike(request.admin_email))
+    )
+    if existing_user.scalar_one_or_none():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email is already registered."
+        )
+
+    # 3. Create Enterprise
+    enterprise = Enterprise(name=request.enterprise_name)
+    session.add(enterprise)
+    await session.flush()  # To get enterprise.id
+
+    # 4. Create Admin User
+    hashed_password = _pwd_context.hash(request.admin_password)
+    admin_user = User(
+        tenant_id=enterprise.id,
+        email=request.admin_email,
+        password_hash=hashed_password,
+        role=UserRole.ADMIN.value,
+    )
+    session.add(admin_user)
+    await session.commit()
+    await session.refresh(admin_user)
+
+    # 5. Issue JWT
+    token = create_access_token(
+        {
+            "sub": str(admin_user.id),
+            "tenant_id": str(admin_user.tenant_id),
+            "email": admin_user.email,
+            "role": admin_user.role,
+        }
+    )
+
+    logger.info("Created enterprise %s and admin user %s", enterprise.id, admin_user.id)
+    return LoginResponse(
+        access_token=token,
+        tenant_id=admin_user.tenant_id,
+        user_id=admin_user.id,
+        role=admin_user.role,
+    )
+
+
+@router.post("/register/user", response_model=LoginResponse, status_code=status.HTTP_201_CREATED)
+async def register_user(request: RegisterUserRequest, session: DbDep) -> LoginResponse:
+    """Register a new member user for an existing enterprise.
+
+    POST /auth/register/user  →  { access_token, tenant_id, user_id, role }
+
+    Args:
+        request: RegisterUserRequest
+        session: Async database session.
+
+    Returns:
+        LoginResponse: Signed JWT plus user identity fields.
+
+    Raises:
+        HTTPException 400: Unknown tenant_code or email already exists.
+    """
+    # 1. Resolve tenant
+    tenant_id = await resolve_tenant(request.tenant_code, session)
+
+    # 2. Check if email already exists
+    existing_user = await session.execute(
+        select(User).where(User.email.ilike(request.email))
+    )
+    if existing_user.scalar_one_or_none():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email is already registered."
+        )
+
+    # 3. Create Member User
+    hashed_password = _pwd_context.hash(request.password)
+    member_user = User(
+        tenant_id=tenant_id,
+        email=request.email,
+        password_hash=hashed_password,
+        role=UserRole.MEMBER.value,
+    )
+    session.add(member_user)
+    await session.commit()
+    await session.refresh(member_user)
+
+    # 4. Issue JWT
+    token = create_access_token(
+        {
+            "sub": str(member_user.id),
+            "tenant_id": str(member_user.tenant_id),
+            "email": member_user.email,
+            "role": member_user.role,
+        }
+    )
+
+    logger.info("Created member user %s for tenant %s", member_user.id, tenant_id)
+    return LoginResponse(
+        access_token=token,
+        tenant_id=member_user.tenant_id,
+        user_id=member_user.id,
+        role=member_user.role,
     )
 
 
