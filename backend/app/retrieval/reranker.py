@@ -19,6 +19,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
+from app.config import get_settings
 from app.schemas import ChunkResult
 
 logger = logging.getLogger(__name__)
@@ -78,10 +79,15 @@ def _load_model() -> Any:
         return None
 
 
+# ── Sentinel for unset top_n ──────────────────────────────────────────────────
+
+_UNSET: object = object()
+
+
 # ── Public API ────────────────────────────────────────────────────────────────
 
 
-def rerank(query: str, chunks: list[ChunkResult], top_n: int = 5) -> list[ChunkResult]:
+def rerank(query: str, chunks: list[ChunkResult], top_n: int | object = _UNSET) -> list[ChunkResult]:
     """Cross-encoder rerank a list of candidate chunks.
 
     Scores each (query, chunk.text) pair using bge-reranker-base and returns
@@ -95,8 +101,9 @@ def rerank(query: str, chunks: list[ChunkResult], top_n: int = 5) -> list[ChunkR
         query: The (possibly rewritten) user query.
         chunks: Candidate chunks from Stage 3 (dense or hybrid retrieval).
                 Typically ~25 candidates.
-        top_n: Number of top chunks to return after reranking.  Defaults to
-               the value of ``Settings.reranker_top_n`` (5 by spec).
+        top_n: Number of top chunks to return after reranking. Defaults to
+               ``Settings.reranker_top_n`` (currently 5). Pass an explicit
+               integer to override the configured value for a single call.
 
     Returns:
         list[ChunkResult]: Top-n chunks sorted by cross-encoder score (desc).
@@ -105,8 +112,20 @@ def rerank(query: str, chunks: list[ChunkResult], top_n: int = 5) -> list[ChunkR
     if not chunks:
         return []
 
-    # Clamp top_n to the number of available chunks.
-    effective_top_n = min(top_n, len(chunks))
+    # Fail-safe top_n resolution: handle missing settings or non-numeric/negative values.
+    try:
+        if top_n is _UNSET:
+            try:
+                top_n = get_settings().reranker_top_n
+            except Exception:
+                top_n = 5
+        top_n_int = int(top_n)  # type: ignore[arg-type]
+        effective_top_n = max(0, min(top_n_int, len(chunks)))
+    except Exception:
+        effective_top_n = min(5, len(chunks))
+
+    if effective_top_n == 0:
+        return []
 
     try:
         model = _load_model()
@@ -146,7 +165,7 @@ def rerank(query: str, chunks: list[ChunkResult], top_n: int = 5) -> list[ChunkR
         logger.warning(
             "Reranking failed (query=%r, n_chunks=%d): %s. "
             "Falling back to retrieval order.",
-            query[:80],
+            query[:80] if isinstance(query, str) else "",
             len(chunks),
             exc,
         )

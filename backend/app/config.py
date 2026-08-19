@@ -26,7 +26,7 @@ class Settings(BaseSettings):
     )
 
     # ── Google Gemini / LLM ───────────────────────────────────────────────────
-    gemini_api_key: str = Field(..., description="Google Gemini API key")
+    gemini_api_key: str = Field(default="", description="Google Gemini API key")
     openai_api_key: str | None = Field(default=None, description="OpenAI API key (optional)")
     embedding_model: str = Field(
         "gemini-embedding-001", description="Gemini embedding model name"
