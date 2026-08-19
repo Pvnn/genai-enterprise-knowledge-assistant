@@ -207,3 +207,43 @@ def test_rerank_reads_top_n_from_settings_when_not_passed() -> None:
 
     # Must honour the configured value, not the old hardcoded 5.
     assert len(result) == 3
+
+
+def test_rerank_failsafe_when_get_settings_raises() -> None:
+    """rerank() must not raise even if get_settings() fails; it defaults to 5 chunks."""
+    chunks = _make_chunks(10)
+    fake_model = MagicMock()
+    fake_model.compute_score.return_value = [1.0] * 10
+
+    reranker_module._reranker_model = fake_model
+    reranker_module._model_load_failed = False
+
+    try:
+        with patch("app.retrieval.reranker.get_settings", side_effect=RuntimeError("settings corrupted")):
+            result = rerank("query", chunks)
+    finally:
+        reranker_module._reranker_model = None
+        reranker_module._model_load_failed = False
+
+    assert len(result) == 5
+
+
+def test_rerank_failsafe_when_top_n_is_invalid_or_negative() -> None:
+    """rerank() must handle negative or non-integer top_n safely without crashing."""
+    chunks = _make_chunks(5)
+    fake_model = MagicMock()
+    fake_model.compute_score.return_value = [1.0] * 5
+
+    reranker_module._reranker_model = fake_model
+    reranker_module._model_load_failed = False
+
+    try:
+        # Negative top_n should clamp to 0 and return empty list
+        assert rerank("query", chunks, top_n=-1) == []
+        # Non-numeric string top_n should fall back to default (5) without raising
+        result = rerank("query", chunks, top_n="invalid_number")  # type: ignore[arg-type]
+        assert len(result) == 5
+    finally:
+        reranker_module._reranker_model = None
+        reranker_module._model_load_failed = False
+

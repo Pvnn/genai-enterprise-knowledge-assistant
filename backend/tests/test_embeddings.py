@@ -118,6 +118,16 @@ def test_is_transient_error_classifies_configuration_error_as_permanent() -> Non
     assert _is_transient_error(exc) is False
 
 
+def test_is_transient_error_never_raises_on_malformed_exception() -> None:
+    """_is_transient_error must be fail-safe and return False even if exc raises on inspection."""
+    class BrokenException(Exception):
+        def __str__(self) -> str:
+            raise RuntimeError("broken string representation")
+
+    assert _is_transient_error(BrokenException()) is False
+
+
+
 # ── Input Validation ──────────────────────────────────────────────────────────
 
 
@@ -338,8 +348,26 @@ async def test_dimension_mismatch_raises_embedding_error() -> None:
 
     with patch("app.retrieval.embeddings.get_settings", return_value=settings):
         with patch("app.retrieval.embeddings._get_client", return_value=mock_client):
-            with pytest.raises(EmbeddingError, match="returned dimension 512, expected 768"):
+            with pytest.raises(EmbeddingError, match="returned dimension 512 for embedding\\[0\\], expected 768"):
                 await embed_text("dimension mismatch")
+
+
+@pytest.mark.asyncio
+async def test_batch_dimension_mismatch_at_non_zero_index_raises_embedding_error() -> None:
+    """If any vector in a batch has the wrong dimension (e.g. index 1), raise EmbeddingError."""
+    good_vector = [0.1] * 768
+    wrong_vector = [0.2] * 256  # mismatched
+    fake_resp = _make_fake_gemini_response([good_vector, wrong_vector])
+    mock_client = MagicMock(
+        models=MagicMock(embed_content=MagicMock(return_value=fake_resp))
+    )
+    settings = _make_fake_settings()
+
+    with patch("app.retrieval.embeddings.get_settings", return_value=settings):
+        with patch("app.retrieval.embeddings._get_client", return_value=mock_client):
+            with pytest.raises(EmbeddingError, match="returned dimension 256 for embedding\\[1\\], expected 768"):
+                await embed_batch(["doc1", "doc2"])
+
 
 
 # ── Live Integration tests (when API key is available) ─────────────────────────

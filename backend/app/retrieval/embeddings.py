@@ -82,139 +82,142 @@ def _is_transient_error(exc: Exception) -> bool:
         - 404 Not Found, Unsupported/Missing Model
         - Invalid model configuration, ValueError, TypeError, configuration errors
     """
-    if isinstance(exc, TransientEmbeddingError):
-        return True
-    if isinstance(exc, (PermanentEmbeddingError, EmbeddingConfigurationError, ValueError, TypeError)):
-        return False
-
-    # Check google.genai.errors if present
     try:
-        from google.genai import errors as genai_errors
-
-        if isinstance(exc, genai_errors.ServerError):
+        if isinstance(exc, TransientEmbeddingError):
             return True
-        if isinstance(exc, genai_errors.ClientError):
-            code = getattr(exc, "code", None)
-            if code in (408, 429):
+        if isinstance(exc, (PermanentEmbeddingError, EmbeddingConfigurationError, ValueError, TypeError)):
+            return False
+
+        # Check google.genai.errors if present
+        try:
+            from google.genai import errors as genai_errors
+
+            if isinstance(exc, genai_errors.ServerError):
                 return True
-            return False
-        if isinstance(exc, genai_errors.APIError):
-            code = getattr(exc, "code", None)
-            if isinstance(code, int):
-                if code in (408, 429) or 500 <= code <= 599:
+            if isinstance(exc, genai_errors.ClientError):
+                code = getattr(exc, "code", None)
+                if code in (408, 429):
                     return True
-                if 400 <= code < 500:
-                    return False
-    except ImportError:
-        pass
+                return False
+            if isinstance(exc, genai_errors.APIError):
+                code = getattr(exc, "code", None)
+                if isinstance(code, int):
+                    if code in (408, 429) or 500 <= code <= 599:
+                        return True
+                    if 400 <= code < 500:
+                        return False
+        except Exception:
+            pass
 
-    # Check standard library and HTTP transport network/timeout exceptions
-    if isinstance(
-        exc,
-        (
-            TimeoutError,
-            asyncio.TimeoutError,
-            ConnectionError,
-            ConnectionResetError,
-            ConnectionRefusedError,
-            ConnectionAbortedError,
-            socket.timeout,
-            socket.gaierror,
-            socket.error,
-            httpx.TimeoutException,
-            httpx.NetworkError,
-            httpx.ConnectError,
-            httpx.ConnectTimeout,
-            httpx.ReadTimeout,
-            httpx.WriteTimeout,
-            httpx.RemoteProtocolError,
-        ),
-    ):
-        return True
-
-    # Check numeric HTTP status code attributes if present on custom or mock exceptions
-    code = getattr(exc, "status_code", getattr(exc, "code", getattr(exc, "http_status", None)))
-    if isinstance(code, int):
-        if code in (408, 429) or 500 <= code <= 599:
-            return True
-        if 400 <= code < 500:
-            return False
-
-    # Check status string if present (e.g. gRPC or GenAI error status)
-    status = getattr(exc, "status", None)
-    if isinstance(status, str):
-        status_upper = status.upper()
-        if status_upper in (
-            "RESOURCE_EXHAUSTED",
-            "UNAVAILABLE",
-            "DEADLINE_EXCEEDED",
-            "INTERNAL",
-            "ABORTED",
+        # Check standard library and HTTP transport network/timeout exceptions
+        if isinstance(
+            exc,
+            (
+                TimeoutError,
+                asyncio.TimeoutError,
+                ConnectionError,
+                ConnectionResetError,
+                ConnectionRefusedError,
+                ConnectionAbortedError,
+                socket.timeout,
+                socket.gaierror,
+                socket.error,
+                httpx.TimeoutException,
+                httpx.NetworkError,
+                httpx.ConnectError,
+                httpx.ConnectTimeout,
+                httpx.ReadTimeout,
+                httpx.WriteTimeout,
+                httpx.RemoteProtocolError,
+            ),
         ):
             return True
-        if status_upper in (
-            "INVALID_ARGUMENT",
-            "NOT_FOUND",
-            "PERMISSION_DENIED",
-            "UNAUTHENTICATED",
-            "FAILED_PRECONDITION",
-            "ALREADY_EXISTS",
+
+        # Check numeric HTTP status code attributes if present on custom or mock exceptions
+        code = getattr(exc, "status_code", getattr(exc, "code", getattr(exc, "http_status", None)))
+        if isinstance(code, int):
+            if code in (408, 429) or 500 <= code <= 599:
+                return True
+            if 400 <= code < 500:
+                return False
+
+        # Check status string if present (e.g. gRPC or GenAI error status)
+        status = getattr(exc, "status", None)
+        if isinstance(status, str):
+            status_upper = status.upper()
+            if status_upper in (
+                "RESOURCE_EXHAUSTED",
+                "UNAVAILABLE",
+                "DEADLINE_EXCEEDED",
+                "INTERNAL",
+                "ABORTED",
+            ):
+                return True
+            if status_upper in (
+                "INVALID_ARGUMENT",
+                "NOT_FOUND",
+                "PERMISSION_DENIED",
+                "UNAUTHENTICATED",
+                "FAILED_PRECONDITION",
+                "ALREADY_EXISTS",
+            ):
+                return False
+
+        # String inspection heuristics for mock or unclassified exceptions
+        msg = str(exc).lower().replace("_", " ")
+
+        # Match permanent indicators first
+        permanent_keywords = (
+            "401",
+            "403",
+            "400",
+            "404",
+            "422",
+            "unauthorized",
+            "unauthenticated",
+            "invalid api key",
+            "api key not valid",
+            "permission denied",
+            "forbidden",
+            "invalid argument",
+            "bad request",
+            "not found",
+            "unsupported model",
+        )
+        if any(kw in msg for kw in permanent_keywords) and not any(
+            trans in msg for trans in ("429", "500", "502", "503", "504")
         ):
             return False
 
-    # String inspection heuristics for mock or unclassified exceptions
-    msg = str(exc).lower().replace("_", " ")
+        # Match transient indicators
+        transient_keywords = (
+            "429",
+            "500",
+            "502",
+            "503",
+            "504",
+            "508",
+            "rate limit",
+            "too many requests",
+            "resource exhausted",
+            "service unavailable",
+            "temporarily unavailable",
+            "deadline exceeded",
+            "timeout",
+            "timed out",
+            "connection reset",
+            "connection refused",
+            "connection error",
+            "network error",
+            "server error",
+            "unavailable",
+        )
+        if any(kw in msg for kw in transient_keywords):
+            return True
 
-    # Match permanent indicators first
-    permanent_keywords = (
-        "401",
-        "403",
-        "400",
-        "404",
-        "422",
-        "unauthorized",
-        "unauthenticated",
-        "invalid api key",
-        "api key not valid",
-        "permission denied",
-        "forbidden",
-        "invalid argument",
-        "bad request",
-        "not found",
-        "unsupported model",
-    )
-    if any(kw in msg for kw in permanent_keywords) and not any(
-        trans in msg for trans in ("429", "500", "502", "503", "504")
-    ):
         return False
-
-    # Match transient indicators
-    transient_keywords = (
-        "429",
-        "500",
-        "502",
-        "503",
-        "504",
-        "508",
-        "rate limit",
-        "too many requests",
-        "resource exhausted",
-        "service unavailable",
-        "temporarily unavailable",
-        "deadline exceeded",
-        "timeout",
-        "timed out",
-        "connection reset",
-        "connection refused",
-        "connection error",
-        "network error",
-        "server error",
-        "unavailable",
-    )
-    if any(kw in msg for kw in transient_keywords):
-        return True
-
-    return False
+    except Exception:
+        return False
 
 
 # ── Gemini Client (lazily initialised; cached per process) ───────────────────
@@ -261,10 +264,12 @@ def _call_gemini_sync(
             )
         embeddings.append([float(v) for v in e.values])
 
-    if embeddings and len(embeddings[0]) != dimension:
-        raise EmbeddingError(
-            f"Gemini model '{model}' returned dimension {len(embeddings[0])}, expected {dimension}"
-        )
+    for i, vec in enumerate(embeddings):
+        if len(vec) != dimension:
+            raise EmbeddingError(
+                f"Gemini model '{model}' returned dimension {len(vec)} for embedding[{i}], expected {dimension}"
+            )
+
     # Validate count: one vector per input text. A mismatch here would cause
     # silent data loss in indexer.py where zip() truncates without error.
     if len(embeddings) != len(texts):

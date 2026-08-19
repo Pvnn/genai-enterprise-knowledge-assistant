@@ -74,19 +74,21 @@ Done
 
 ## Tests
 
-`backend/tests/test_embeddings.py` — 17 unit and integration tests covering:
+`backend/tests/test_embeddings.py` — 19 unit and integration tests covering:
 - 768-dimensional outputs
 - Batch order alignment
 - Transient error retry and exponential backoff
 - Permanent error bypass of retries
+- Fail-safe error classification (never raises on broken/malformed exceptions)
 - Transient retry exhaustion raising typed `EmbeddingError`
 - Permanent failure raising typed `EmbeddingError`
 - Missing API key raising typed `EmbeddingConfigurationError`
 - Input validation (empty text, empty list, empty strings)
 - Vector count mismatch detection (guards against silent data loss)
-- Dimension mismatch detection
+- Multi-vector batch dimension mismatch detection with index identification
 - `embed_text()` delegation contract to `embed_batch()`
 - Live integration tests
+
 
 `backend/tests/test_indexer.py` — 8 unit tests covering:
 - Happy path indexing with sequential batching

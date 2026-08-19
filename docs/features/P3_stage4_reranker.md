@@ -78,7 +78,9 @@ Done
 
 ## Tests
 
-`backend/tests/test_reranker.py` — 8 tests (happy path, boundary cases,
+`backend/tests/test_reranker.py` — 10 tests (happy path, boundary cases,
 three distinct fallback paths: model load failure flag, `ImportError`,
-`compute_score` exception, unexpected `_load_model` exception, and dynamic `Settings.reranker_top_n` fallback)
+`compute_score` exception, unexpected `_load_model` exception, dynamic `Settings.reranker_top_n` fallback,
+settings failure fallback, and invalid/negative `top_n` clamping)
+
 
