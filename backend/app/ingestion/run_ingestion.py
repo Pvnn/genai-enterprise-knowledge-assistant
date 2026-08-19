@@ -13,6 +13,7 @@ from app.models import Document, IngestionStatus
 from app.ingestion.ocr import parse_document
 from app.ingestion.chunker import chunk_document
 from app.ingestion.metadata_tagger import tag_chunks
+from app.ingestion.section_tree import extract_section_tree
 from app.ingestion.loader import load_chunks
 
 logger = logging.getLogger(__name__)
@@ -61,9 +62,20 @@ async def ingest_document(
             # In a real environment, we'd read OCR_DEVICE from config. We let the default handle it here.
             markdown_text = parse_document(file_path)
             
-            # 3. Stage 0.2 - Chunking
-            logger.info("Chunking markdown output...")
+            # 3. Stage 0.2 - Chunking & Section Tree (Priority 2)
+            logger.info("Chunking markdown output & extracting section tree...")
             raw_chunks = chunk_document(markdown_text)
+            
+            # Extract section tree (Priority 2 feature)
+            try:
+                tree = extract_section_tree(markdown_text)
+                await session.execute(
+                    update(Document)
+                    .where(Document.id == document_id)
+                    .values(section_tree=tree)
+                )
+            except Exception as e:
+                logger.error("Failed to extract section tree, skipping (Priority 2): %s", str(e))
             
             # 4. Stage 0.3 - Metadata Tagging
             logger.info("Tagging chunks with document metadata...")
