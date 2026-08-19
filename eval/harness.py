@@ -460,9 +460,13 @@ async def main():
     parser.add_argument("--api-url", help="Base URL of the /chat endpoint (e.g., http://localhost:8000)")
     parser.add_argument("--mock", action="store_true", help="Use mock API instead of real endpoint")
     parser.add_argument("--openai-key", help="OpenAI API key for faithfulness evaluation (or set OPENAI_API_KEY env var)")
-    parser.add_argument("--output", help="Output JSON file for detailed results")
+    parser.add_argument("--output", help="Output JSON file for detailed results", default="eval/results/results.json")
     parser.add_argument("--concurrency", type=int, default=10, help="Max concurrent requests")
     args = parser.parse_args()
+
+    if args.output:
+        output_path = Path(args.output)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
 
     if not args.mock and not args.api_url:
         parser.error("Either --api-url or --mock must be provided.")
