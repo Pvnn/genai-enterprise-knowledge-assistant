@@ -17,14 +17,16 @@ Implements the end-to-end registration flow for both new Enterprises (Institutio
 - **User Registration:** Accepts a `tenant_code` (Institution Name), email, and password. Looks up the `Enterprise` by name and creates a new `User` with the `member` role.
 - **Frontend UI:** Provides a tabbed interface to switch between "Join Institution" and "Register Institution". It uses the Claude-inspired design system to match the Login page.
 
-## File Ownership Workarounds
+## Workarounds & Follow-ups
 
-To strictly respect the project's file ownership rules, P6 implemented this feature entirely within the `auth/` directories. **P2 and P7 must perform follow-up refactoring to integrate these components into the wider system architecture.**
+To strictly respect the project's file ownership rules, P6 implemented this feature using temporary workarounds.
 
-1. **Schemas (P2 Follow-up):** The `RegisterEnterpriseRequest` and `RegisterUserRequest` Pydantic models were placed in `backend/app/auth/schemas.py`. P2 must move these to `backend/app/schemas.py`.
-2. **Database Constraints (P2 Follow-up):** The `/auth/register/enterprise` endpoint manually enforces uniqueness on `Enterprise.name`. P2 must add `unique=True` to the SQLAlchemy model and generate an Alembic migration.
-3. **API Client (P7 Follow-up):** The `fetch` calls and TypeScript interfaces were embedded directly in `frontend/src/auth/Register.tsx`. P7 must move the API calls to `frontend/src/api/client.ts` and types to `frontend/src/chat/types.ts`.
-4. **Routing (P7 Follow-up):** The `<Register />` component is conditionally rendered inside `Login.tsx` using local state (`view === 'register'`). P7 must update `App.tsx` to handle a dedicated `/register` route.
+**P2 Follow-up:**
+1. **Database Constraints:** The `/auth/register/enterprise` endpoint manually enforces uniqueness on `Enterprise.name`. P2 must add `unique=True` to the SQLAlchemy model and generate an Alembic migration.
+
+**P7 Follow-up:** 
+1. **API Client:** Move the `fetch` calls to `frontend/src/api/client.ts` and types to `frontend/src/chat/types.ts`.
+2. **Routing:** Update `App.tsx` to handle a dedicated `/register` route (removing the temporary `view` state in `Login.tsx`).
 
 ## Example API Payloads
 

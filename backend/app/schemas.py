@@ -39,6 +39,18 @@ class LoginResponse(BaseModel):
     role: str
 
 
+class RegisterEnterpriseRequest(BaseModel):
+    enterprise_name: str
+    admin_email: str
+    admin_password: str
+
+
+class RegisterUserRequest(BaseModel):
+    tenant_code: str
+    email: str
+    password: str
+
+
 class CurrentUser(BaseModel):
     """Populated by security.get_current_user(); threaded through all requests."""
 

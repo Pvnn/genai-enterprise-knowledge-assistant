@@ -17,7 +17,6 @@ from passlib.context import CryptContext
 from sqlalchemy import select
 
 from app.auth.models import Enterprise, User, UserRole
-from app.auth.schemas import RegisterEnterpriseRequest, RegisterUserRequest
 from app.auth.security import create_access_token
 from app.auth.tenancy import resolve_tenant
 from app.deps import CurrentUserDep, DbDep
@@ -28,6 +27,8 @@ from app.schemas import (
     FeedbackResponse,
     LoginRequest,
     LoginResponse,
+    RegisterEnterpriseRequest,
+    RegisterUserRequest,
 )
 
 logger = logging.getLogger(__name__)
