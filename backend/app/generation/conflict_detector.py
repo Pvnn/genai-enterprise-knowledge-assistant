@@ -70,13 +70,13 @@ async def check_conflict(top_chunks: list[ChunkResult]) -> ConflictResult:
     result = None
     for attempt in range(MAX_RETRIES + 1):
         try:
-            response = await client.beta.chat.completions.parse(
+            response = await client.responses.parse(
                 model=settings.llm_model,
-                messages=[{"role": "user", "content": prompt}],
-                response_format=ConflictLLMResponse,
+                input=[{"role": "user", "content": prompt}],
+                text_format=ConflictLLMResponse,
                 temperature=0.0,
             )
-            result = response.choices[0].message.parsed
+            result = response.output_parsed
             break
         except TRANSIENT_ERRORS as e:
             wait_seconds = 2 ** attempt  # 1s, 2s

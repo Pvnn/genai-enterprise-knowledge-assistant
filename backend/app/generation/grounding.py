@@ -118,13 +118,13 @@ async def decide_refusal(
     llm_refusal_reason = None
     for attempt in range(MAX_RETRIES + 1):
         try:
-            response = await client.beta.chat.completions.parse(
+            response = await client.responses.parse(
                 model=settings.llm_model,
-                messages=[{"role": "user", "content": prompt}],
-                response_format=ConfidenceLLMResponse,
+                input=[{"role": "user", "content": prompt}],
+                text_format=ConfidenceLLMResponse,
                 temperature=0.0,
             )
-            result = response.choices[0].message.parsed
+            result = response.output_parsed
             if result.confidence == ConfidenceLevel.high:
                 confidence_val = 1.0
             elif result.confidence == ConfidenceLevel.medium:

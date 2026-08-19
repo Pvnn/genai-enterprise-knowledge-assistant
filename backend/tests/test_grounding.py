@@ -49,9 +49,8 @@ async def test_decide_refusal_high_confidence(mock_openai_class):
     mock_openai_class.return_value = mock_client
     
     mock_response = AsyncMock()
-    mock_response.choices = [AsyncMock()]
-    mock_response.choices[0].message.parsed = ConfidenceLLMResponse(confidence=ConfidenceLevel.high)
-    mock_client.beta.chat.completions.parse.return_value = mock_response
+    mock_response.output_parsed = ConfidenceLLMResponse(confidence=ConfidenceLevel.high)
+    mock_client.responses.parse.return_value = mock_response
 
     chunks = [
         ChunkResult(
@@ -77,12 +76,11 @@ async def test_decide_refusal_low_confidence_model_reason(mock_openai_class):
     
     custom_reason = "The passages do not mention holiday rollover rules. Please check with HR."
     mock_response = AsyncMock()
-    mock_response.choices = [AsyncMock()]
-    mock_response.choices[0].message.parsed = ConfidenceLLMResponse(
+    mock_response.output_parsed = ConfidenceLLMResponse(
         confidence=ConfidenceLevel.low,
         refusal_reason=custom_reason,
     )
-    mock_client.beta.chat.completions.parse.return_value = mock_response
+    mock_client.responses.parse.return_value = mock_response
 
     chunks = [
         ChunkResult(
@@ -108,11 +106,10 @@ async def test_decide_refusal_transient_error_retry(mock_openai_class, mock_slee
     mock_openai_class.return_value = mock_client
     
     mock_response = AsyncMock()
-    mock_response.choices = [AsyncMock()]
-    mock_response.choices[0].message.parsed = ConfidenceLLMResponse(confidence=ConfidenceLevel.high)
+    mock_response.output_parsed = ConfidenceLLMResponse(confidence=ConfidenceLevel.high)
     
     # 1st call fails with timeout (transient), 2nd call succeeds
-    mock_client.beta.chat.completions.parse.side_effect = [
+    mock_client.responses.parse.side_effect = [
         TimeoutError("Connection timed out"),
         mock_response,
     ]
@@ -130,7 +127,7 @@ async def test_decide_refusal_transient_error_retry(mock_openai_class, mock_slee
     res = await decide_refusal("query", chunks, "draft")
     assert res.refused is False
     assert res.confidence == 1.0
-    assert mock_client.beta.chat.completions.parse.call_count == 2
+    assert mock_client.responses.parse.call_count == 2
     mock_sleep.assert_called_once_with(1)
 
 
@@ -142,7 +139,7 @@ async def test_decide_refusal_permanent_error_no_retry(mock_openai_class, mock_s
     mock_openai_class.return_value = mock_client
     
     # Non-transient error (e.g. invalid credentials)
-    mock_client.beta.chat.completions.parse.side_effect = ValueError("Invalid API credentials")
+    mock_client.responses.parse.side_effect = ValueError("Invalid API credentials")
 
     chunks = [
         ChunkResult(
@@ -159,7 +156,7 @@ async def test_decide_refusal_permanent_error_no_retry(mock_openai_class, mock_s
     assert res.refused is False
     assert res.confidence == 0.5
     # Should abort immediately on permanent error without retrying
-    assert mock_client.beta.chat.completions.parse.call_count == 1
+    assert mock_client.responses.parse.call_count == 1
     mock_sleep.assert_not_called()
 
 
