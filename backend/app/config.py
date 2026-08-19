@@ -7,6 +7,7 @@ No other file should call os.environ directly.
 
 import logging
 from functools import lru_cache
+from typing import Optional
 
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -23,6 +24,7 @@ class Settings(BaseSettings):
         env_file=(".env", "../.env"),
         env_file_encoding="utf-8",
         case_sensitive=False,
+        extra="ignore",
     )
 
     # ── Google Gemini / LLM ───────────────────────────────────────────────────
@@ -70,10 +72,10 @@ class Settings(BaseSettings):
             "Set to 'cuda' or 'cpu' to override."
         ),
     )
-    aws_endpoint_url_s3: str | None = Field(default=None, description="Neon Object Storage endpoint URL")
-    aws_access_key_id: str | None = Field(default=None, description="Neon Object Storage access key")
-    aws_secret_access_key: str | None = Field(default=None, description="Neon Object Storage secret key")
-    aws_region: str | None = Field(default=None, description="Neon Object Storage region")
+    aws_endpoint_url_s3: Optional[str] = Field(default=None, description="Neon Object Storage endpoint URL")
+    aws_access_key_id: Optional[str] = Field(default=None, description="Neon Object Storage access key")
+    aws_secret_access_key: Optional[str] = Field(default=None, description="Neon Object Storage secret key")
+    aws_region: Optional[str] = Field(default=None, description="Neon Object Storage region")
 
     # ── Retrieval / Embeddings ────────────────────────────────────────────────
     embedding_dimension: int = Field(768, description="Embedding vector dimension")
