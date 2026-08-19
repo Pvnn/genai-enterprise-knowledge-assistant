@@ -32,6 +32,14 @@ class Settings(BaseSettings):
         "gemini-embedding-001", description="Gemini embedding model name"
     )
     llm_model: str = Field("gpt-4o-mini", description="OpenAI chat model name")
+    openai_base_url: str | None = Field(
+        default=None,
+        description=(
+            "Override for AsyncOpenAI's base_url. None = OpenAI's real default "
+            "endpoint (production). Set to Groq's OpenAI-compatible endpoint "
+            "for local testing with a Groq key instead of a real OpenAI key."
+        ),
+    )
 
     # ── Database (Neon serverless Postgres + pgvector) ────────────────────────
     database_url: str = Field(
