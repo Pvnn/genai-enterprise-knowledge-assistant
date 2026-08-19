@@ -22,13 +22,6 @@ from jose import jwt
 from passlib.context import CryptContext
 from sqlalchemy.ext.asyncio import AsyncSession
 
-# ── SQLite compat: treat JSONB as JSON in the test DB ─────────────────────────
-# app/models.py currently uses `JSONB` (PostgreSQL-specific). P2 is switching
-# to JSON in their branch. Until that merges, patch SQLite's type compiler so
-# create_all succeeds. Remove this block after P2's branch is merged.
-from sqlalchemy.dialects.sqlite.base import SQLiteTypeCompiler
-SQLiteTypeCompiler.visit_JSONB = SQLiteTypeCompiler.visit_JSON  # type: ignore[method-assign]
-
 import app.models  # noqa: F401 — registers Document ORM so Enterprise mapper resolves
 from app.auth.models import Enterprise, User
 from app.auth.security import create_access_token
