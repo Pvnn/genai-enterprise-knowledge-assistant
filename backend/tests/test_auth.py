@@ -330,3 +330,62 @@ async def test_register_user_duplicate_email_returns_400(auth_client: AsyncClien
     )
     assert resp.status_code == 400
     assert "Email is already registered" in resp.json()["detail"]
+
+
+# ── POST /auth/feedback ─────────────────────────────────────────────────────────
+
+from app.models import Query, Feedback
+from uuid import uuid4
+
+async def test_submit_feedback_success(auth_client: AsyncClient, db_session: AsyncSession):
+    """Submitting feedback for an existing query returns 'ok'."""
+    await _seed(db_session)
+    
+    # Create a mock query to attach feedback to
+    mock_query = Query(
+        tenant_id=UUID(TEST_TENANT_ID),
+        user_id=UUID(TEST_USER_ID),
+        raw_query="What is the leave policy?"
+    )
+    db_session.add(mock_query)
+    await db_session.commit()
+    await db_session.refresh(mock_query)
+    
+    # Authenticate
+    token = create_access_token(
+        {"sub": TEST_USER_ID, "tenant_id": TEST_TENANT_ID, "email": _EMAIL, "role": "admin"}
+    )
+    
+    resp = await auth_client.post(
+        "/auth/feedback",
+        headers={"Authorization": f"Bearer {token}"},
+        json={
+            "query_id": str(mock_query.id),
+            "thumbs_up_down": True,
+            "comment": "Great answer!"
+        }
+    )
+    
+    assert resp.status_code == 200
+    assert resp.json() == {"status": "ok"}
+    
+    # Verify in DB
+    from sqlalchemy import select
+    result = await db_session.execute(select(Feedback).where(Feedback.query_id == mock_query.id))
+    feedback = result.scalar_one_or_none()
+    assert feedback is not None
+    assert feedback.thumbs_up_down is True
+    assert feedback.comment == "Great answer!"
+
+async def test_submit_feedback_unauthorized(auth_client: AsyncClient):
+    """Submitting feedback without auth token returns 401."""
+    resp = await auth_client.post(
+        "/auth/feedback",
+        json={
+            "query_id": str(uuid4()),
+            "thumbs_up_down": True,
+            "comment": "Great answer!"
+        }
+    )
+    
+    assert resp.status_code == 401
