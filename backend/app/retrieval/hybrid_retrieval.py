@@ -53,6 +53,10 @@ async def _search_bm25(
             )
         except Exception as exc:
             logger.warning("Postgres tsvector search failed, falling back: %s", exc)
+            try:
+                await session.rollback()
+            except Exception as rb_exc:
+                logger.debug("Session rollback failed or already inactive: %s", rb_exc)
 
     return await _search_bm25_fallback(
         bm25_query=bm25_query,

@@ -14,9 +14,9 @@ Schema notes:
     The NOT NULL + CHECK constraint means every user must have an explicit role.
   - documents.ingestion_status tracks the async upload pipeline lifecycle.
     Values: 'pending' | 'processing' | 'done' | 'failed'.
-  - pgvector's `vector` type is used for chunks.embedding; the pgvector
-    extension must be enabled before running this migration:
-      CREATE EXTENSION IF NOT EXISTS vector;
+  - pgvector's `vector(768)` type is used for chunks.embedding (Gemini embeddings).
+    On PostgreSQL / Neon, the pgvector extension is enabled and the column is
+    altered to vector(768). On SQLite (in-memory tests), it remains Text.
 """
 
 import sqlalchemy as sa
@@ -88,10 +88,10 @@ def upgrade() -> None:
         sa.Column("tenant_id", sa.UUID(), sa.ForeignKey("enterprises.id"), nullable=False),
         sa.Column("text", sa.Text(), nullable=False),
         sa.Column("section_path", sa.String(500), nullable=False),
-        # embedding column: vector(1536) for text-embedding-3-small.
-        # Requires pgvector extension. Added as plain Text here so the migration
-        # runs on SQLite in tests; P3 should ALTER to vector(1536) on Neon.
-        sa.Column("embedding", sa.Text(), nullable=True, comment="pgvector vector(1536)"),
+        # embedding column: vector(768) for gemini-embedding-001.
+        # Added as plain Text here so the migration runs on SQLite in tests;
+        # altered to vector(768) on PostgreSQL below.
+        sa.Column("embedding", sa.Text(), nullable=True, comment="pgvector vector(768)"),
         sa.Column("text_search", sa.Text(), nullable=True, comment="tsvector for BM25"),
         sa.Column("department", sa.String(255), nullable=True),
         sa.Column("doc_type", sa.String(100), nullable=True),
@@ -133,6 +133,11 @@ def upgrade() -> None:
         sa.Column("thumbs_up_down", sa.Boolean(), nullable=False),
         sa.Column("comment", sa.Text(), nullable=True),
     )
+
+    bind = op.get_bind()
+    if bind and bind.dialect.name == "postgresql":
+        op.execute("CREATE EXTENSION IF NOT EXISTS vector;")
+        op.execute("ALTER TABLE chunks ALTER COLUMN embedding TYPE vector(768) USING embedding::vector;")
 
 
 def downgrade() -> None:

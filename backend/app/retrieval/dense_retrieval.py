@@ -77,6 +77,10 @@ async def retrieve_chunks(
                 "pgvector query failed, falling back to python cosine similarity: %s",
                 exc,
             )
+            try:
+                await session.rollback()
+            except Exception as rb_exc:
+                logger.debug("Session rollback failed or already inactive: %s", rb_exc)
 
     return await _retrieve_fallback(
         query_embedding=query_embedding,
@@ -142,7 +146,7 @@ async def _retrieve_pgvector(
             c.effective_date,
             c.version_status,
             d.source_path,
-            1 - (c.embedding::vector <=> :vector_str::vector) AS score
+            1 - (c.embedding <=> CAST(:vector_str AS vector)) AS score
         FROM chunks c
         LEFT JOIN documents d ON c.document_id = d.id
         WHERE {' AND '.join(where_clauses)}
@@ -243,6 +247,10 @@ async def _retrieve_fallback(
                 continue
         elif isinstance(embedding_raw, list):
             emb_list = embedding_raw
+        elif hasattr(embedding_raw, "tolist"):
+            emb_list = embedding_raw.tolist()
+        elif hasattr(embedding_raw, "__iter__"):
+            emb_list = list(embedding_raw)
         else:
             continue
 
