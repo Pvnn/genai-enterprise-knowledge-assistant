@@ -46,8 +46,7 @@ async def load_chunks(session: AsyncSession, chunks: list[ChunkDB]) -> None:
             department, 
             doc_type, 
             effective_date, 
-            version_status,
-            source_path
+            version_status
         ) VALUES (
             :id, 
             :document_id, 
@@ -59,8 +58,7 @@ async def load_chunks(session: AsyncSession, chunks: list[ChunkDB]) -> None:
             :department, 
             :doc_type, 
             :effective_date, 
-            :version_status,
-            :source_path
+            :version_status
         )
     """)
     
@@ -77,8 +75,7 @@ async def load_chunks(session: AsyncSession, chunks: list[ChunkDB]) -> None:
             "department": chunk.department,
             "doc_type": chunk.doc_type,
             "effective_date": chunk.effective_date,
-            "version_status": chunk.version_status,
-            "source_path": chunk.source_path
+            "version_status": chunk.version_status
         })
     
     await session.execute(insert_query, params)

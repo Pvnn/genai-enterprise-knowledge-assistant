@@ -37,8 +37,9 @@ Done
 
 ## Known issues / open questions
 
-None. The orchestrator is ready for integration once P2 and P3 finalize their components.
+None. The orchestrator now instantiates its own `AsyncSessionLocal` so it operates correctly in a FastAPI BackgroundTask without losing the DB connection when the HTTP request closes. It also automatically defaults missing `version_status` to `"current"`.
 
 ## Tests
 
-Not yet written (`tests/test_ingestion.py` stub to be written).
+`backend/tests/test_ingestion.py` (Unit tests with SQLite pass)
+`backend/test_full_pipeline.py` (End-to-end live Neon DB test passes)

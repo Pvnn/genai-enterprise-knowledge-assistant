@@ -21,7 +21,7 @@ Called by: `run_ingestion.py`
 
 ## Fallback behavior
 
-N/A — no fallback, this is the spine. (Note: Currently gracefully intercepts `NotImplementedError` for P3's embedding wrapper and injects a mocked embedding so development is not blocked.)
+N/A — no fallback, this is the spine.
 
 ## Status
 
@@ -29,8 +29,8 @@ Done
 
 ## Known issues / open questions
 
-P3 has not implemented `embed_batch()` yet, so the loader currently inserts zero-filled embeddings as a mock if `NotImplementedError` is caught. It relies on the caller (`run_ingestion.py`) to actually call `await session.commit()`, keeping transaction boundaries safe if later chunking fails.
+None. The `embed_batch` from P3 is fully integrated and tested. The `source_path` attribute was successfully removed from the `chunks` table insertion query because the DB schema from P2 correctly stores it solely in the parent `documents` table.
 
 ## Tests
 
-Not yet written (`tests/test_ingestion.py` stub to be written).
+Tested via `backend/test_full_pipeline.py` (live DB insertion and embedding verification).
