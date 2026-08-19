@@ -37,21 +37,124 @@ async def test_ingest_document(db_session: AsyncSession) -> None:
 
 @pytest.mark.asyncio
 async def test_upload_document_admin(async_client: AsyncClient, db_session: AsyncSession) -> None:
-    """Stub test for POST /documents/upload for an admin user."""
-    # TODO (P1): Implement test logic for successful upload dispatch
-    # current_user.role == "admin" is required.
-    pass
+    """Test POST /documents/upload for an admin user."""
+    from uuid import UUID
+    from app.deps import get_current_user
+    from app.schemas import CurrentUser
+    
+    # Mock admin user
+    def override_get_current_user():
+        return CurrentUser(
+            user_id=UUID(TEST_USER_ID),
+            tenant_id=UUID(TEST_TENANT_ID),
+            email="admin@test.com",
+            role="admin"
+        )
+    
+    from app.main import app
+    app.dependency_overrides[get_current_user] = override_get_current_user
+    
+    # Send a multipart form upload
+    response = await async_client.post(
+        "/documents/upload",
+        data={
+            "department": "HR",
+            "doc_type": "policy"
+        },
+        files={
+            "file": ("test.pdf", b"dummy pdf content", "application/pdf")
+        }
+    )
+    
+    app.dependency_overrides.pop(get_current_user, None)
+    
+    assert response.status_code == 202
+    data = response.json()
+    assert "document_id" in data
+    assert data["ingestion_status"] == "pending"
+    
+    # Verify DB insertion
+    from app.models import Document
+    from sqlalchemy import select
+    result = await db_session.execute(select(Document).where(Document.id == UUID(data["document_id"])))
+    doc = result.scalars().first()
+    assert doc is not None
+    assert str(doc.tenant_id) == TEST_TENANT_ID
 
 
 @pytest.mark.asyncio
 async def test_upload_document_member_forbidden(async_client: AsyncClient, db_session: AsyncSession) -> None:
-    """Stub test for POST /documents/upload for a standard member (should 403)."""
-    # TODO (P1): Implement test logic expecting HTTP 403
-    pass
+    """Test POST /documents/upload for a standard member (should 403)."""
+    from uuid import UUID
+    from app.deps import get_current_user
+    from app.schemas import CurrentUser
+    
+    # Mock member user
+    def override_get_current_user():
+        return CurrentUser(
+            user_id=UUID(TEST_USER_ID),
+            tenant_id=UUID(TEST_TENANT_ID),
+            email="member@test.com",
+            role="member"
+        )
+        
+    from app.main import app
+    app.dependency_overrides[get_current_user] = override_get_current_user
+    
+    response = await async_client.post(
+        "/documents/upload",
+        data={
+            "department": "HR",
+            "doc_type": "policy"
+        },
+        files={
+            "file": ("test.pdf", b"dummy pdf content", "application/pdf")
+        }
+    )
+    
+    app.dependency_overrides.pop(get_current_user, None)
+    
+    assert response.status_code == 403
 
 
 @pytest.mark.asyncio
 async def test_get_document_status(async_client: AsyncClient, db_session: AsyncSession) -> None:
-    """Stub test for GET /documents/{document_id}/status."""
-    # TODO (P1): Implement test logic
-    pass
+    """Test GET /documents/{document_id}/status."""
+    from uuid import uuid4
+    from app.models import Document, IngestionStatus
+    from app.deps import get_current_user
+    from app.schemas import CurrentUser
+    from uuid import UUID
+    
+    doc_id = uuid4()
+    doc = Document(
+        id=doc_id,
+        tenant_id=UUID(TEST_TENANT_ID),
+        title="Status Test",
+        department="HR",
+        doc_type="policy",
+        ingestion_status=IngestionStatus.DONE.value
+    )
+    db_session.add(doc)
+    await db_session.commit()
+    
+    # Mock member user
+    def override_get_current_user():
+        return CurrentUser(
+            user_id=UUID(TEST_USER_ID),
+            tenant_id=UUID(TEST_TENANT_ID),
+            email="member@test.com",
+            role="member"
+        )
+        
+    from app.main import app
+    app.dependency_overrides[get_current_user] = override_get_current_user
+    
+    response = await async_client.get(f"/documents/{doc_id}/status")
+    
+    app.dependency_overrides.pop(get_current_user, None)
+    
+    assert response.status_code == 200
+    data = response.json()
+    assert data["document_id"] == str(doc_id)
+    assert data["ingestion_status"] == IngestionStatus.DONE.value

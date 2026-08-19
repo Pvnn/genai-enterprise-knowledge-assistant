@@ -76,12 +76,41 @@ async def upload_document(
             detail="Only PDF files are accepted.",
         )
 
-    # P1: replace the stub below with real DB row creation and background dispatch
-    raise NotImplementedError(
-        "P1: implement upload_document() in ingestion/router.py — "
-        "save file to temp path, create documents row with ingestion_status='pending', "
-        "then call background_tasks.add_task(ingest_document, file_path, tenant_id, "
-        "department, doc_type)."
+    import uuid
+    import shutil
+    from app.models import Document, IngestionStatus
+
+    temp_dir = Path(tempfile.gettempdir())
+    document_id = uuid.uuid4()
+    
+    file_path = temp_dir / f"{document_id}_{file.filename}"
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+        
+    doc = Document(
+        id=document_id,
+        tenant_id=current_user.tenant_id,
+        title=file.filename,
+        department=department,
+        doc_type=doc_type,
+        ingestion_status=IngestionStatus.PENDING.value
+    )
+    db.add(doc)
+    await db.commit()
+    await db.refresh(doc)
+    
+    background_tasks.add_task(
+        ingest_document,
+        file_path=str(file_path),
+        document_id=document_id,
+        tenant_id=current_user.tenant_id,
+        department=department,
+        doc_type=doc_type
+    )
+    
+    return UploadResponse(
+        document_id=document_id,
+        ingestion_status=IngestionStatus.PENDING.value
     )
 
 
@@ -104,9 +133,25 @@ async def get_document_status(
     Raises:
         HTTPException 404: If no document with that ID exists for the tenant.
     """
-    # P1: replace the stub below with a real DB lookup scoped to current_user.tenant_id
-    raise NotImplementedError(
-        "P1: implement get_document_status() in ingestion/router.py — "
-        "query documents table for id=document_id AND tenant_id=current_user.tenant_id, "
-        "return 404 if not found, else return DocumentStatusResponse."
+    from sqlalchemy import select
+    from app.models import Document
+    
+    result = await db.execute(
+        select(Document).where(
+            Document.id == document_id,
+            Document.tenant_id == current_user.tenant_id
+        )
+    )
+    doc = result.scalars().first()
+    
+    if not doc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Document not found."
+        )
+        
+    return DocumentStatusResponse(
+        document_id=doc.id,
+        ingestion_status=doc.ingestion_status,
+        detail=None
     )
