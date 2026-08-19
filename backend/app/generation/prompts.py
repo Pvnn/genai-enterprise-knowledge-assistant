@@ -78,3 +78,19 @@ CONFLICT_TEMPLATE = (
     "Please confirm which applies to your program, or flag this to the "
     "registrar — both documents are currently marked active."
 )
+
+def query_rewriter_user(raw_query: str, glossary: dict[str, str]) -> str:
+    """Build the user turn for the query-rewriting prompt.
+
+    Args:
+        raw_query: The user's original question.
+        glossary: term -> expansion pairs for this tenant (P1's glossary table).
+
+    Returns:
+        str: Formatted user message.
+    """
+    if glossary:
+        glossary_text = "\n".join(f"{term} -> {expansion}" for term, expansion in glossary.items())
+    else:
+        glossary_text = "(no glossary entries for this tenant yet)"
+    return f"Glossary:\n{glossary_text}\n\nUser question: {raw_query}"
