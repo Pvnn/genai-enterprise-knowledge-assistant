@@ -9,12 +9,14 @@ from sqlalchemy import update, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import AsyncSessionLocal
 
-from app.models import Document, IngestionStatus
+from app.models import Document, IngestionStatus, Glossary
 from app.ingestion.ocr import parse_document
 from app.ingestion.chunker import chunk_document
 from app.ingestion.metadata_tagger import tag_chunks
 from app.ingestion.section_tree import extract_section_tree
 from app.ingestion.loader import load_chunks
+from app.ingestion.summarizer import summarize_document
+from app.ingestion.glossary_builder import build_glossary
 
 logger = logging.getLogger(__name__)
 
@@ -76,6 +78,18 @@ async def ingest_document(
                 )
             except Exception as e:
                 logger.error("Failed to extract section tree, skipping (Priority 2): %s", str(e))
+                
+            # Summarize document (Priority 2 feature)
+            try:
+                summary_text = await summarize_document(markdown_text)
+                if summary_text:
+                    await session.execute(
+                        update(Document)
+                        .where(Document.id == document_id)
+                        .values(summary=summary_text)
+                    )
+            except Exception as e:
+                logger.error("Failed to summarize document, skipping (Priority 2): %s", str(e))
             
             # 4. Stage 0.3 - Metadata Tagging
             logger.info("Tagging chunks with document metadata...")
@@ -93,6 +107,20 @@ async def ingest_document(
             # 5. Stage 0.4 - Loading (Embeddings & Database Insert)
             logger.info("Loading chunks into database...")
             await load_chunks(session, tagged_chunks)
+            
+            # Glossary extraction (Priority 2 feature)
+            try:
+                glossary_entries = await build_glossary(str(tenant_id), tagged_chunks)
+                if glossary_entries:
+                    for entry in glossary_entries:
+                        glossary_row = Glossary(
+                            tenant_id=tenant_id,
+                            term=entry["term"],
+                            expansion=entry["expansion"]
+                        )
+                        session.add(glossary_row)
+            except Exception as e:
+                logger.error("Failed to build glossary, skipping (Priority 2): %s", str(e))
             
             # 6. Mark as DONE
             await session.execute(

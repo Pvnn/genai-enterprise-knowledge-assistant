@@ -31,10 +31,12 @@ from app.schemas import DocumentStatusResponse, UploadResponse
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/documents", tags=["ingestion"])
+router = APIRouter()
 
+documents_router = APIRouter(prefix="/documents", tags=["ingestion"])
+glossary_router = APIRouter(prefix="/glossary", tags=["glossary"])
 
-@router.post("/upload", response_model=UploadResponse, status_code=status.HTTP_202_ACCEPTED)
+@documents_router.post("/upload", response_model=UploadResponse, status_code=status.HTTP_202_ACCEPTED)
 async def upload_document(
     background_tasks: BackgroundTasks,
     db: DbDep,
@@ -46,7 +48,7 @@ async def upload_document(
     """Upload a PDF and trigger async ingestion (admin only).
 
     The file is saved to a temporary path and ingestion is dispatched as a
-    BackgroundTask.  The endpoint returns immediately with ingestion_status
+    BackgroundTask. The endpoint returns immediately with ingestion_status
     "pending"; poll GET /documents/{document_id}/status for progress.
 
     Args:
@@ -114,7 +116,7 @@ async def upload_document(
     )
 
 
-@router.get("/{document_id}/status", response_model=DocumentStatusResponse)
+@documents_router.get("/{document_id}/status", response_model=DocumentStatusResponse)
 async def get_document_status(
     document_id: UUID,
     db: DbDep,
@@ -155,3 +157,31 @@ async def get_document_status(
         ingestion_status=doc.ingestion_status,
         detail=None
     )
+
+
+@glossary_router.get("")
+async def get_glossary(
+    db: DbDep,
+    current_user: CurrentUserDep,
+):
+    """Get the enterprise-level glossary for the current tenant.
+
+    Args:
+        db: Async database session.
+        current_user: Authenticated user (tenant isolation enforced).
+
+    Returns:
+        dict: A dictionary containing a list of glossary entries.
+    """
+    from sqlalchemy import text
+    
+    res = await db.execute(
+        text("SELECT term, expansion FROM glossary WHERE tenant_id = :tenant_id ORDER BY term ASC"),
+        {"tenant_id": current_user.tenant_id}
+    )
+    
+    entries = [{"term": row.term, "expansion": row.expansion} for row in res.fetchall()]
+    return {"entries": entries}
+
+router.include_router(documents_router)
+router.include_router(glossary_router)
