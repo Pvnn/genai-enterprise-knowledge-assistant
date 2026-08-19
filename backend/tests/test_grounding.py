@@ -49,7 +49,9 @@ async def test_decide_refusal_high_confidence(mock_openai_class):
     mock_openai_class.return_value = mock_client
     
     mock_response = AsyncMock()
-    mock_response.output_parsed = ConfidenceLLMResponse(confidence=ConfidenceLevel.high)
+    mock_response.output_parsed = ConfidenceLLMResponse(
+        confidence=ConfidenceLevel.high, refusal_reason=""
+    )
     mock_client.responses.parse.return_value = mock_response
 
     chunks = [
@@ -106,7 +108,9 @@ async def test_decide_refusal_transient_error_retry(mock_openai_class, mock_slee
     mock_openai_class.return_value = mock_client
     
     mock_response = AsyncMock()
-    mock_response.output_parsed = ConfidenceLLMResponse(confidence=ConfidenceLevel.high)
+    mock_response.output_parsed = ConfidenceLLMResponse(
+        confidence=ConfidenceLevel.high, refusal_reason=""
+    )
     
     # 1st call fails with timeout (transient), 2nd call succeeds
     mock_client.responses.parse.side_effect = [
