@@ -20,6 +20,7 @@ from app.auth.router import router as auth_router          # P6
 from app.retrieval.router import router as retrieval_router  # P2
 from app.generation.router import router as generation_router  # P4
 from app.ingestion.router import router as ingestion_router  # P1
+from app.conversations.router import router as conversations_router  # P2
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -62,6 +63,7 @@ app.include_router(auth_router, prefix="/auth", tags=["auth"])
 app.include_router(retrieval_router, tags=["retrieval"])
 app.include_router(generation_router, tags=["generation"])
 app.include_router(ingestion_router, tags=["ingestion"])
+app.include_router(conversations_router, prefix="/conversations", tags=["conversations"])
 
 
 @app.get("/health", tags=["health"])
