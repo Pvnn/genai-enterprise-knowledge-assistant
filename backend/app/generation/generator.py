@@ -194,7 +194,7 @@ async def _get_rewrite(
     """Step 1. Returns (expanded_query, metadata_filters, sub_queries, clarifying_question_or_None)."""
     if _rewrite_query is not None:
         try:
-            result = await _rewrite_query(session, query, tenant_id)
+            result = await _rewrite_query(raw_query=query, tenant_id=tenant_id, session=session)
             if result.needs_clarification:
                 return result.expanded_query, result.metadata_filters, [], result.clarifying_question
             return result.expanded_query, result.metadata_filters, result.sub_queries, None
