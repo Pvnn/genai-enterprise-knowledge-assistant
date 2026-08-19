@@ -158,3 +158,36 @@ async def test_get_document_status(async_client: AsyncClient, db_session: AsyncS
     data = response.json()
     assert data["document_id"] == str(doc_id)
     assert data["ingestion_status"] == IngestionStatus.DONE.value
+
+@pytest.mark.asyncio
+async def test_summarize_document() -> None:
+    from app.ingestion.summarizer import summarize_document
+    from app.config import get_settings
+    settings = get_settings()
+    original_key = settings.openai_api_key
+    settings.openai_api_key = None
+    
+    try:
+        await summarize_document("Test document content.")
+        assert False, "Should raise ValueError without API key"
+    except ValueError:
+        pass
+    finally:
+        settings.openai_api_key = original_key
+
+
+@pytest.mark.asyncio
+async def test_build_glossary() -> None:
+    from app.ingestion.glossary_builder import build_glossary
+    from app.config import get_settings
+    settings = get_settings()
+    original_key = settings.openai_api_key
+    settings.openai_api_key = None
+    
+    try:
+        await build_glossary("tenant1", [{"text": "NASA is great"}])
+        assert False, "Should raise ValueError without API key"
+    except ValueError:
+        pass
+    finally:
+        settings.openai_api_key = original_key
