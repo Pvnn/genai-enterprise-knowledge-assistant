@@ -17,6 +17,7 @@ import {
   Buildings,
   Hash,
   Calendar,
+  UploadSimple,
 } from "@phosphor-icons/react";
 import { DocumentItem } from "./types";
 import { fetchDocuments } from "../api/client";
@@ -24,12 +25,29 @@ import { fetchDocuments } from "../api/client";
 interface DocumentsLibraryProps {
   tenantId: string;
   onAskAboutDocument: (documentTitle: string) => void;
+  userRole?: string;
+  onNavigateUpload?: () => void;
 }
 
 export const DocumentsLibrary: React.FC<DocumentsLibraryProps> = ({
   tenantId,
   onAskAboutDocument,
+  userRole,
+  onNavigateUpload,
 }) => {
+  // Isolate role check so it can easily be swapped for P6's useAuth() hook once available
+  const currentUserRole = userRole || localStorage.getItem("user_role") || "member";
+  const isAdmin = currentUserRole === "admin";
+
+  const handleUploadClick = () => {
+    if (onNavigateUpload) {
+      onNavigateUpload();
+    } else {
+      window.history.pushState({}, "", "/upload");
+      window.dispatchEvent(new PopStateEvent("popstate"));
+    }
+  };
+
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDept, setSelectedDept] = useState("All");
@@ -94,6 +112,17 @@ export const DocumentsLibrary: React.FC<DocumentsLibraryProps> = ({
             <span className="text-xs font-mono px-3 py-1.5 rounded-xl bg-surface border border-hairline text-ink-muted">
               {filteredDocs.length} of {documents.length} Documents
             </span>
+            {isAdmin && (
+              <button
+                type="button"
+                onClick={handleUploadClick}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary-brand text-white hover:opacity-90 transition-all font-medium text-xs shadow-2xs active:scale-95 cursor-pointer"
+                title="Upload institutional PDF (Admin only)"
+              >
+                <UploadSimple size={14} weight="bold" />
+                <span>Upload Document</span>
+              </button>
+            )}
           </div>
         </div>
 

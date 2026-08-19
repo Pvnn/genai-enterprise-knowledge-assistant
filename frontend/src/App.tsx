@@ -29,6 +29,11 @@ export const App: React.FC = () => {
     setCurrentPath("/login");
   };
 
+  if (currentPath !== "/login" && !localStorage.getItem("access_token")) {
+    window.history.replaceState({}, "", "/login");
+    return <Login />;
+  }
+
   if (currentPath === "/login") {
     return <Login />;
   }
@@ -56,10 +61,26 @@ export const App: React.FC = () => {
         </div>
       );
     }
-    return <UploadPage />;
+    return (
+      <UploadPage
+        onNavigateBack={() => {
+          window.history.pushState({}, "", "/chat");
+          setCurrentPath("/chat");
+        }}
+      />
+    );
   }
 
-  return <ChatPage onLogout={handleLogout} />;
+  return (
+    <ChatPage
+      onLogout={handleLogout}
+      userRole={currentUserRole}
+      onNavigateUpload={() => {
+        window.history.pushState({}, "", "/upload");
+        setCurrentPath("/upload");
+      }}
+    />
+  );
 };
 
 export default App;

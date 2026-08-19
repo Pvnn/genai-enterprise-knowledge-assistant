@@ -41,9 +41,15 @@ const STORAGE_KEY_THEME = "genai_assistant_theme";
 
 interface ChatPageProps {
   onLogout?: () => void;
+  userRole?: string;
+  onNavigateUpload?: () => void;
 }
 
-export const ChatPage: React.FC<ChatPageProps> = ({ onLogout }) => {
+export const ChatPage: React.FC<ChatPageProps> = ({
+  onLogout,
+  userRole,
+  onNavigateUpload,
+}) => {
   // Theme state
   const [darkMode, setDarkMode] = useState<boolean>(() => {
     const saved = localStorage.getItem(STORAGE_KEY_THEME);
@@ -477,6 +483,8 @@ export const ChatPage: React.FC<ChatPageProps> = ({ onLogout }) => {
           <DocumentsLibrary
             tenantId={tenantId}
             onAskAboutDocument={handleAskAboutDoc}
+            userRole={userRole}
+            onNavigateUpload={onNavigateUpload}
           />
         ) : (
           <>
