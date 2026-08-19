@@ -10,6 +10,7 @@
 import React, { useState, useEffect } from "react";
 import { Eye, EyeSlash, BuildingOffice, EnvelopeSimple, LockSimple, ArrowRight, WarningCircle } from "@phosphor-icons/react";
 import { login } from "../api/client";
+import { Register } from "./Register";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -22,6 +23,7 @@ interface FormState {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 const Login: React.FC = () => {
+  const [view, setView] = useState<"login" | "register">("login");
   const [form, setForm] = useState<FormState>({
     tenant_code: "",
     email: "",
@@ -38,6 +40,11 @@ const Login: React.FC = () => {
       window.dispatchEvent(new PopStateEvent("popstate"));
     }
   }, []);
+
+  if (view === "register") {
+    return <Register onBackToLogin={() => setView("login")} />;
+  }
+
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setError(null);
@@ -216,7 +223,13 @@ const Login: React.FC = () => {
         </div>
 
         <p className="mt-6 text-center text-xs text-ink-muted">
-          Contact your administrator to request access.
+          Don't have an account?{" "}
+          <button
+            onClick={() => setView("register")}
+            className="font-medium text-[var(--color-primary-brand)] hover:underline focus:outline-none"
+          >
+            Sign up
+          </button>
         </p>
       </div>
     </div>

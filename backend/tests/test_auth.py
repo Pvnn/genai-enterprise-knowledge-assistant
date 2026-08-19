@@ -59,6 +59,17 @@ async def auth_client(db_session: AsyncSession) -> AsyncClient:
     app.dependency_overrides.clear()
 
 
+@pytest_asyncio.fixture(autouse=True)
+async def clean_db(db_session: AsyncSession):
+    """Clean tables before each test to prevent session.commit() side-effects."""
+    from sqlalchemy import text
+    # Delete in correct order to avoid foreign key issues (though SQLite in-memory 
+    # default might not enforce FKs, it's safer).
+    await db_session.execute(text("DELETE FROM users"))
+    await db_session.execute(text("DELETE FROM enterprises"))
+    await db_session.commit()
+
+
 # ── Helpers ────────────────────────────────────────────────────────────────────
 
 async def _seed(session: AsyncSession) -> tuple[Enterprise, User]:
@@ -228,3 +239,94 @@ async def test_me_valid_token_returns_identity(auth_client: AsyncClient, db_sess
     assert data["role"] == "admin"
     assert data["tenant_id"] == TEST_TENANT_ID
     assert data["user_id"] == TEST_USER_ID
+
+
+# ── POST /auth/register/enterprise ──────────────────────────────────────────────
+
+async def test_register_enterprise_success(auth_client: AsyncClient, db_session: AsyncSession):
+    """Registering a new enterprise succeeds and creates admin user."""
+    resp = await auth_client.post(
+        "/auth/register/enterprise",
+        json={
+            "enterprise_name": "New Corp",
+            "admin_email": "admin@newcorp.com",
+            "admin_password": "strongpassword123",
+        },
+    )
+    assert resp.status_code == 201
+    data = resp.json()
+    assert "access_token" in data
+    assert data["role"] == "admin"
+    assert data["tenant_id"] is not None
+    assert data["user_id"] is not None
+
+    # Verify in DB
+    from sqlalchemy import select
+    result = await db_session.execute(select(Enterprise).where(Enterprise.name == "New Corp"))
+    ent = result.scalar_one_or_none()
+    assert ent is not None
+    assert str(ent.id) == data["tenant_id"]
+
+
+async def test_register_enterprise_duplicate_name_returns_400(auth_client: AsyncClient, db_session: AsyncSession):
+    """Registering with an existing enterprise name returns 400."""
+    await _seed(db_session)
+    resp = await auth_client.post(
+        "/auth/register/enterprise",
+        json={
+            "enterprise_name": _TENANT_NAME,  # already seeded
+            "admin_email": "newadmin@acme.com",
+            "admin_password": "password",
+        },
+    )
+    assert resp.status_code == 400
+    assert "already exists" in resp.json()["detail"]
+
+
+# ── POST /auth/register/user ────────────────────────────────────────────────────
+
+async def test_register_user_success(auth_client: AsyncClient, db_session: AsyncSession):
+    """Registering a member user in an existing enterprise succeeds."""
+    await _seed(db_session)
+    resp = await auth_client.post(
+        "/auth/register/user",
+        json={
+            "tenant_code": _TENANT_NAME,
+            "email": "member@acme.com",
+            "password": "password123",
+        },
+    )
+    assert resp.status_code == 201
+    data = resp.json()
+    assert "access_token" in data
+    assert data["role"] == "member"
+    assert data["tenant_id"] == TEST_TENANT_ID
+
+
+async def test_register_user_unknown_tenant_returns_400(auth_client: AsyncClient):
+    """Registering under an unknown enterprise name returns 400."""
+    resp = await auth_client.post(
+        "/auth/register/user",
+        json={
+            "tenant_code": "Fake Corp",
+            "email": "user@fakecorp.com",
+            "password": "password",
+        },
+    )
+    assert resp.status_code == 400
+    assert "Unknown organisation" in resp.json()["detail"]
+
+
+async def test_register_user_duplicate_email_returns_400(auth_client: AsyncClient, db_session: AsyncSession):
+    """Registering a user with an already existing email returns 400."""
+    await _seed(db_session)
+    resp = await auth_client.post(
+        "/auth/register/user",
+        json={
+            "tenant_code": _TENANT_NAME,
+            "email": _EMAIL,  # already seeded
+            "password": "password",
+        },
+    )
+    assert resp.status_code == 400
+    assert "Email is already registered" in resp.json()["detail"]
