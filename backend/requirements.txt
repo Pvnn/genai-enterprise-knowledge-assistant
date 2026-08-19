@@ -30,6 +30,8 @@ docling>=2.0.0          # Docling: PDF → structured markdown
 # ── Reranker (P3 – CPU-only) ──────────────────────────────────────────────────
 FlagEmbedding>=1.2.0    # bge-reranker-base cross-encoder
 sentence-transformers>=2.7.0
+sentencepiece>=0.2.0
+transformers>=4.40.0,<4.46.0
 
 # ── Testing ───────────────────────────────────────────────────────────────────
 pytest>=8.2.0
