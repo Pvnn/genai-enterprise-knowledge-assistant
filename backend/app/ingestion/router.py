@@ -159,6 +159,54 @@ async def get_document_status(
     )
 
 
+@documents_router.get("/{document_id}/content")
+async def get_document_content(
+    document_id: UUID,
+    db: DbDep,
+    current_user: CurrentUserDep,
+):
+    """Retrieve the full markdown text of a document from Neon Object Storage."""
+    from sqlalchemy import select
+    from fastapi.responses import PlainTextResponse
+    from app.models import Document
+    from app.ingestion.storage import get_markdown
+    
+    result = await db.execute(
+        select(Document).where(
+            Document.id == document_id,
+            Document.tenant_id == current_user.tenant_id
+        )
+    )
+    doc = result.scalars().first()
+    
+    if not doc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Document not found."
+        )
+        
+    if not doc.source_path:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Document content not available in storage."
+        )
+        
+    try:
+        content = await get_markdown(doc.source_path)
+        if content is None:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Storage credentials not configured."
+            )
+        return PlainTextResponse(content=content)
+    except Exception as e:
+        logger.error("Failed to retrieve document %s content: %s", document_id, e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to retrieve document content from storage."
+        )
+
+
 @glossary_router.get("")
 async def get_glossary(
     db: DbDep,

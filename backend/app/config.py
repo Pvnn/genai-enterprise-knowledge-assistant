@@ -70,6 +70,10 @@ class Settings(BaseSettings):
             "Set to 'cuda' or 'cpu' to override."
         ),
     )
+    aws_endpoint_url_s3: str | None = Field(default=None, description="Neon Object Storage endpoint URL")
+    aws_access_key_id: str | None = Field(default=None, description="Neon Object Storage access key")
+    aws_secret_access_key: str | None = Field(default=None, description="Neon Object Storage secret key")
+    aws_region: str | None = Field(default=None, description="Neon Object Storage region")
 
     # ── Retrieval / Embeddings ────────────────────────────────────────────────
     embedding_dimension: int = Field(768, description="Embedding vector dimension")
