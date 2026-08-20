@@ -628,8 +628,8 @@ export const ChatPage: React.FC<ChatPageProps> = ({
             {/* View Switch */}
             {currentView === "documents" ? (
           <DocumentsLibrary
-            
-            onAskAboutDocument={handleAskAboutDoc}
+              tenantId={tenantId}
+              onAskAboutDocument={handleAskAboutDoc}
             userRole={userRole}
             onNavigateUpload={onNavigateUpload}
           />
