@@ -133,11 +133,11 @@ export const DocumentsLibrary: React.FC<DocumentsLibraryProps> = ({
         </div>
 
         {/* Search & Filter Controls */}
-        <div className="flex flex-col md:flex-row gap-3">
-          <div className="relative flex-1">
+        <div className="flex flex-col gap-3.5">
+          <div className="relative w-full">
             <MagnifyingGlass
               size={16}
-              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted"
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted shrink-0 pointer-events-none"
             />
             <input
               type="text"
@@ -149,15 +149,15 @@ export const DocumentsLibrary: React.FC<DocumentsLibraryProps> = ({
           </div>
 
           {/* Department & Status Filter Selectors */}
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0">
-              <Funnel size={15} className="text-ink-muted shrink-0" />
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-1.5">
+              <Funnel size={15} className="text-ink-muted shrink-0 mr-1" />
               {departments.map((dept) => (
                 <button
                   key={dept}
                   type="button"
                   onClick={() => setSelectedDept(dept)}
-                  className={`px-3 py-1.5 rounded-xl text-xs whitespace-nowrap border transition-all ${
+                  className={`px-3 py-1.5 rounded-xl text-xs whitespace-nowrap border transition-all cursor-pointer ${
                     selectedDept === dept
                       ? "bg-primary-brand text-white border-primary-brand shadow-2xs font-medium"
                       : "bg-surface border-hairline text-ink-muted hover:text-ink hover:bg-surface-muted"
@@ -168,13 +168,13 @@ export const DocumentsLibrary: React.FC<DocumentsLibraryProps> = ({
               ))}
             </div>
 
-            <div className="flex items-center gap-1.5 pl-0 sm:pl-2 sm:border-l border-hairline">
+            <div className="flex items-center gap-1.5 shrink-0 pt-1 sm:pt-0 sm:pl-3 sm:border-l border-hairline">
               {["All", "Active", "Superseded"].map((status) => (
                 <button
                   key={status}
                   type="button"
                   onClick={() => setSelectedStatus(status)}
-                  className={`px-2.5 py-1.5 rounded-xl text-xs whitespace-nowrap border transition-all ${
+                  className={`px-2.5 py-1.5 rounded-xl text-xs whitespace-nowrap border transition-all cursor-pointer ${
                     selectedStatus === status
                       ? "bg-accent-gold text-white border-accent-gold font-medium shadow-2xs"
                       : "bg-surface border-hairline text-ink-muted hover:text-ink hover:bg-surface-muted"
@@ -207,20 +207,20 @@ export const DocumentsLibrary: React.FC<DocumentsLibraryProps> = ({
               return (
                 <div
                   key={doc.id}
-                  className="rounded-2xl border border-hairline bg-surface p-5 hover:border-accent-gold/60 transition-all shadow-2xs flex flex-col justify-between space-y-4 group"
+                  className="min-w-0 rounded-2xl border border-hairline bg-surface p-5 hover:border-accent-gold/60 transition-all shadow-2xs flex flex-col justify-between space-y-4 group overflow-hidden"
                 >
-                  <div className="space-y-2.5">
+                  <div className="space-y-2.5 min-w-0">
                     <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
                         <div className="w-8 h-8 rounded-xl bg-surface-muted border border-hairline flex items-center justify-center text-primary-brand group-hover:text-accent-gold transition-colors shrink-0">
                           <FileText size={16} weight="bold" />
                         </div>
-                        <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-surface-muted border border-hairline text-ink-muted">
+                        <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-surface-muted border border-hairline text-ink-muted truncate max-w-[140px]">
                           {doc.doc_type}
                         </span>
                       </div>
 
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-1.5 shrink-0">
                         {isCurrent ? (
                           <span className="flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
                             <CheckCircle size={12} weight="fill" />
@@ -235,12 +235,15 @@ export const DocumentsLibrary: React.FC<DocumentsLibraryProps> = ({
                       </div>
                     </div>
 
-                    <h3 className="text-sm font-bold text-ink leading-snug">
+                    <h3
+                      className="text-sm font-bold text-ink leading-snug break-all line-clamp-2"
+                      title={doc.title}
+                    >
                       {doc.title}
                     </h3>
 
                     {doc.summary && (
-                      <p className="text-xs text-ink-muted line-clamp-2 leading-relaxed">
+                      <p className="text-xs text-ink-muted line-clamp-2 leading-relaxed break-words">
                         {doc.summary}
                       </p>
                     )}
