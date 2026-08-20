@@ -10,7 +10,6 @@ Also calls conflict_detector.check_conflict() if that module is available.
 
 from enum import Enum
 import logging
-import os
 from pydantic import BaseModel, Field
 import openai
 from openai import AsyncOpenAI
@@ -95,9 +94,12 @@ async def decide_refusal(
     # Priority 1: LLM self-rate confidence
     # Retry with binary exponential backoff on transient failures.
     MAX_RETRIES = 2
-    # Construct client — honour an optional OPENAI_BASE_URL override so that
+    # Construct client — honour an optional openai_base_url override so that
     # Groq / local-compatible endpoints work during local development without
-    # code changes (just set OPENAI_BASE_URL in .env).
+    # code changes (just set OPENAI_BASE_URL in .env). Read via settings, not
+    # os.getenv() directly — pydantic-settings loads .env into settings.*,
+    # it never touches the real OS environment, so os.getenv() here would
+    # silently see nothing and fall back to real OpenAI's default endpoint.
     client = AsyncOpenAI(
         api_key=settings.openai_api_key,
         base_url=settings.openai_base_url,
