@@ -78,3 +78,50 @@ CONFLICT_TEMPLATE = (
     "Please confirm which applies to your program, or flag this to the "
     "registrar — both documents are currently marked active."
 )
+
+def query_rewriter_user(
+    raw_query: str,
+    glossary: dict[str, str],
+    known_metadata_values: dict[str, list[str]] | None = None,
+) -> str:
+    """Build the user turn for the query-rewriting prompt.
+
+    Args:
+        raw_query: The user's original question.
+        glossary: term -> expansion pairs for this tenant (P1's glossary table).
+        known_metadata_values: The tenant's REAL, currently-stored values for
+            department/doc_type/version_status (queried fresh from the
+            documents table). Passed in so the model picks from values that
+            actually exist instead of inventing a plausible-sounding one that
+            won't match anything in the database. Fixed a real bug: without
+            this, the model previously guessed values like doc_type="Leave
+            Policy" when the real stored value was "Policy" — an exact-match
+            SQL filter on the guessed value silently returned zero chunks.
+
+    Returns:
+        str: Formatted user message.
+    """
+    if glossary:
+        glossary_text = "\n".join(f"{term} -> {expansion}" for term, expansion in glossary.items())
+    else:
+        glossary_text = "(no glossary entries for this tenant yet)"
+
+    known_metadata_values = known_metadata_values or {}
+    known_lines = []
+    for key in ("department", "doc_type", "version_status"):
+        values = known_metadata_values.get(key) or []
+        if values:
+            known_lines.append(f"{key}: {', '.join(sorted(values))}")
+    known_text = (
+        "\n".join(known_lines)
+        if known_lines
+        else "(no documents indexed yet for this tenant — do not guess metadata_filters values)"
+    )
+
+    return (
+        f"Glossary:\n{glossary_text}\n\n"
+        f"Known metadata values for this tenant — ONLY use an exact value from "
+        f"this list for metadata_filters, or leave the field null if nothing "
+        f"here clearly applies. Never invent a value that isn't listed:\n{known_text}\n\n"
+        f"User question: {raw_query}"
+    )

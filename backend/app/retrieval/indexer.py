@@ -21,7 +21,16 @@ import json
 import logging
 from uuid import UUID
 
-from sqlalchemy import select, update
+# FIX (issue 3): 'text' promoted to a top-level import alongside the other
+# sqlalchemy names.  The original deferred import inside the function body was
+# inconsistent — 'select' and 'update' were already imported at the top of the
+# file, proving the circular-import concern cited in the comment did not
+# actually apply here.
+#
+# FIX (issue 1): 'select' and 'update' removed — neither was used anywhere in
+# this module.  The code switched to raw text() queries at some point but the
+# dead imports were never cleaned up.
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
@@ -62,21 +71,18 @@ async def index_chunks(session: AsyncSession, tenant_id: str) -> int:
         int: Total number of chunks successfully indexed in this call.
 
     Raises:
-        IndexerError: If a database query fails or the tenant_id is invalid.
-        EmbeddingError: Propagated from embed_batch() if the Gemini embeddings API
-            fails after retries; partial progress is *not* rolled back — successfully
-            embedded batches are committed individually so the job can be resumed.
+        IndexerError: If a database query fails, the tenant_id is invalid, or
+            embed_batch() returns a different number of vectors than texts sent
+            (which would otherwise cause silent data loss via zip() truncation).
+        EmbeddingError: Propagated from embed_batch() if the embeddings API
+            fails after retries; partial progress is *not* rolled back —
+            successfully embedded batches are committed individually so the
+            job can be resumed.
     """
     try:
         tenant_uuid = UUID(tenant_id)
     except ValueError as exc:
         raise IndexerError(f"Invalid tenant_id '{tenant_id}': {exc}") from exc
-
-    # Import here to avoid a circular import if models ever import from retrieval.
-    # The Chunk ORM model may live in app.models or app.ingestion.models depending
-    # on how P1 chose to organise it.  We use a raw text query against the
-    # 'chunks' table so this module has zero dependency on the ORM class.
-    from sqlalchemy import text  # noqa: PLC0415  (deferred import is intentional)
 
     settings = get_settings()
     batch_size = getattr(settings, "embed_batch_size", EMBED_BATCH_SIZE)
@@ -126,6 +132,20 @@ async def index_chunks(session: AsyncSession, tenant_id: str) -> int:
 
         # EmbeddingError propagates to the caller as-is per the contract above.
         vectors: list[list[float]] = await embed_batch(batch_texts)
+
+        # FIX (issue 2): guard against embed_batch() returning a different
+        # number of vectors than texts.  embed_batch() validates this itself,
+        # but a defensive check here prevents silent data loss in the unlikely
+        # event that a future provider implementation slips through without
+        # raising.  Without this check, zip() would silently truncate to the
+        # shorter side, leaving some chunks un-indexed while total_indexed
+        # over-counted them as successfully written.
+        if len(vectors) != len(batch):
+            raise IndexerError(
+                f"embed_batch() returned {len(vectors)} vector(s) for {len(batch)} "
+                f"text(s) in batch starting at index {batch_start} "
+                f"(tenant={tenant_id}); aborting to prevent partial writes"
+            )
 
         # Write embeddings back to the DB for this batch.
         try:

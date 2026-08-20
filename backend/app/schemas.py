@@ -39,6 +39,18 @@ class LoginResponse(BaseModel):
     role: str
 
 
+class RegisterEnterpriseRequest(BaseModel):
+    enterprise_name: str
+    admin_email: str
+    admin_password: str
+
+
+class RegisterUserRequest(BaseModel):
+    tenant_code: str
+    email: str
+    password: str
+
+
 class CurrentUser(BaseModel):
     """Populated by security.get_current_user(); threaded through all requests."""
 
@@ -211,3 +223,64 @@ class DocumentStatusResponse(BaseModel):
     document_id: UUID
     ingestion_status: str  # one of IngestionStatus values
     detail: str | None = None  # human-readable note, e.g. failure reason
+
+
+class DocumentItem(BaseModel):
+    id: UUID
+    tenant_id: UUID
+    title: str
+    department: str | None = None
+    doc_type: str | None = None
+    effective_date: str | None = None
+    version_status: str | None = None
+    source_path: str | None = None
+    summary: str | None = None
+    chunk_count: int | None = None
+    ingestion_status: str | None = None
+
+
+# ── Conversation threads & messages ──────────────────────────────────────────
+
+class MessageCreate(BaseModel):
+    role: str  # "user" | "assistant"
+    content: str
+    citations: list[Citation] | list[dict] | None = None
+    confidence: float | None = None
+    refused: bool = False
+    refusal_reason: str | None = None
+
+
+class MessageResponse(BaseModel):
+    id: UUID
+    conversation_id: UUID
+    role: str
+    content: str
+    citations: list[dict] | list[Citation] | None = None
+    confidence: float | None = None
+    refused: bool = False
+    refusal_reason: str | None = None
+    created_at: datetime
+
+
+class ConversationCreate(BaseModel):
+    title: str | None = "New Conversation"
+
+
+class ConversationUpdate(BaseModel):
+    title: str
+
+
+class ConversationSummary(BaseModel):
+    id: UUID
+    title: str
+    created_at: datetime
+    updated_at: datetime
+    message_count: int = 0
+
+
+class ConversationDetail(BaseModel):
+    id: UUID
+    title: str
+    created_at: datetime
+    updated_at: datetime
+    messages: list[MessageResponse] = Field(default_factory=list)

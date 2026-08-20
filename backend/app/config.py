@@ -7,8 +7,9 @@ No other file should call os.environ directly.
 
 import logging
 from functools import lru_cache
+from typing import Optional
 
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 logger = logging.getLogger(__name__)
@@ -23,15 +24,24 @@ class Settings(BaseSettings):
         env_file=(".env", "../.env"),
         env_file_encoding="utf-8",
         case_sensitive=False,
+        extra="ignore",
     )
 
     # ── Google Gemini / LLM ───────────────────────────────────────────────────
-    gemini_api_key: str = Field(..., description="Google Gemini API key")
+    gemini_api_key: str = Field(default="", description="Google Gemini API key")
     openai_api_key: str | None = Field(default=None, description="OpenAI API key (optional)")
     embedding_model: str = Field(
         "gemini-embedding-001", description="Gemini embedding model name"
     )
     llm_model: str = Field("gpt-4o-mini", description="OpenAI chat model name")
+    openai_base_url: str | None = Field(
+        default=None,
+        description=(
+            "Override for AsyncOpenAI's base_url. None = OpenAI's real default "
+            "endpoint (production). Set to Groq's OpenAI-compatible endpoint "
+            "for local testing with a Groq key instead of a real OpenAI key."
+        ),
+    )
 
     # ── Database (Neon serverless Postgres + pgvector) ────────────────────────
     database_url: str = Field(
@@ -40,9 +50,17 @@ class Settings(BaseSettings):
             "Async SQLAlchemy URL for Neon Postgres. "
             "Prefer the direct (unpooled) connection string to avoid PgBouncer "
             "prepared-statement conflicts. Format: "
-            "postgresql+asyncpg://<user>:<password>@<host>.neon.tech/<dbname>?sslmode=require"
+            "postgresql+asyncpg://<user>:<password>@<host>.neon.tech/<dbname>?ssl=require"
         ),
     )
+
+    @field_validator("database_url", mode="after")
+    @classmethod
+    def sanitize_database_url(cls, v: str) -> str:
+        """asyncpg requires ssl instead of sslmode."""
+        if "sslmode=" in v:
+            v = v.replace("sslmode=", "ssl=")
+        return v
 
     # ── Auth / JWT ────────────────────────────────────────────────────────────
     jwt_secret_key: str = Field(..., description="HMAC secret for JWT signing")
@@ -62,6 +80,10 @@ class Settings(BaseSettings):
             "Set to 'cuda' or 'cpu' to override."
         ),
     )
+    aws_endpoint_url_s3: Optional[str] = Field(default=None, description="Neon Object Storage endpoint URL")
+    aws_access_key_id: Optional[str] = Field(default=None, description="Neon Object Storage access key")
+    aws_secret_access_key: Optional[str] = Field(default=None, description="Neon Object Storage secret key")
+    aws_region: Optional[str] = Field(default=None, description="Neon Object Storage region")
 
     # ── Retrieval / Embeddings ────────────────────────────────────────────────
     embedding_dimension: int = Field(768, description="Embedding vector dimension")
@@ -73,7 +95,7 @@ class Settings(BaseSettings):
     )
     dense_retrieval_top_k: int = Field(25)
     reranker_top_n: int = Field(5)
-    refusal_score_threshold: float = Field(0.72)
+    refusal_score_threshold: float = Field(0.5)
 
     # ── Frontend ─────────────────────────────────────────────────────────────
     vite_api_base_url: str = Field("http://localhost:8000")
