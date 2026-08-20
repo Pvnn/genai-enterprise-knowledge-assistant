@@ -297,6 +297,7 @@ def _build_citations(chunks: list[ChunkResult]) -> list[Citation]:
             document_id=c.document_id,
             section_path=c.section_path,
             source_path=c.source_path,
+            text=c.text,
         )
         for c in chunks
     ]

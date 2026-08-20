@@ -48,7 +48,7 @@ export const Register: React.FC<RegisterProps> = ({ onBackToLogin }) => {
         try {
           const errData = await response.json();
           errorDetail = errData.detail || errorDetail;
-        } catch (_) {
+        } catch {
           // ignore
         }
         throw new Error(errorDetail);
@@ -66,7 +66,7 @@ export const Register: React.FC<RegisterProps> = ({ onBackToLogin }) => {
       window.history.pushState({}, "", "/chat");
       window.dispatchEvent(new PopStateEvent("popstate"));
       
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err.message || "Network error occurred.");
     } finally {
       setIsLoading(false);

@@ -26,11 +26,13 @@ import NodiLogo from "./NodiLogo";
 
 interface ChatMessageItemProps {
   message: ChatMessage;
+  onCitationClick?: (docId: string, text: string) => void;
   onClarifyRespond?: (reply: string) => void;
   onFeedbackUpdate?: (messageId: string, vote: "up" | "down") => void;
 }
 
 export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
+  onCitationClick,
   message,
   onClarifyRespond,
   onFeedbackUpdate,
@@ -149,7 +151,7 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
             !message.final.conflict &&
             message.final.citations &&
             message.final.citations.length > 0 && (
-              <CitationCard citations={message.final.citations} />
+              <CitationCard citations={message.final.citations} onCitationClick={onCitationClick} />
             )}
 
           {/* Action Row for Assistant Messages */}

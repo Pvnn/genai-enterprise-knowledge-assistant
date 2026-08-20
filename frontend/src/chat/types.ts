@@ -15,6 +15,7 @@ export interface Citation {
   document_id: string;
   section_path: string;
   source_path?: string | null;
+  text?: string;
 }
 
 /**

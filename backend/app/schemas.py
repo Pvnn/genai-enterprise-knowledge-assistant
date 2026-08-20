@@ -98,6 +98,7 @@ class ChunkResult(BaseModel):
     effective_date: str | None = None
     version_status: str | None = None
     source_path: str | None = None
+    text: str | None = None
 
 
 class RetrieveResponse(BaseModel):
@@ -125,6 +126,7 @@ class Citation(BaseModel):
     document_id: UUID
     section_path: str
     source_path: str | None = None
+    text: str | None = None
 
 
 class RefusalDecision(BaseModel):
@@ -198,6 +200,7 @@ class ChunkDB(BaseModel):
     effective_date: str | None = None
     version_status: str | None = None
     source_path: str | None = None
+    text: str | None = None
 
 
 # ── Ingestion upload / status (addendum Section 5) ───────────────────────────
@@ -234,6 +237,7 @@ class DocumentItem(BaseModel):
     effective_date: str | None = None
     version_status: str | None = None
     source_path: str | None = None
+    text: str | None = None
     summary: str | None = None
     chunk_count: int | None = None
     ingestion_status: str | None = None
