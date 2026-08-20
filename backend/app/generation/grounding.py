@@ -100,7 +100,7 @@ async def decide_refusal(
     # code changes (just set OPENAI_BASE_URL in .env).
     client = AsyncOpenAI(
         api_key=settings.openai_api_key,
-        base_url=os.getenv("OPENAI_BASE_URL"),
+        base_url=settings.openai_base_url,
     )
     chunk_texts = "\n\n".join([f"Chunk: {c.text}" for c in top_chunks[:5]])
     
@@ -110,7 +110,7 @@ async def decide_refusal(
         f"Retrieved passages:\n{chunk_texts}\n\n"
         f"Drafted Answer:\n{draft_answer}\n\n"
         "If confidence is 'low', provide a helpful refusal reason explaining that the passages do not contain "
-        "sufficient information to answer the query directly and suggest where or what to check."
+        "sufficient information to answer the query directly and suggest where or what to check. Respond in JSON format with keys 'confidence' (high, medium, low) and 'refusal_reason' (string)."
     )
     
     TRANSIENT_ERRORS = (
@@ -126,13 +126,15 @@ async def decide_refusal(
     llm_refusal_reason = None
     for attempt in range(MAX_RETRIES + 1):
         try:
-            response = await client.responses.parse(
+            response = await client.chat.completions.create(
                 model=settings.llm_model,
-                input=[{"role": "user", "content": prompt}],
-                text_format=ConfidenceLLMResponse,
+                messages=[{"role": "user", "content": prompt}],
+                response_format={"type": "json_object"},
                 temperature=0.0,
             )
-            result = response.output_parsed
+            import json
+            data = json.loads(response.choices[0].message.content)
+            result = ConfidenceLLMResponse(**data)
             if result.confidence == ConfidenceLevel.high:
                 confidence_val = 1.0
             elif result.confidence == ConfidenceLevel.medium:
