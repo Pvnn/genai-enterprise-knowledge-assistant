@@ -223,3 +223,50 @@ class DocumentStatusResponse(BaseModel):
     document_id: UUID
     ingestion_status: str  # one of IngestionStatus values
     detail: str | None = None  # human-readable note, e.g. failure reason
+
+
+# ── Conversation threads & messages ──────────────────────────────────────────
+
+class MessageCreate(BaseModel):
+    role: str  # "user" | "assistant"
+    content: str
+    citations: list[Citation] | list[dict] | None = None
+    confidence: float | None = None
+    refused: bool = False
+    refusal_reason: str | None = None
+
+
+class MessageResponse(BaseModel):
+    id: UUID
+    conversation_id: UUID
+    role: str
+    content: str
+    citations: list[dict] | list[Citation] | None = None
+    confidence: float | None = None
+    refused: bool = False
+    refusal_reason: str | None = None
+    created_at: datetime
+
+
+class ConversationCreate(BaseModel):
+    title: str | None = "New Conversation"
+
+
+class ConversationUpdate(BaseModel):
+    title: str
+
+
+class ConversationSummary(BaseModel):
+    id: UUID
+    title: str
+    created_at: datetime
+    updated_at: datetime
+    message_count: int = 0
+
+
+class ConversationDetail(BaseModel):
+    id: UUID
+    title: str
+    created_at: datetime
+    updated_at: datetime
+    messages: list[MessageResponse] = Field(default_factory=list)

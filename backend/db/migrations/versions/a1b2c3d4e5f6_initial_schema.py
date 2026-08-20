@@ -134,6 +134,34 @@ def upgrade() -> None:
         sa.Column("comment", sa.Text(), nullable=True),
     )
 
+    # ── conversations ────────────────────────────────────────────────────────
+    op.create_table(
+        "conversations",
+        sa.Column("id", sa.UUID(), primary_key=True),
+        sa.Column("tenant_id", sa.UUID(), sa.ForeignKey("enterprises.id"), nullable=False),
+        sa.Column("user_id", sa.UUID(), sa.ForeignKey("users.id"), nullable=False),
+        sa.Column("title", sa.String(255), nullable=False, server_default="New Conversation"),
+        sa.Column("created_at", sa.DateTime(), nullable=False, server_default=sa.func.now()),
+        sa.Column("updated_at", sa.DateTime(), nullable=False, server_default=sa.func.now()),
+    )
+    op.create_index("ix_conversations_tenant_user", "conversations", ["tenant_id", "user_id"])
+
+    # ── messages ─────────────────────────────────────────────────────────────
+    op.create_table(
+        "messages",
+        sa.Column("id", sa.UUID(), primary_key=True),
+        sa.Column("conversation_id", sa.UUID(), sa.ForeignKey("conversations.id", ondelete="CASCADE"), nullable=False),
+        sa.Column("tenant_id", sa.UUID(), sa.ForeignKey("enterprises.id"), nullable=False),
+        sa.Column("role", sa.String(20), nullable=False),
+        sa.Column("content", sa.Text(), nullable=False),
+        sa.Column("citations", sa.JSON(), nullable=True),
+        sa.Column("confidence", sa.Float(), nullable=True),
+        sa.Column("refused", sa.Boolean(), nullable=False, server_default=sa.text("false")),
+        sa.Column("refusal_reason", sa.String(100), nullable=True),
+        sa.Column("created_at", sa.DateTime(), nullable=False, server_default=sa.func.now()),
+    )
+    op.create_index("ix_messages_conversation_id", "messages", ["conversation_id"])
+
     bind = op.get_bind()
     if bind and bind.dialect.name == "postgresql":
         op.execute("CREATE EXTENSION IF NOT EXISTS vector;")
@@ -141,6 +169,8 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    op.drop_table("messages")
+    op.drop_table("conversations")
     op.drop_table("feedback")
     op.drop_table("queries")
     op.drop_table("glossary")
