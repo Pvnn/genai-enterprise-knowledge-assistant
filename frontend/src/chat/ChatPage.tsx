@@ -554,7 +554,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({
         onDeleteConversation={handleDeleteConversation}
         currentView={currentView}
         onSelectView={setCurrentView}
-        tenantId={tenantId}
+        
         onTenantChange={setTenantId}
         darkMode={darkMode}
         onToggleDarkMode={() => setDarkMode(!darkMode)}
@@ -628,7 +628,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({
             {/* View Switch */}
             {currentView === "documents" ? (
           <DocumentsLibrary
-            tenantId={tenantId}
+            
             onAskAboutDocument={handleAskAboutDoc}
             userRole={userRole}
             onNavigateUpload={onNavigateUpload}
