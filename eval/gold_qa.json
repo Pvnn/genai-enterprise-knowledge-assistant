@@ -33,5 +33,285 @@
     "document_id": "Not in corpus",
     "section_path": "",
     "expected_response_type": "refusal"
+  },
+  {
+    "question": "What is Cognizant's Code of Ethics officially called?",
+    "answer": "Core Values and Standards of Business Conduct.",
+    "document_id": "code-of-ethics-Cognizant.pdf",
+    "section_path": "Introduction",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What are Cognizant's five core values listed in the Code of Ethics?",
+    "answer": "Work as one, Raise the bar, Dare to innovate, Do the right thing, Own it.",
+    "document_id": "code-of-ethics-Cognizant.pdf",
+    "section_path": "Core Values",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Who must comply with Cognizant's Code of Ethics?",
+    "answer": "All Cognizant directors, officers and employees worldwide, plus all business units, subsidiaries and joint ventures over which Cognizant has operational control (collectively 'associates').",
+    "document_id": "code-of-ethics-Cognizant.pdf",
+    "section_path": "Who Has to Comply",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What can happen if an associate violates the Code of Ethics?",
+    "answer": "Disciplinary action up to and including termination of employment, and it may carry civil or criminal consequences.",
+    "document_id": "code-of-ethics-Cognizant.pdf",
+    "section_path": "What Happens When Code Is Violated",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Under the Code of Ethics, what should an associate never accept as a gift?",
+    "answer": "Cash or cash equivalents.",
+    "document_id": "code-of-ethics-Cognizant.pdf",
+    "section_path": "Gifts and Business Hospitality",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What email address can be used to reach Cognizant's Chief Ethics & Compliance Officer?",
+    "answer": "chiefcomplianceofficer@cognizant.com",
+    "document_id": "code-of-ethics-Cognizant.pdf",
+    "section_path": "Voicing Concerns",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Does the Code of Ethics tolerate retaliation against someone who reports a concern in good faith, even if the investigation finds no violation?",
+    "answer": "No. Cognizant never tolerates retaliation against anyone reporting in good faith, even if the investigation finds no violation.",
+    "document_id": "code-of-ethics-Cognizant.pdf",
+    "section_path": "No Retaliation",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "According to the Code of Ethics, what are Cognizant's Responsible AI Principles?",
+    "answer": "Transparency/explainability/traceability, fairness/inclusivity/accessibility, safeguarding personal information, human accountability, robust and safe systems, and growth/adaptability that considers environmental and social impact.",
+    "document_id": "code-of-ethics-Cognizant.pdf",
+    "section_path": "Use AI Responsibly",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What must an associate do if they discover a conflict of interest under the Code of Ethics?",
+    "answer": "Disclose it to their manager or Ethics & Compliance per the Conflicts of Interest Policy. The existence of a conflict is not itself wrongdoing -- prompt disclosure is what matters.",
+    "document_id": "code-of-ethics-Cognizant.pdf",
+    "section_path": "Avoid/Manage Conflicts of Interest",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is the toll-free Corporate Security number for reporting information security incidents in India?",
+    "answer": "1800-572-0473.",
+    "document_id": "code-of-ethics-Cognizant.pdf",
+    "section_path": "Ensure Information Security",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Who is the policy owner of Cognizant's Anti-Corruption Policy?",
+    "answer": "Jemima Coke, in the Ethics & Compliance department.",
+    "document_id": "anti-corruption-policy-english-cognizant.pdf",
+    "section_path": "Policy Details",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Does Cognizant's Anti-Corruption Policy permit facilitation payments?",
+    "answer": "No. Facilitation payments -- small unofficial cash payments to low-level Government Officials to expedite routine actions -- are prohibited.",
+    "document_id": "anti-corruption-policy-english-cognizant.pdf",
+    "section_path": "Guiding Principles",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "How does the Anti-Corruption Policy define 'Government Official'?",
+    "answer": "Anyone acting officially for or on behalf of a government or department/agency/division; a company or entity partially or wholly government/state-owned or controlled; a political party; a public international organization; or anyone acting on behalf of any of the above.",
+    "document_id": "anti-corruption-policy-english-cognizant.pdf",
+    "section_path": "Definitions",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What laws does Cognizant's Anti-Corruption Policy specifically reference for compliance?",
+    "answer": "The US Foreign Corrupt Practices Act (FCPA), the UK Bribery Act, and India's Prevention of Corruption Act, among other applicable anti-corruption and financial crime laws.",
+    "document_id": "anti-corruption-policy-english-cognizant.pdf",
+    "section_path": "Scope",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What must associates do before entering into a joint venture, merger, or acquisition, per the Anti-Corruption Policy?",
+    "answer": "Conduct appropriate anti-corruption due diligence before (or promptly after) entering the joint venture, merger, or acquisition, and contact the M&A Legal team.",
+    "document_id": "anti-corruption-policy-english-cognizant.pdf",
+    "section_path": "Guiding Principles",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "When was Cognizant's Anti-Corruption Policy first released, and when was it last revised?",
+    "answer": "It was first released on January 1, 2011, and was last revised on May 22, 2026.",
+    "document_id": "anti-corruption-policy-english-cognizant.pdf",
+    "section_path": "Version History",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Who is the Chief Ethics and Compliance Officer named in the Whistleblower and Non-Retaliation Policy?",
+    "answer": "Marc Levin.",
+    "document_id": "whistleblower-and-non-retaliation-policy-Cognizant.pdf",
+    "section_path": "Policy Details",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "According to the Whistleblower Policy, what should an associate do if they receive a report of suspected improper activity from someone else?",
+    "answer": "They must NOT conduct their own investigation -- they should refer it promptly to Ethics & Compliance.",
+    "document_id": "whistleblower-and-non-retaliation-policy-Cognizant.pdf",
+    "section_path": "Associates Must",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Are EU-based associates entitled to any special reporting option under the Whistleblower Policy?",
+    "answer": "Yes -- EU-based associates are entitled to an in-person meeting with their HR Country Lead.",
+    "document_id": "whistleblower-and-non-retaliation-policy-Cognizant.pdf",
+    "section_path": "Reporting Channels",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Does the Whistleblower Policy prevent an associate from reporting a suspected law violation directly to the government?",
+    "answer": "No. Nothing in the Policy precludes reporting a suspected law violation to the government or cooperating in a government investigation.",
+    "document_id": "whistleblower-and-non-retaliation-policy-Cognizant.pdf",
+    "section_path": "Reporting Channels",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "When was the Whistleblower and Non-Retaliation Policy most recently revised?",
+    "answer": "April 11, 2023.",
+    "document_id": "whistleblower-and-non-retaliation-policy-Cognizant.pdf",
+    "section_path": "Version History",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What international frameworks does Cognizant's Human Rights Policy align with?",
+    "answer": "The UN Declaration of Human Rights, the ILO Declaration on Fundamental Principles and Rights at Work, and the UN Global Compact's Ten Principles.",
+    "document_id": "human-rights-policy.pdf",
+    "section_path": "Guiding Principles",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "How does the Human Rights Policy define child labor?",
+    "answer": "Work that deprives anyone under 18 of their childhood or potential and dignity, is harmful to physical or mental development, or interferes with schooling.",
+    "document_id": "human-rights-policy.pdf",
+    "section_path": "Key Definitions",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Which countries does Cognizant currently publish modern slavery statements for?",
+    "answer": "Australia, Norway, and the UK.",
+    "document_id": "human-rights-policy.pdf",
+    "section_path": "Modern Slavery Statements",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Who does the Chief Ethics and Compliance Officer report to, and who has ultimate oversight, per the Human Rights Policy?",
+    "answer": "The Chief E&C Officer reports to the Chief Legal and Administrative Officer; ultimate oversight sits with the Audit Committee of the Board of Directors.",
+    "document_id": "human-rights-policy.pdf",
+    "section_path": "Governance",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What mandatory training does the Human Rights Policy reference?",
+    "answer": "A mandatory annual Code of Ethics course and a Preventing Harassment and Discrimination course.",
+    "document_id": "human-rights-policy.pdf",
+    "section_path": "Training",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Which team evaluates Cognizant's occupational health and safety performance company-wide?",
+    "answer": "The Global Environment Health and Safety (EHS) Center of Excellence team, via ongoing monitoring and periodic management reviews with business leadership.",
+    "document_id": "environmental-health-and-safety-policy-Cognizant.pdf",
+    "section_path": "Guiding Principles",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What ISO certification does Cognizant's occupational health and safety program align with?",
+    "answer": "ISO 45001.",
+    "document_id": "environmental-health-and-safety-policy-Cognizant.pdf",
+    "section_path": "Compliance and Certifications",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is Cognizant's target date for sourcing 100% renewable electricity, per its Environment Policy?",
+    "answer": "2026.",
+    "document_id": "environmental-health-and-safety-policy-Cognizant.pdf",
+    "section_path": "Commitments and Goals",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "By how much does Cognizant aim to reduce absolute GHG emissions by 2030 and by 2040?",
+    "answer": "50% by 2030 and 90% by 2040.",
+    "document_id": "environmental-health-and-safety-policy-Cognizant.pdf",
+    "section_path": "Commitments and Goals",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is Cognizant's zero e-waste to landfill target year?",
+    "answer": "2030.",
+    "document_id": "environmental-health-and-safety-policy-Cognizant.pdf",
+    "section_path": "Commitments and Goals",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What does Cognizant require of high-emission suppliers under its Environment Policy stakeholder engagement commitments?",
+    "answer": "It requires high-emission suppliers to report their emissions and set science-based targets.",
+    "document_id": "environmental-health-and-safety-policy-Cognizant.pdf",
+    "section_path": "Stakeholder Engagement",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is the maximum standard workweek allowed under the Supplier Standards of Conduct, including overtime?",
+    "answer": "A standard workweek not to exceed 48 hours, or 60 hours including overtime except in emergencies.",
+    "document_id": "supplier-standards-of-conduct-Cognizant.pdf",
+    "section_path": "Labor/Human Rights",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What information security certifications must suppliers maintain per the Supplier Standards of Conduct?",
+    "answer": "ISO 27001 and SOC2 Type 2 certifications.",
+    "document_id": "supplier-standards-of-conduct-Cognizant.pdf",
+    "section_path": "Information Security Responsibility",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What email should suppliers use to notify Cognizant of a security incident?",
+    "answer": "CSIRT@cognizant.com",
+    "document_id": "supplier-standards-of-conduct-Cognizant.pdf",
+    "section_path": "Information Security Responsibility",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "Within what timeframe must a supplier notify Cognizant in writing of an incident affecting their business continuity plan?",
+    "answer": "Within 24 hours (they must also notify verbally as soon as possible).",
+    "document_id": "supplier-standards-of-conduct-Cognizant.pdf",
+    "section_path": "Business Continuity Responsibility",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "How soon after the contract Effective Date must a supplier set a Net Zero science-based GHG emissions reduction target?",
+    "answer": "Within 2 years of the contract Effective Date.",
+    "document_id": "supplier-standards-of-conduct-Cognizant.pdf",
+    "section_path": "Environmental Responsibility",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What conflict minerals does the Supplier Standards of Conduct specifically call out for responsible sourcing?",
+    "answer": "Tin, tantalum, gold, and tungsten, particularly from the Democratic Republic of Congo and adjoining countries.",
+    "document_id": "supplier-standards-of-conduct-Cognizant.pdf",
+    "section_path": "Environmental Responsibility",
+    "expected_response_type": "factual"
+  },
+  {
+    "question": "What is Cognizant's parental leave policy for new fathers?",
+    "answer": "Not in corpus",
+    "document_id": "Not in corpus",
+    "section_path": "Not in corpus",
+    "expected_response_type": "refusal"
+  },
+  {
+    "question": "How many vacation days does a Cognizant employee accrue per year?",
+    "answer": "Not in corpus",
+    "document_id": "Not in corpus",
+    "section_path": "Not in corpus",
+    "expected_response_type": "refusal"
   }
 ]
