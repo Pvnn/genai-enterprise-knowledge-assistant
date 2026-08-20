@@ -95,7 +95,7 @@ class Settings(BaseSettings):
     )
     dense_retrieval_top_k: int = Field(25)
     reranker_top_n: int = Field(5)
-    refusal_score_threshold: float = Field(0.72)
+    refusal_score_threshold: float = Field(0.5)
 
     # ── Frontend ─────────────────────────────────────────────────────────────
     vite_api_base_url: str = Field("http://localhost:8000")
