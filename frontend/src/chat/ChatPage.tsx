@@ -34,8 +34,7 @@ import ChatMessageItem from "./ChatMessageItem";
 import DocumentsLibrary from "./DocumentsLibrary";
 import NodiLogo from "./NodiLogo";
 
-const DEFAULT_TENANT_ID =
-  localStorage.getItem("tenant_id") || "00000000-0000-0000-0000-000000000001";
+const FALLBACK_TENANT_ID = "00000000-0000-0000-0000-000000000001";
 const STORAGE_KEY_CONVERSATIONS = "genai_assistant_conversations";
 const STORAGE_KEY_THEME = "genai_assistant_theme";
 
@@ -63,8 +62,17 @@ export const ChatPage: React.FC<ChatPageProps> = ({
   // Sidebar mobile toggle
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Tenant state
-  const [tenantId, setTenantId] = useState<string>(DEFAULT_TENANT_ID);
+  // Tenant state - dynamically read from localStorage on mount and route changes
+  const [tenantId, setTenantId] = useState<string>(() => {
+    return localStorage.getItem("tenant_id") || FALLBACK_TENANT_ID;
+  });
+
+  useEffect(() => {
+    const stored = localStorage.getItem("tenant_id");
+    if (stored && stored !== tenantId) {
+      setTenantId(stored);
+    }
+  }, [tenantId]);
 
   // Conversations state
   const [conversations, setConversations] = useState<Conversation[]>(() => {
