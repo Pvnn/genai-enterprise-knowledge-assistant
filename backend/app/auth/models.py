@@ -44,8 +44,8 @@ class Enterprise(Base):
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
 
-    users: Mapped[list["User"]] = relationship("User", back_populates="enterprise")
-    documents: Mapped[list["Document"]] = relationship("Document", back_populates="enterprise")
+    users: Mapped[list["User"]] = relationship("User", back_populates="enterprise", cascade="all, delete-orphan")
+    documents: Mapped[list["Document"]] = relationship("Document", back_populates="enterprise", cascade="all, delete-orphan")
 
 
 class User(Base):
@@ -61,7 +61,7 @@ class User(Base):
     )
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
-    tenant_id: Mapped[UUID] = mapped_column(ForeignKey("enterprises.id"), nullable=False)
+    tenant_id: Mapped[UUID] = mapped_column(ForeignKey("enterprises.id", ondelete="CASCADE"), nullable=False)
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     role: Mapped[str] = mapped_column(

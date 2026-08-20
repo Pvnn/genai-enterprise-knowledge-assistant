@@ -45,7 +45,7 @@ def upgrade() -> None:
     op.create_table(
         "users",
         sa.Column("id", sa.UUID(), primary_key=True),
-        sa.Column("tenant_id", sa.UUID(), sa.ForeignKey("enterprises.id"), nullable=False),
+        sa.Column("tenant_id", sa.UUID(), sa.ForeignKey("enterprises.id", ondelete="CASCADE"), nullable=False),
         sa.Column("email", sa.String(255), nullable=False, unique=True),
         sa.Column("password_hash", sa.String(255), nullable=False),
         sa.Column(
@@ -61,7 +61,7 @@ def upgrade() -> None:
     op.create_table(
         "documents",
         sa.Column("id", sa.UUID(), primary_key=True),
-        sa.Column("tenant_id", sa.UUID(), sa.ForeignKey("enterprises.id"), nullable=False),
+        sa.Column("tenant_id", sa.UUID(), sa.ForeignKey("enterprises.id", ondelete="CASCADE"), nullable=False),
         sa.Column("title", sa.String(500), nullable=False),
         sa.Column("department", sa.String(255), nullable=True),
         sa.Column("doc_type", sa.String(100), nullable=True),
@@ -84,8 +84,8 @@ def upgrade() -> None:
     op.create_table(
         "chunks",
         sa.Column("id", sa.UUID(), primary_key=True),
-        sa.Column("document_id", sa.UUID(), sa.ForeignKey("documents.id"), nullable=False),
-        sa.Column("tenant_id", sa.UUID(), sa.ForeignKey("enterprises.id"), nullable=False),
+        sa.Column("document_id", sa.UUID(), sa.ForeignKey("documents.id", ondelete="CASCADE"), nullable=False),
+        sa.Column("tenant_id", sa.UUID(), sa.ForeignKey("enterprises.id", ondelete="CASCADE"), nullable=False),
         sa.Column("text", sa.Text(), nullable=False),
         sa.Column("section_path", sa.String(500), nullable=False),
         # embedding column: vector(768) for gemini-embedding-001.
@@ -104,7 +104,7 @@ def upgrade() -> None:
     op.create_table(
         "glossary",
         sa.Column("id", sa.UUID(), primary_key=True),
-        sa.Column("tenant_id", sa.UUID(), sa.ForeignKey("enterprises.id"), nullable=False),
+        sa.Column("tenant_id", sa.UUID(), sa.ForeignKey("enterprises.id", ondelete="CASCADE"), nullable=False),
         sa.Column("term", sa.String(255), nullable=False),
         sa.Column("expansion", sa.Text(), nullable=False),
         comment="Priority 2 (Stage 0) – auto-built acronym/entity glossary",
@@ -114,8 +114,8 @@ def upgrade() -> None:
     op.create_table(
         "queries",
         sa.Column("id", sa.UUID(), primary_key=True),
-        sa.Column("tenant_id", sa.UUID(), sa.ForeignKey("enterprises.id"), nullable=False),
-        sa.Column("user_id", sa.UUID(), sa.ForeignKey("users.id"), nullable=False),
+        sa.Column("tenant_id", sa.UUID(), sa.ForeignKey("enterprises.id", ondelete="CASCADE"), nullable=False),
+        sa.Column("user_id", sa.UUID(), sa.ForeignKey("users.id", ondelete="CASCADE"), nullable=False),
         sa.Column("raw_query", sa.Text(), nullable=False),
         sa.Column("rewritten_query", sa.Text(), nullable=True),
         sa.Column("routed_doc_ids", sa.JSON(), nullable=True),
@@ -129,7 +129,7 @@ def upgrade() -> None:
     op.create_table(
         "feedback",
         sa.Column("id", sa.UUID(), primary_key=True),
-        sa.Column("query_id", sa.UUID(), sa.ForeignKey("queries.id"), nullable=False),
+        sa.Column("query_id", sa.UUID(), sa.ForeignKey("queries.id", ondelete="CASCADE"), nullable=False),
         sa.Column("thumbs_up_down", sa.Boolean(), nullable=False),
         sa.Column("comment", sa.Text(), nullable=True),
     )
@@ -138,8 +138,8 @@ def upgrade() -> None:
     op.create_table(
         "conversations",
         sa.Column("id", sa.UUID(), primary_key=True),
-        sa.Column("tenant_id", sa.UUID(), sa.ForeignKey("enterprises.id"), nullable=False),
-        sa.Column("user_id", sa.UUID(), sa.ForeignKey("users.id"), nullable=False),
+        sa.Column("tenant_id", sa.UUID(), sa.ForeignKey("enterprises.id", ondelete="CASCADE"), nullable=False),
+        sa.Column("user_id", sa.UUID(), sa.ForeignKey("users.id", ondelete="CASCADE"), nullable=False),
         sa.Column("title", sa.String(255), nullable=False, server_default="New Conversation"),
         sa.Column("created_at", sa.DateTime(), nullable=False, server_default=sa.func.now()),
         sa.Column("updated_at", sa.DateTime(), nullable=False, server_default=sa.func.now()),
@@ -151,7 +151,7 @@ def upgrade() -> None:
         "messages",
         sa.Column("id", sa.UUID(), primary_key=True),
         sa.Column("conversation_id", sa.UUID(), sa.ForeignKey("conversations.id", ondelete="CASCADE"), nullable=False),
-        sa.Column("tenant_id", sa.UUID(), sa.ForeignKey("enterprises.id"), nullable=False),
+        sa.Column("tenant_id", sa.UUID(), sa.ForeignKey("enterprises.id", ondelete="CASCADE"), nullable=False),
         sa.Column("role", sa.String(20), nullable=False),
         sa.Column("content", sa.Text(), nullable=False),
         sa.Column("citations", sa.JSON(), nullable=True),

@@ -45,7 +45,7 @@ class Document(Base):
     )
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
-    tenant_id: Mapped[UUID] = mapped_column(ForeignKey("enterprises.id"), nullable=False)
+    tenant_id: Mapped[UUID] = mapped_column(ForeignKey("enterprises.id", ondelete="CASCADE"), nullable=False)
     title: Mapped[str] = mapped_column(String(500), nullable=False)
     department: Mapped[str | None] = mapped_column(String(255), nullable=True)
     doc_type: Mapped[str | None] = mapped_column(String(100), nullable=True)
@@ -71,8 +71,8 @@ class Chunk(Base):
     __tablename__ = "chunks"
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
-    document_id: Mapped[UUID] = mapped_column(ForeignKey("documents.id"), nullable=False)
-    tenant_id: Mapped[UUID] = mapped_column(ForeignKey("enterprises.id"), nullable=False)
+    document_id: Mapped[UUID] = mapped_column(ForeignKey("documents.id", ondelete="CASCADE"), nullable=False)
+    tenant_id: Mapped[UUID] = mapped_column(ForeignKey("enterprises.id", ondelete="CASCADE"), nullable=False)
     text: Mapped[str] = mapped_column(Text, nullable=False)
     section_path: Mapped[str] = mapped_column(String(500), nullable=False)
     embedding: Mapped[str | None] = mapped_column(Text, nullable=True, comment="pgvector vector(768)")
@@ -91,7 +91,7 @@ class Glossary(Base):
     __tablename__ = "glossary"
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
-    tenant_id: Mapped[UUID] = mapped_column(ForeignKey("enterprises.id"), nullable=False)
+    tenant_id: Mapped[UUID] = mapped_column(ForeignKey("enterprises.id", ondelete="CASCADE"), nullable=False)
     term: Mapped[str] = mapped_column(String(255), nullable=False)
     expansion: Mapped[str] = mapped_column(Text, nullable=False)
 
@@ -102,8 +102,8 @@ class Query(Base):
     __tablename__ = "queries"
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
-    tenant_id: Mapped[UUID] = mapped_column(ForeignKey("enterprises.id"), nullable=False)
-    user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
+    tenant_id: Mapped[UUID] = mapped_column(ForeignKey("enterprises.id", ondelete="CASCADE"), nullable=False)
+    user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     raw_query: Mapped[str] = mapped_column(Text, nullable=False)
     rewritten_query: Mapped[str | None] = mapped_column(Text, nullable=True)
     routed_doc_ids: Mapped[dict | list | None] = mapped_column(JSON, nullable=True)
@@ -112,7 +112,7 @@ class Query(Base):
     answered_or_refused: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
 
-    feedback: Mapped[list[Feedback]] = relationship("Feedback", back_populates="query")
+    feedback: Mapped[list[Feedback]] = relationship("Feedback", back_populates="query", cascade="all, delete-orphan")
 
 
 class Feedback(Base):
@@ -121,7 +121,7 @@ class Feedback(Base):
     __tablename__ = "feedback"
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
-    query_id: Mapped[UUID] = mapped_column(ForeignKey("queries.id"), nullable=False)
+    query_id: Mapped[UUID] = mapped_column(ForeignKey("queries.id", ondelete="CASCADE"), nullable=False)
     thumbs_up_down: Mapped[bool] = mapped_column(Boolean, nullable=False)
     comment: Mapped[str | None] = mapped_column(Text, nullable=True)
 
@@ -134,8 +134,8 @@ class Conversation(Base):
     __tablename__ = "conversations"
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
-    tenant_id: Mapped[UUID] = mapped_column(ForeignKey("enterprises.id"), nullable=False)
-    user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
+    tenant_id: Mapped[UUID] = mapped_column(ForeignKey("enterprises.id", ondelete="CASCADE"), nullable=False)
+    user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     title: Mapped[str] = mapped_column(String(255), nullable=False, default="New Conversation")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
     updated_at: Mapped[datetime] = mapped_column(
@@ -159,7 +159,7 @@ class Message(Base):
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     conversation_id: Mapped[UUID] = mapped_column(ForeignKey("conversations.id", ondelete="CASCADE"), nullable=False)
-    tenant_id: Mapped[UUID] = mapped_column(ForeignKey("enterprises.id"), nullable=False)
+    tenant_id: Mapped[UUID] = mapped_column(ForeignKey("enterprises.id", ondelete="CASCADE"), nullable=False)
     role: Mapped[str] = mapped_column(String(20), nullable=False)  # "user" | "assistant"
     content: Mapped[str] = mapped_column(Text, nullable=False)
     citations: Mapped[list | dict | None] = mapped_column(JSON, nullable=True)
