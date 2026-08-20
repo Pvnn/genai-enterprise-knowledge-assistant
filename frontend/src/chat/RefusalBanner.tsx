@@ -21,7 +21,12 @@ export const RefusalBanner: React.FC<RefusalBannerProps> = ({ finalEvent }) => {
     finalEvent.answer ||
     "I could not find a passage in the current policy documents that directly answers this.";
 
-  const formattedConfidence = (finalEvent.confidence * 100).toFixed(0);
+  let confidenceLabel = "High";
+  if (finalEvent.confidence === 0.0) {
+    confidenceLabel = "Low";
+  } else if (finalEvent.confidence <= 0.5) {
+    confidenceLabel = "Medium";
+  }
 
   return (
     <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-ink">
@@ -37,7 +42,7 @@ export const RefusalBanner: React.FC<RefusalBannerProps> = ({ finalEvent }) => {
               Low-Confidence Policy Retrieval
             </h4>
             <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-surface border border-hairline text-accent-gold font-medium">
-              Confidence: {formattedConfidence}%
+              Confidence: {confidenceLabel}
             </span>
           </div>
 
