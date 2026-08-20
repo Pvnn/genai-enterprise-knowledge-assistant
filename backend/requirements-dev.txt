@@ -1,4 +1,4 @@
-﻿-r requirements.txt
+-r requirements.txt
 
 # ── Linting / formatting ──────────────────────────────────────────────────────
 black>=24.4.0
@@ -7,3 +7,6 @@ mypy>=1.10.0
 
 # ── Type stubs ────────────────────────────────────────────────────────────────
 types-passlib
+
+# ── Test utilities ────────────────────────────────────────────────────────────
+pytest-env>=1.1.0          # sets env vars for pytest (e.g. TOKENIZERS_PARALLELISM)

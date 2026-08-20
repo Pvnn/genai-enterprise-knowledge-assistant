@@ -29,6 +29,7 @@ docling>=2.0.0          # Docling: PDF → structured markdown
 # GOT-OCR2_0            # Fallback OCR model (install separately if needed)
 
 # ── Reranker (P3 – CPU-only) ──────────────────────────────────────────────────
+sentence-transformers>=2.7.0
 FlagEmbedding>=1.2.0         # bge-reranker-base cross-encoder
 sentencepiece>=0.2.0         # required by XLMRobertaTokenizer in bge-reranker-base
 transformers>=4.46.0 # Required for docling layout heron model (rt_detr_v2)
