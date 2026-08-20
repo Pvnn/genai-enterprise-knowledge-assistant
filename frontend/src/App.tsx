@@ -1,19 +1,20 @@
-/**
- * Root application component. Wires routing between Auth, Chat, and Upload.
- * Owner: P7
- */
-
 import React, { useState, useEffect } from "react";
 import ChatPage from "./chat/ChatPage";
 import Login from "./auth/Login";
-import { Register } from "./auth/Register";
+import Register from "./auth/Register";
 import UploadPage from "./upload/UploadPage";
+import AdminDashboard from "./admin/AdminDashboard";
+import { ShieldCheck } from "@phosphor-icons/react";
 
 export const App: React.FC = () => {
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
 
+  const navigateTo = (path: string) => {
+    window.history.pushState({}, "", path);
+    setCurrentPath(path);
+  };
+
   const handleLogout = () => {
-    // TODO: Delegate to P6 auth module (e.g. useAuth().logout()) once P6 exposes a logout function/hook.
     localStorage.removeItem("access_token");
     localStorage.removeItem("tenant_id");
     localStorage.removeItem("user_role");
@@ -34,28 +35,26 @@ export const App: React.FC = () => {
       window.removeEventListener("popstate", handlePopState);
       window.removeEventListener("auth_error", handleAuthError);
     };
-  }, []); // handleLogout only uses stable setCurrentPath
+  }, []);
 
-  // TODO: confirm with P6 whether auth/* already exposes these via a hook or context.
   const currentUserRole = localStorage.getItem("user_role") || "member";
 
   // Auth guard: /login and /register are public; all other routes require access_token
   if (currentPath !== "/login" && currentPath !== "/register" && !localStorage.getItem("access_token")) {
     window.history.replaceState({}, "", "/login");
-    return <Login />;
+    return (
+      <Login
+        onNavigateRegister={() => navigateTo("/register")}
+        onLoginSuccess={() => navigateTo("/chat")}
+      />
+    );
   }
 
   if (currentPath === "/login") {
     return (
       <Login
-        onNavigateRegister={() => {
-          window.history.pushState({}, "", "/register");
-          setCurrentPath("/register");
-        }}
-        onLoginSuccess={() => {
-          window.history.pushState({}, "", "/chat");
-          setCurrentPath("/chat");
-        }}
+        onNavigateRegister={() => navigateTo("/register")}
+        onLoginSuccess={() => navigateTo("/chat")}
       />
     );
   }
@@ -63,10 +62,41 @@ export const App: React.FC = () => {
   if (currentPath === "/register") {
     return (
       <Register
-        onNavigateLogin={() => {
-          window.history.pushState({}, "", "/login");
-          setCurrentPath("/login");
-        }}
+        onNavigateLogin={() => navigateTo("/login")}
+      />
+    );
+  }
+
+  // Admin Dashboard Route
+  if (currentPath === "/admin") {
+    if (currentUserRole !== "admin") {
+      return (
+        <div className="flex h-screen items-center justify-center bg-canvas text-ink px-4">
+          <div className="text-center p-8 bg-surface border border-hairline rounded-3xl shadow-sm max-w-sm w-full space-y-4">
+            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 mx-auto flex items-center justify-center">
+              <ShieldCheck size={24} weight="bold" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-ink">Administrative Access Restricted</h2>
+              <p className="text-xs text-ink-muted mt-1">
+                The Enterprise Admin Dashboard and document management controls are restricted to administrators.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => navigateTo("/chat")}
+              className="w-full py-2.5 px-4 text-xs font-semibold rounded-xl bg-primary-brand text-white hover:opacity-90 transition-all shadow-2xs"
+            >
+              Return to Chat Workspace
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return (
+      <AdminDashboard
+        onReturnToChat={() => navigateTo("/chat")}
+        onLogout={handleLogout}
       />
     );
   }
@@ -74,21 +104,23 @@ export const App: React.FC = () => {
   if (currentPath === "/upload") {
     if (currentUserRole !== "admin") {
       return (
-        <div className="flex h-screen items-center justify-center bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200">
-          <div className="text-center p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm">
-            <h2 className="text-base font-bold mb-2">Access Restricted</h2>
-            <p className="text-xs text-slate-500 mb-4">
-              Document upload is restricted to administrative personnel.
-            </p>
+        <div className="flex h-screen items-center justify-center bg-canvas text-ink px-4">
+          <div className="text-center p-8 bg-surface border border-hairline rounded-3xl shadow-sm max-w-sm w-full space-y-4">
+            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 mx-auto flex items-center justify-center">
+              <ShieldCheck size={24} weight="bold" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-ink">Access Restricted</h2>
+              <p className="text-xs text-ink-muted mt-1">
+                Document ingestion and upload is restricted to administrators.
+              </p>
+            </div>
             <button
               type="button"
-              onClick={() => {
-                window.history.pushState({}, "", "/chat");
-                setCurrentPath("/chat");
-              }}
-              className="px-4 py-2 text-xs font-medium rounded-xl bg-sky-600 hover:bg-sky-700 text-white transition-colors"
+              onClick={() => navigateTo("/chat")}
+              className="w-full py-2.5 px-4 text-xs font-semibold rounded-xl bg-primary-brand text-white hover:opacity-90 transition-all shadow-2xs"
             >
-              Return to Chat
+              Return to Chat Workspace
             </button>
           </div>
         </div>
@@ -96,10 +128,7 @@ export const App: React.FC = () => {
     }
     return (
       <UploadPage
-        onNavigateBack={() => {
-          window.history.pushState({}, "", "/chat");
-          setCurrentPath("/chat");
-        }}
+        onNavigateBack={() => navigateTo("/chat")}
       />
     );
   }
@@ -108,10 +137,7 @@ export const App: React.FC = () => {
     <ChatPage
       onLogout={handleLogout}
       userRole={currentUserRole}
-      onNavigateUpload={() => {
-        window.history.pushState({}, "", "/upload");
-        setCurrentPath("/upload");
-      }}
+      onNavigateUpload={() => navigateTo("/admin")}
     />
   );
 };

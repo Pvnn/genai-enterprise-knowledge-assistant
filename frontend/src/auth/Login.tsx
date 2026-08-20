@@ -19,9 +19,14 @@ interface FormState {
   password: string;
 }
 
+interface LoginProps {
+  onNavigateRegister?: () => void;
+  onLoginSuccess?: () => void;
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
-const Login: React.FC = () => {
+const Login: React.FC<LoginProps> = ({ onNavigateRegister, onLoginSuccess }) => {
   const [view, setView] = useState<"login" | "register">("login");
   const [form, setForm] = useState<FormState>({
     email: "",
@@ -53,6 +58,23 @@ const Login: React.FC = () => {
     e.preventDefault();
     if (!form.email.trim() || !form.password) {
       setError("All fields are required.");
+      return;
+    }
+
+    // Hardcoded test admin credentials for local testing
+    if (
+      (form.email.trim().toLowerCase() === "admin" ||
+        form.email.trim().toLowerCase() === "admin@institution.edu" ||
+        form.email.trim().toLowerCase() === "admin@test.com") &&
+      form.password === "admin"
+    ) {
+      localStorage.setItem("access_token", "mock-admin-token-xyz");
+      localStorage.setItem("tenant_id", "00000000-0000-0000-0000-000000000001");
+      localStorage.setItem("user_id", "00000000-0000-0000-0000-000000000002");
+      localStorage.setItem("user_role", "admin");
+
+      window.history.pushState({}, "", "/admin");
+      window.dispatchEvent(new PopStateEvent("popstate"));
       return;
     }
 

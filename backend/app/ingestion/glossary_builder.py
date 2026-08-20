@@ -70,7 +70,7 @@ async def build_glossary(tenant_id: str, chunks: list[dict]) -> list[dict]:
     
     # Regex patterns
     # Pattern 1: Full Expansion (ACRONYM)
-    pat1 = re.compile(r'\b((?:[A-Z][a-z0-9\-]+\s+){1,6}[A-Z][a-z0-9\-]+)\s*\(([A-Z0-9]{2,8})\)')
+    pat1 = re.compile(r'\b((?:(?:[A-Z][a-z0-9\-]+|[a-z]{1,4})\s+){1,6}[A-Z][a-z0-9\-]+)\s*\(([A-Z0-9]{2,8})\)')
     # Pattern 2: ACRONYM (Full Expansion)
     pat2 = re.compile(r'\b([A-Z0-9]{2,8})\s*\(([A-Z][A-Za-z0-9\-,\s]{5,70})\)')
 

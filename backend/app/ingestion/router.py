@@ -27,7 +27,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.deps import CurrentUserDep, DbDep
 from app.ingestion.run_ingestion import ingest_document
-from app.schemas import DocumentStatusResponse, UploadResponse, DocumentItem
+from app.schemas import AdminDocumentItem, DocumentItem, DocumentStatusResponse, UploadResponse
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +35,56 @@ router = APIRouter()
 
 documents_router = APIRouter(prefix="/documents", tags=["ingestion"])
 glossary_router = APIRouter(prefix="/glossary", tags=["glossary"])
+
+
+@documents_router.get("", response_model=list[AdminDocumentItem])
+async def list_documents(
+    db: DbDep,
+    current_user: CurrentUserDep,
+) -> list[AdminDocumentItem]:
+    """Retrieve all indexed documents belonging to the authenticated user's tenant for the Document Library."""
+    from sqlalchemy import func, select
+    from app.models import Chunk, Document
+
+    tenant_id = current_user.tenant_id
+
+    # Subquery for chunk counts per document
+    chunk_counts_subq = (
+        select(Chunk.document_id, func.count(Chunk.id).label("chunk_count"))
+        .where(Chunk.tenant_id == tenant_id)
+        .group_by(Chunk.document_id)
+        .subquery()
+    )
+
+    query = (
+        select(Document, func.coalesce(chunk_counts_subq.c.chunk_count, 0).label("chunk_count"))
+        .outerjoin(chunk_counts_subq, Document.id == chunk_counts_subq.c.document_id)
+        .where(Document.tenant_id == tenant_id)
+        .order_by(Document.title.asc())
+    )
+
+    results = await db.execute(query)
+
+    items: list[AdminDocumentItem] = []
+    for doc, chunk_count in results.all():
+        items.append(
+            AdminDocumentItem(
+                id=doc.id,
+                tenant_id=doc.tenant_id,
+                title=doc.title,
+                department=doc.department,
+                doc_type=doc.doc_type,
+                effective_date=doc.effective_date,
+                version_status=doc.version_status or "current",
+                source_path=doc.source_path,
+                summary=doc.summary,
+                section_tree=doc.section_tree,
+                ingestion_status=doc.ingestion_status,
+                chunk_count=chunk_count,
+            )
+        )
+    return items
+
 
 @documents_router.post("/upload", response_model=UploadResponse, status_code=status.HTTP_202_ACCEPTED)
 async def upload_document(
@@ -44,7 +94,7 @@ async def upload_document(
     file: UploadFile = File(..., description="PDF file to ingest"),
     department: str = Form(..., description="Department tag, e.g. HR"),
     doc_type: str = Form(..., description="Document type tag, e.g. policy"),
-    effective_date: str = Form(..., description="Effective date, e.g. YYYY-MM-DD"),
+    effective_date: str | None = Form(None, description="Effective date, e.g. YYYY-MM-DD"),
 ) -> UploadResponse:
     """Upload a PDF and trigger async ingestion (admin only).
 

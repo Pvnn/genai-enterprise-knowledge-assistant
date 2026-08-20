@@ -54,7 +54,7 @@ export const CitationCard: React.FC<CitationCardProps> = ({ citations, onCitatio
           return (
             <div
               key={cite.chunk_id || index}
-              onClick={() => onCitationClick && onCitationClick(cite.document_id, cite.text)}
+              onClick={() => onCitationClick && onCitationClick(cite.document_id, cite.text || "")}
               className="group relative flex flex-col justify-between p-2.5 rounded-xl border border-hairline bg-surface hover:border-accent-gold/50 transition-colors shadow-2xs cursor-pointer"
             >
               <div className="flex items-start justify-between gap-2">

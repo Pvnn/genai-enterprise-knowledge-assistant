@@ -12,8 +12,8 @@ without any changes to this file.
 
 import logging
 
+import bcrypt
 from fastapi import APIRouter, HTTPException, status
-from passlib.context import CryptContext
 from sqlalchemy import select
 
 from app.auth.models import Enterprise, User, UserRole
@@ -35,7 +35,19 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-_pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+def _hash_password(password: str) -> str:
+    salt = bcrypt.gensalt()
+    return bcrypt.hashpw(password.encode("utf-8")[:72], salt).decode("utf-8")
+
+
+def _verify_password(plain_password: str, hashed_password: str) -> bool:
+    try:
+        return bcrypt.checkpw(
+            plain_password.encode("utf-8")[:72],
+            hashed_password.encode("utf-8"),
+        )
+    except Exception:
+        return False
 
 
 @router.post("/login", response_model=LoginResponse)
@@ -70,7 +82,7 @@ async def login(request: LoginRequest, session: DbDep) -> LoginResponse:
     # Step 3 — verify password (constant-time bcrypt compare)
     # Check user exists AND password matches in one conditional to avoid
     # leaking whether the email exists via timing differences.
-    if user is None or not _pwd_context.verify(request.password, user.password_hash):
+    if user is None or not _verify_password(request.password, user.password_hash):
         logger.warning(
             "Failed login attempt for email=%r ", request.email
         )
@@ -146,7 +158,7 @@ async def register_enterprise(request: RegisterEnterpriseRequest, session: DbDep
     await session.flush()  # To get enterprise.id
 
     # 4. Create Admin User
-    hashed_password = _pwd_context.hash(request.admin_password)
+    hashed_password = _hash_password(request.admin_password)
     admin_user = User(
         tenant_id=enterprise.id,
         email=request.admin_email,
@@ -206,7 +218,7 @@ async def register_user(request: RegisterUserRequest, session: DbDep) -> LoginRe
         )
 
     # 3. Create Member User
-    hashed_password = _pwd_context.hash(request.password)
+    hashed_password = _hash_password(request.password)
     member_user = User(
         tenant_id=tenant_id,
         email=request.email,

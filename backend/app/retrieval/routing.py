@@ -102,16 +102,14 @@ async def _llm_reason_sections(
     )
 
     try:
-        # Try OpenAI if configured with a real key
-        if settings.openai_api_key and not settings.openai_api_key.startswith("sk-...") and not settings.openai_api_key.endswith("..."):
-            from openai import AsyncOpenAI
+        # Try configured LLM (OpenAI or Groq)
+        if settings.openai_api_key:
+            from app.llm import get_llm_client, get_llm_model
 
-            client_kwargs: dict = {"api_key": settings.openai_api_key, "timeout": 5.0}
-            if settings.openai_api_key and settings.openai_api_key.startswith("gsk_"):
-                client_kwargs["base_url"] = "https://api.groq.com/openai/v1"
-            client = AsyncOpenAI(**client_kwargs)
+            client = get_llm_client()
+            model = get_llm_model()
             response = await client.chat.completions.create(
-                model=settings.llm_model or "gpt-4o-mini",
+                model=model,
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0.0,
             )

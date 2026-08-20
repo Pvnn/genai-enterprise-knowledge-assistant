@@ -57,10 +57,26 @@ class Settings(BaseSettings):
     @field_validator("database_url", mode="after")
     @classmethod
     def sanitize_database_url(cls, v: str) -> str:
-        """asyncpg requires ssl instead of sslmode."""
-        if "sslmode=" in v:
-            v = v.replace("sslmode=", "ssl=")
-        return v
+        """asyncpg requires ssl instead of sslmode, and postgresql+asyncpg:// scheme without libpq-only parameters."""
+        from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+
+        if v.startswith("postgresql://"):
+            v = "postgresql+asyncpg://" + v[len("postgresql://"):]
+        elif v.startswith("postgres://"):
+            v = "postgresql+asyncpg://" + v[len("postgres://"):]
+
+        parsed = urlsplit(v)
+        if not parsed.query:
+            return v
+
+        query_params = dict(parse_qsl(parsed.query))
+        if "sslmode" in query_params:
+            query_params["ssl"] = query_params.pop("sslmode")
+        # asyncpg does not accept channel_binding
+        query_params.pop("channel_binding", None)
+
+        clean_query = urlencode(query_params)
+        return urlunsplit((parsed.scheme, parsed.netloc, parsed.path, clean_query, parsed.fragment))
 
     # ── Auth / JWT ────────────────────────────────────────────────────────────
     jwt_secret_key: str = Field(..., description="HMAC secret for JWT signing")

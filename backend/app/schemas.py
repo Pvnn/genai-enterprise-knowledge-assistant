@@ -75,6 +75,9 @@ class ScopedSection(BaseModel):
     document_id: UUID
     section_path: str
 
+    def __getitem__(self, item: str):
+        return getattr(self, item)
+
 
 class RetrieveRequest(BaseModel):
     query: str
@@ -227,6 +230,8 @@ class DocumentStatusResponse(BaseModel):
     detail: str | None = None  # human-readable note, e.g. failure reason
 
 
+# ── Document Library & Items ──────────────────────────────────────────────────
+
 class DocumentItem(BaseModel):
     id: UUID
     tenant_id: UUID
@@ -287,3 +292,95 @@ class ConversationDetail(BaseModel):
     created_at: datetime
     updated_at: datetime
     messages: list[MessageResponse] = Field(default_factory=list)
+
+
+# ── Admin Dashboard & Management (Section 5 extension) ────────────────────────
+
+class QueryActivityItem(BaseModel):
+    query_id: UUID
+    raw_query: str
+    created_at: datetime | str
+    confidence_score: float | None = None
+    answered_or_refused: bool | None = None
+    feedback_thumbs_up_down: bool | None = None
+    feedback_comment: str | None = None
+
+
+class AdminAnalyticsOverview(BaseModel):
+    total_queries: int
+    answered_queries: int
+    refused_queries: int
+    avg_confidence: float
+    positive_feedback_count: int
+    negative_feedback_count: int
+    csat_percent: float
+    total_documents: int
+    total_chunks: int
+    total_members: int
+    recent_activity: list[QueryActivityItem] = Field(default_factory=list)
+    department_distribution: dict[str, int] = Field(default_factory=dict)
+
+
+class AdminDocumentItem(BaseModel):
+    id: UUID
+    tenant_id: UUID
+    title: str
+    department: str | None = None
+    doc_type: str | None = None
+    effective_date: str | None = None
+    version_status: str | None = None
+    source_path: str | None = None
+    summary: str | None = None
+    section_tree: dict | list | None = None
+    ingestion_status: str
+    chunk_count: int = 0
+
+
+class AdminChunkItem(BaseModel):
+    id: UUID
+    document_id: UUID
+    section_path: str
+    text: str
+    department: str | None = None
+    doc_type: str | None = None
+    version_status: str | None = None
+
+
+class AdminDocumentDetail(AdminDocumentItem):
+    chunks: list[AdminChunkItem] = Field(default_factory=list)
+
+
+class AdminDocumentUpdate(BaseModel):
+    title: str | None = None
+    department: str | None = None
+    doc_type: str | None = None
+    version_status: str | None = None
+    effective_date: str | None = None
+
+
+class AdminUserItem(BaseModel):
+    id: UUID
+    tenant_id: UUID
+    email: str
+    role: str
+
+
+class AdminUserCreate(BaseModel):
+    email: str
+    password: str
+    role: str = "member"
+
+
+class AdminUserRoleUpdate(BaseModel):
+    role: str
+
+
+class GlossaryItem(BaseModel):
+    id: UUID | None = None
+    term: str
+    expansion: str
+
+
+class GlossaryCreate(BaseModel):
+    term: str
+    expansion: str

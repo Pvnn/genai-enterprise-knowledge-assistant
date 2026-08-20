@@ -32,23 +32,23 @@
 
 .dark {
   /* Warm Charcoal Luxury Dark Palette (Claude-inspired Dark Twin) */
-  --bg: #181715;
-  --surface: #22211E;
-  --ink: #EDEAE4;
-  --ink-muted: #9C998F;
-  --primary: #7A9AD6;
-  --primary-hover: #93AFE4;
-  --primary-subtle: rgba(122, 154, 214, 0.15);
-  --accent: #DDA853;
-  --accent-subtle: rgba(221, 168, 83, 0.14);
-  --border: #2E2C27;
-  --border-strong: #3E3C35;
+  --bg: #141311;
+  --surface: #1E1D1A;
+  --ink: #F3F1EC;
+  --ink-muted: #A8A59C;
+  --primary: #85A5E5;
+  --primary-hover: #9BB7EE;
+  --primary-subtle: rgba(133, 165, 229, 0.16);
+  --accent: #E5B45E;
+  --accent-subtle: rgba(229, 180, 94, 0.16);
+  --border: #2D2B26;
+  --border-strong: #403D36;
 
   /* Aliases for backwards-compatibility */
   --color-bg-canvas: var(--bg);
   --color-bg-surface: var(--surface);
   --color-bg-surface-muted: var(--bg);
-  --color-bg-surface-elevated: #2C2B27;
+  --color-bg-surface-elevated: #282723;
   --color-text-ink: var(--ink);
   --color-text-ink-muted: var(--ink-muted);
   --color-primary-brand: var(--primary);
