@@ -25,6 +25,8 @@ export const App: React.FC = () => {
     localStorage.removeItem("access_token");
     localStorage.removeItem("tenant_id");
     localStorage.removeItem("user_role");
+    localStorage.removeItem("user_id");
+    localStorage.removeItem("genai_assistant_conversations");
     window.history.pushState({}, "", "/login");
     setCurrentPath("/login");
   };
