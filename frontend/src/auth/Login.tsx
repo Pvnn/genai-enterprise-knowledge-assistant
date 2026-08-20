@@ -19,9 +19,14 @@ interface FormState {
   password: string;
 }
 
+interface LoginProps {
+  onNavigateRegister?: () => void;
+  onLoginSuccess?: () => void;
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
-const Login: React.FC = () => {
+const Login: React.FC<LoginProps> = ({ onNavigateRegister, onLoginSuccess }) => {
   const [view, setView] = useState<"login" | "register">("login");
   const [form, setForm] = useState<FormState>({
     email: "",

@@ -4,10 +4,12 @@ import { LockSimple, EnvelopeSimple, BuildingOffice, WarningCircle, ArrowRight }
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
 
 interface RegisterProps {
-  onBackToLogin: () => void;
+  onBackToLogin?: () => void;
+  onNavigateLogin?: () => void;
 }
 
-export const Register: React.FC<RegisterProps> = ({ onBackToLogin }) => {
+export const Register: React.FC<RegisterProps> = ({ onBackToLogin, onNavigateLogin }) => {
+  const handleBackToLogin = onBackToLogin || onNavigateLogin || (() => {});
   const [activeTab, setActiveTab] = useState<"user" | "enterprise">("user");
   
   // Form state
@@ -67,7 +69,11 @@ export const Register: React.FC<RegisterProps> = ({ onBackToLogin }) => {
       window.dispatchEvent(new PopStateEvent("popstate"));
       
     } catch (err: unknown) {
-      setError(err.message || "Network error occurred.");
+      if (err instanceof Error) {
+        setError(err.message || "Network error occurred.");
+      } else {
+        setError("Network error occurred.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -222,7 +228,7 @@ export const Register: React.FC<RegisterProps> = ({ onBackToLogin }) => {
         <p className="mt-6 text-center text-xs text-ink-muted">
           Already have an account?{" "}
           <button
-            onClick={onBackToLogin}
+            onClick={handleBackToLogin}
             className="font-medium text-[var(--color-primary-brand)] hover:underline focus:outline-none"
           >
             Sign in

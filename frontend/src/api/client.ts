@@ -441,7 +441,14 @@ export async function getDocumentStatus(
   return response.json();
 }
 
-export async function fetchConversations() {
+export interface ConversationSummary {
+  id: string;
+  title: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export async function fetchConversations(): Promise<ConversationSummary[]> {
   const response = await fetch(`${API_BASE}/conversations`, {
     headers: { ...getAuthHeader() },
   });

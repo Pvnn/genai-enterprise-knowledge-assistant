@@ -28,7 +28,7 @@ import {
   Scales,
 } from "@phosphor-icons/react";
 import { ChatMessage, Conversation } from "./types";
-import { streamChat, fetchConversations, fetchConversationDetail, deleteConversationApi } from "../api/client";
+import { streamChat, fetchConversations, fetchConversationDetail, deleteConversationApi, ConversationSummary } from "../api/client";
 import ChatSidebar from "./ChatSidebar";
 import DocumentSidePanel from "./DocumentSidePanel";
 import ChatMessageItem from "./ChatMessageItem";
@@ -82,7 +82,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({
       if (raw) {
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed.map((c: unknown) => ({
+          return (parsed as Conversation[]).map((c: Conversation) => ({
             ...c,
             title: c.title === "New Policy Inquiry" ? "New Chat" : c.title,
           }));
@@ -151,7 +151,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({
         if (list.length > 0) {
           setConversations(prev => {
             const newConvs = [...prev];
-            list.forEach((remoteC: unknown) => {
+            list.forEach((remoteC: ConversationSummary) => {
               const existingIndex = newConvs.findIndex(c => c.id === remoteC.id);
               if (existingIndex >= 0) {
                 newConvs[existingIndex] = {
