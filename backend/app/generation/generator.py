@@ -70,7 +70,7 @@ from app.schemas import (
 logger = logging.getLogger(__name__)
 
 settings = get_settings()
-_client = AsyncOpenAI(api_key=settings.openai_api_key)
+_client = AsyncOpenAI(api_key=settings.openai_api_key, base_url=settings.openai_base_url)
 
 # --- Optional Priority 2 dependencies -- each falls back to the Priority 1
 # behavior described in the module docstring if missing or if it raises.
@@ -210,7 +210,7 @@ async def _retrieve_for_subquery(
     scoped_sections = None
     if _route_query is not None:
         try:
-            scoped_sections = await _route_query(session, sub_query, tenant_id) or None
+            scoped_sections = await _route_query(sub_query, tenant_id, session) or None
         except Exception:
             logger.exception("routing.route_query raised — falling back to scoped_sections=None")
 
@@ -254,7 +254,7 @@ async def _rerank_or_take_top_n(query: str, chunks: list[ChunkResult]) -> list[C
     """Step 4: reranks if reranker.py is available, else takes the first top_n as-is."""
     if _rerank is not None and chunks:
         try:
-            return await _rerank(query, chunks, top_n=settings.reranker_top_n)
+            return _rerank(query, chunks, top_n=settings.reranker_top_n)
         except Exception:
             logger.exception("reranker.rerank raised — falling back to retrieval order")
     return chunks[: settings.reranker_top_n]

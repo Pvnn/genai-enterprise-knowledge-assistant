@@ -8,6 +8,7 @@ Fallback: if this module is unavailable, conflict is reported as False.
 """
 
 import logging
+import os
 from pydantic import BaseModel, Field
 import openai
 from openai import AsyncOpenAI
@@ -66,7 +67,13 @@ async def check_conflict(top_chunks: list[ChunkResult]) -> ConflictResult:
 
     # Retry with binary exponential backoff on transient failures.
     MAX_RETRIES = 2
-    client = AsyncOpenAI(api_key=settings.openai_api_key)
+    # Construct client — honour an optional OPENAI_BASE_URL override so that
+    # Groq / local-compatible endpoints work during local development without
+    # code changes (just set OPENAI_BASE_URL in .env).
+    client = AsyncOpenAI(
+        api_key=settings.openai_api_key,
+        base_url=os.getenv("OPENAI_BASE_URL"),
+    )
     result = None
     for attempt in range(MAX_RETRIES + 1):
         try:

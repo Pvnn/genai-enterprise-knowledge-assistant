@@ -20,6 +20,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
+from app.schemas import ScopedSection
 
 logger = logging.getLogger(__name__)
 
@@ -137,7 +138,7 @@ async def route_query(
     rewritten_query: str,
     tenant_id: UUID,
     session: AsyncSession,
-) -> list[dict]:
+) -> list[ScopedSection]:
     """Select the governing document(s) and section(s) for a query.
 
     Args:
@@ -146,9 +147,19 @@ async def route_query(
         session: Async database session.
 
     Returns:
-        list[dict]: 1-3 dicts, each with keys:
-            - document_id (UUID)
-            - section_path (str)
+        list[ScopedSection]: 1-3 ScopedSection objects (document_id, section_path).
+
+        Bug fixed here: this function used to return plain dicts with the same
+        keys, but dense_retrieval.py's retrieve_chunks()/_retrieve_pgvector()/
+        _retrieve_fallback() all type-hint scoped_sections as
+        list[ScopedSection] and access fields via dot notation
+        (s.document_id, not s["document_id"]). That mismatch only ever
+        surfaced once this function's LLM call actually succeeded and
+        returned a non-empty list — every earlier test hit an auth error
+        here and fell through to scoped_sections=[]/None, which never
+        exercised the mismatched attribute access. Converting to real
+        ScopedSection objects here, at the boundary, matches the contract
+        every caller already expects.
     """
     if not rewritten_query.strip():
         return []
@@ -212,7 +223,10 @@ async def route_query(
 
         # Stage 2b: Reason over candidate section trees
         selected_sections = await _llm_reason_sections(rewritten_query, top_candidates)
-        return selected_sections[:3]
+        return [
+            ScopedSection(document_id=s["document_id"], section_path=s["section_path"])
+            for s in selected_sections[:3]
+        ]
 
     except Exception as exc:
         logger.exception("Error occurred during Stage 2 coarse routing: %s", exc)

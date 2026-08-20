@@ -43,13 +43,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
 from app.generation.prompts import QUERY_REWRITER_SYSTEM, query_rewriter_user
-from app.models import Glossary
+from app.models import Document, Glossary
 from app.schemas import MetadataFilters, RewriteResult
 
 logger = logging.getLogger(__name__)
 
 settings = get_settings()
-_client = AsyncOpenAI(api_key=settings.openai_api_key)
+_client = AsyncOpenAI(api_key=settings.openai_api_key, base_url=settings.openai_base_url)
 
 
 async def rewrite(
@@ -69,9 +69,13 @@ async def rewrite(
                        sub-queries, and optional clarifying question.
     """
     glossary = await _load_glossary(session, tenant_id)
+    known_metadata_values = await _load_known_metadata_values(session, tenant_id)
     messages = [
         {"role": "system", "content": QUERY_REWRITER_SYSTEM},
-        {"role": "user", "content": query_rewriter_user(raw_query, glossary)},
+        {
+            "role": "user",
+            "content": query_rewriter_user(raw_query, glossary, known_metadata_values),
+        },
     ]
 
     response = await _client.chat.completions.create(
@@ -86,9 +90,15 @@ async def rewrite(
         return RewriteResult(
             expanded_query=data["expanded_query"],
             metadata_filters=MetadataFilters(
-                department=filters_data.get("department"),
-                doc_type=filters_data.get("doc_type"),
-                version_status=filters_data.get("version_status"),
+                department=_match_known_value(
+                    filters_data.get("department"), known_metadata_values.get("department")
+                ),
+                doc_type=_match_known_value(
+                    filters_data.get("doc_type"), known_metadata_values.get("doc_type")
+                ),
+                version_status=_match_known_value(
+                    filters_data.get("version_status"), known_metadata_values.get("version_status")
+                ),
             ),
             bm25_variant=data["bm25_variant"],
             dense_variant=data["dense_variant"],
@@ -115,6 +125,66 @@ async def _load_glossary(session: AsyncSession, tenant_id: UUID) -> dict[str, st
     result = await session.execute(select(Glossary).where(Glossary.tenant_id == tenant_id))
     rows = result.scalars().all()
     return {row.term: row.expansion for row in rows}
+
+
+async def _load_known_metadata_values(
+    session: AsyncSession, tenant_id: UUID
+) -> dict[str, list[str]]:
+    """Loads the tenant's REAL, currently-stored department/doc_type/version_status values.
+
+    Real bug fixed by this: metadata_filters extraction previously let the LLM
+    invent any plausible-sounding value (e.g. doc_type="Leave Policy"), which
+    then got applied as an exact-match SQL filter in dense_retrieval.py. If the
+    real stored value differed at all (e.g. "Policy", or different casing like
+    "current" vs "Current"), the filter silently excluded every chunk — even
+    an otherwise perfect match — with no error, just an empty result. Loading
+    the real values first lets the prompt show the model its actual options.
+
+    Args:
+        session: Async database session.
+        tenant_id: Tenant to scope the lookup to.
+
+    Returns:
+        dict with keys "department", "doc_type", "version_status", each a
+        list of the distinct non-null values currently in use for this tenant.
+    """
+    values: dict[str, list[str]] = {}
+    for field_name, column in (
+        ("department", Document.department),
+        ("doc_type", Document.doc_type),
+        ("version_status", Document.version_status),
+    ):
+        result = await session.execute(
+            select(column).where(Document.tenant_id == tenant_id, column.is_not(None)).distinct()
+        )
+        values[field_name] = [row[0] for row in result.all() if row[0]]
+    return values
+
+
+def _match_known_value(candidate: str | None, known_values: list[str] | None) -> str | None:
+    """Validates an LLM-guessed filter value against the tenant's real known values.
+
+    Matches case-insensitively (guards against the "current" vs "Current" class
+    of mismatch) but always returns the DATABASE's exact stored casing, since
+    that's what dense_retrieval.py's exact-match SQL filter needs. If the
+    candidate doesn't match any known value, returns None rather than passing
+    through an unmatchable value — better to search with no filter on this
+    field than to silently filter out every chunk.
+
+    Args:
+        candidate: The value the LLM extracted (or None).
+        known_values: The tenant's real distinct values for this field.
+
+    Returns:
+        The matching real value (in its real stored casing), or None.
+    """
+    if not candidate or not known_values:
+        return None
+    candidate_lower = candidate.strip().lower()
+    for real_value in known_values:
+        if real_value.strip().lower() == candidate_lower:
+            return real_value
+    return None
 
 
 def _passthrough(raw_query: str) -> RewriteResult:

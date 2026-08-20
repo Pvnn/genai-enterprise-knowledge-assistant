@@ -10,6 +10,7 @@ Also calls conflict_detector.check_conflict() if that module is available.
 
 from enum import Enum
 import logging
+import os
 from pydantic import BaseModel, Field
 import openai
 from openai import AsyncOpenAI
@@ -33,11 +34,12 @@ class ConfidenceLLMResponse(BaseModel):
     confidence: ConfidenceLevel = Field(
         description="How well the retrieved passages support the drafted answer."
     )
-    refusal_reason: str | None = Field(
-        default=None,
+    refusal_reason: str = Field(
         description=(
-            "If confidence is low, provide a user-facing refusal reason explaining why the passages "
-            "do not answer the question and suggesting where to look. If confidence is high or medium, leave null."
+            "A user-facing explanation of why the retrieved passages do or do not support the answer. "
+            "If confidence is 'low', explain specifically why the passages are insufficient for this query "
+            "and suggest where the user might look for the answer. "
+            "If confidence is 'high' or 'medium', return an empty string."
         ),
     )
 
@@ -93,7 +95,13 @@ async def decide_refusal(
     # Priority 1: LLM self-rate confidence
     # Retry with binary exponential backoff on transient failures.
     MAX_RETRIES = 2
-    client = AsyncOpenAI(api_key=settings.openai_api_key)
+    # Construct client — honour an optional OPENAI_BASE_URL override so that
+    # Groq / local-compatible endpoints work during local development without
+    # code changes (just set OPENAI_BASE_URL in .env).
+    client = AsyncOpenAI(
+        api_key=settings.openai_api_key,
+        base_url=os.getenv("OPENAI_BASE_URL"),
+    )
     chunk_texts = "\n\n".join([f"Chunk: {c.text}" for c in top_chunks[:5]])
     
     prompt = (
@@ -131,7 +139,8 @@ async def decide_refusal(
                 confidence_val = 0.5
             else:
                 confidence_val = 0.0
-                llm_refusal_reason = result.refusal_reason
+                # Model always provides refusal_reason (required str); use it directly.
+                llm_refusal_reason = result.refusal_reason or None
             break
         except TRANSIENT_ERRORS as e:
             wait_seconds = 2 ** attempt  # 1s, 2s
@@ -157,9 +166,7 @@ async def decide_refusal(
 
 
     refused = confidence_val == 0.0
-    reason = None
-    if refused:
-        reason = llm_refusal_reason or default_refusal_reason
+    reason = llm_refusal_reason if refused else None
     
     return RefusalDecision(
         refused=refused,
