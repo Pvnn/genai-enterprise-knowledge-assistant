@@ -1,7 +1,7 @@
 # GenAI Enterprise Knowledge Assistant
 
 > **Internal Q&A system over institutional policies, syllabi, circulars, and process documents.**
-> Finds the right *passage*, not just the right document — with citations, refusals, and conflict detection.
+> Finds the right _passage_, not just the right document — with citations, refusals, and conflict detection.
 
 ---
 
@@ -40,16 +40,17 @@ The system answers questions over hundreds of institutional PDFs by:
 ### Why this architecture?
 
 Naive chunk-and-embed RAG underperforms on this corpus because:
+
 1. Policy documents are heavily structured (numbered sections, nested clauses, cross-references) — heading-aware chunking + coarse routing restores that structure.
 2. Dense embeddings are structurally bad at matching exact identifiers (GR numbers, form codes) — hybrid retrieval (dense + BM25, fused with Reciprocal Rank Fusion) covers the gap.
 
 ### Non-functional requirements (every file must respect these)
 
-| Requirement | Rule |
-|---|---|
-| **Traceability** | Every answer traces to a specific `(document, section, chunk)`. IDs are carried through unbroken. |
-| **Tenant isolation** | Every table query is scoped by `tenant_id`. No exceptions. |
-| **Bounded cost** | Expensive ops (LLM routing, cross-encoder reranking) run only on already-narrowed candidate sets. |
+| Requirement              | Rule                                                                                                        |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------- |
+| **Traceability**         | Every answer traces to a specific `(document, section, chunk)`. IDs are carried through unbroken.           |
+| **Tenant isolation**     | Every table query is scoped by `tenant_id`. No exceptions.                                                  |
+| **Bounded cost**         | Expensive ops (LLM routing, cross-encoder reranking) run only on already-narrowed candidate sets.           |
 | **Graceful degradation** | Every Priority 2 stage has a Priority 1 fallback. A missing module or exception must NOT crash the request. |
 
 ---
@@ -94,10 +95,10 @@ Stage 5 ─ Grounded Generation [P4 + P5]
 
 ### Priority Definitions
 
-| Priority | Meaning |
-|---|---|
-| **Priority 1** | Must work end-to-end; the demo spine. Build first, always. |
-| **Priority 2** | Differentiators. Built once Priority 1 is solid. Every P2 item has a P1 fallback. |
+| Priority       | Meaning                                                                                                 |
+| -------------- | ------------------------------------------------------------------------------------------------------- |
+| **Priority 1** | Must work end-to-end; the demo spine. Build first, always.                                              |
+| **Priority 2** | Differentiators. Built once Priority 1 is solid. Every P2 item has a P1 fallback.                       |
 | **Priority 3** | Out of scope (semantic caching, analytics dashboard, incremental re-indexing automation). Do not build. |
 
 ---
@@ -127,7 +128,7 @@ Stage 5 ─ Grounded Generation [P4 + P5]
 │       │   ├── summarizer.py            [P2, Priority 2]
 │       │   ├── section_tree.py          [P1, Priority 2]
 │       │   └── glossary_builder.py      [P1, Priority 2]
-│       ├── retrieval/                   
+│       ├── retrieval/
 │       │   ├── embeddings.py            [P3]
 │       │   ├── indexer.py               [P3]
 │       │   ├── dense_retrieval.py       [P2]
@@ -174,16 +175,16 @@ Stage 5 ─ Grounded Generation [P4 + P5]
 
 ## 4. Ownership Map (P1–P8)
 
-| Tag | Files owned | Priority 1 responsibility | Priority 2 responsibility |
-|-----|-------------|--------------------------|--------------------------|
-| **P1** | `ingestion/*` | OCR-parse PDFs (Marker), heading-aware chunking, metadata tagging, load to DB | Per-doc summary, section-tree extraction, acronym/entity glossary |
-| **P2** | `app/main.py`, `config.py`, `database.py`, `schemas.py`, `deps.py`, `db/migrations/`, `retrieval/dense_retrieval.py`, `hybrid_retrieval.py`, `routing.py`, `retrieval/router.py` | Schema + migrations, dense retrieval with metadata filter, `/retrieve` endpoint, integrate whole backend | BM25 + RRF hybrid fusion, coarse routing (doc candidate selection + section-tree reasoning) |
-| **P3** | `retrieval/embeddings.py`, `indexer.py`, `reranker.py` | Embedding wrapper, batch indexing job | Cross-encoder reranking (bge-reranker-base) |
-| **P4** | `generation/prompts.py`, `generator.py`, `query_rewriter.py`, `generation/router.py` | Grounded cited answer generation; `/chat` SSE endpoint; orchestrates full pipeline (Section 6 call order) | Query rewriting: acronym expansion, metadata predicates, decomposition, clarify-then-fallback |
-| **P5** | `generation/grounding.py`, `conflict_detector.py` | Refusal decision (confidence thresholds per Section 9) | Version-conflict detection and dual-surfacing |
-| **P6** | `auth/*`, `frontend/src/auth/*` | Login, JWT, tenant scoping, `get_current_user()` | Feedback capture endpoint (`POST /feedback`) |
-| **P7** | `frontend/src/*` (excluding `auth/`) | Chat UI: ask → streamed cited answer / clarifying question / refusal / conflict display | Feedback buttons, UI polish |
-| **P8** | `eval/*`, `eval/gold_qa.json` | Gold Q&A set (30–50 questions), eval harness: retrieval hit-rate@k, answer faithfulness, hallucination rate | Failure-by-stage attribution report (routing / retrieval / generation) |
+| Tag    | Files owned                                                                                                                                                                      | Priority 1 responsibility                                                                                   | Priority 2 responsibility                                                                     |
+| ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| **P1** | `ingestion/*`                                                                                                                                                                    | OCR-parse PDFs (Marker), heading-aware chunking, metadata tagging, load to DB                               | Per-doc summary, section-tree extraction, acronym/entity glossary                             |
+| **P2** | `app/main.py`, `config.py`, `database.py`, `schemas.py`, `deps.py`, `db/migrations/`, `retrieval/dense_retrieval.py`, `hybrid_retrieval.py`, `routing.py`, `retrieval/router.py` | Schema + migrations, dense retrieval with metadata filter, `/retrieve` endpoint, integrate whole backend    | BM25 + RRF hybrid fusion, coarse routing (doc candidate selection + section-tree reasoning)   |
+| **P3** | `retrieval/embeddings.py`, `indexer.py`, `reranker.py`                                                                                                                           | Embedding wrapper, batch indexing job                                                                       | Cross-encoder reranking (bge-reranker-base)                                                   |
+| **P4** | `generation/prompts.py`, `generator.py`, `query_rewriter.py`, `generation/router.py`                                                                                             | Grounded cited answer generation; `/chat` SSE endpoint; orchestrates full pipeline (Section 6 call order)   | Query rewriting: acronym expansion, metadata predicates, decomposition, clarify-then-fallback |
+| **P5** | `generation/grounding.py`, `conflict_detector.py`                                                                                                                                | Refusal decision (confidence thresholds per Section 9)                                                      | Version-conflict detection and dual-surfacing                                                 |
+| **P6** | `auth/*`, `frontend/src/auth/*`                                                                                                                                                  | Login, JWT, tenant scoping, `get_current_user()`                                                            | Feedback capture endpoint (`POST /feedback`)                                                  |
+| **P7** | `frontend/src/*` (excluding `auth/`)                                                                                                                                             | Chat UI: ask → streamed cited answer / clarifying question / refusal / conflict display                     | Feedback buttons, UI polish                                                                   |
+| **P8** | `eval/*`, `eval/gold_qa.json`                                                                                                                                                    | Gold Q&A set (30–50 questions), eval harness: retrieval hit-rate@k, answer faithfulness, hallucination rate | Failure-by-stage attribution report (routing / retrieval / generation)                        |
 
 > **Rule**: Need something from a file you don't own? Call the function or hit the endpoint using the exact signature in Section 6 of the spec. **Never edit someone else's file.**
 
@@ -203,9 +204,9 @@ Stage 5 ─ Grounded Generation [P4 + P5]
 If you prefer to run PostgreSQL locally instead of using Neon, you can quickly spin up a container with the \pgvector\ extension pre-installed using the provided \docker-compose.yml\.
 
 1. **Start the database container:**
-   \\ash
+   \\bash
    docker compose up -d
-   \   This will start a local database exposed on port ţ3\ (to avoid conflicts with native PostgreSQL installations).
+   \ This will start a local database exposed on port ţ3\ (to avoid conflicts with native PostgreSQL installations).
 
 2. **Update your \.env\ file:**
    Change your \DATABASE_URL\ to point to the local instance:
@@ -213,8 +214,8 @@ If you prefer to run PostgreSQL locally instead of using Neon, you can quickly s
    DATABASE_URL=postgresql+asyncpg://local_user:local_password@localhost:5433/local_db
    \
 3. **Initialize the vector extension & run migrations:**
-   Before running the app, ensure the \ector\ extension is enabled and the schema is created:
-   \\ash
+   Before running the app, ensure the \vector\ extension is enabled and the schema is created:
+   \\bash
    docker exec genai-postgres psql -U local_user -d local_db -c "CREATE EXTENSION IF NOT EXISTS vector;"
    cd backend
    alembic upgrade head
@@ -271,22 +272,22 @@ npm run dev
 
 Copy `.env.example` to `.env` and fill in all required values. **Never commit `.env`** — it is in `.gitignore`.
 
-| Variable | Required | Description |
-|---|---|---|
-| `OPENAI_API_KEY` | ✅ | OpenAI API key |
-| `DATABASE_URL` | ✅ | `postgresql+asyncpg://user:pass@host:5432/dbname` |
-| `JWT_SECRET_KEY` | ✅ | Long random string for HMAC JWT signing |
-| `JWT_ALGORITHM` | — | Default: `HS256` |
-| `ACCESS_TOKEN_EXPIRE_MINUTES` | — | Default: `60` |
-| `APP_ENV` | — | `development` or `production` |
-| `LOG_LEVEL` | — | Default: `INFO` |
-| `EMBEDDING_MODEL` | — | Default: `text-embedding-3-small` |
-| `LLM_MODEL` | — | Default: `gpt-4o-mini` |
-| `DENSE_RETRIEVAL_TOP_K` | — | Default: `25` |
-| `RERANKER_TOP_N` | — | Default: `5` |
-| `REFUSAL_SCORE_THRESHOLD` | — | Default: `0.72` |
-| `OCR_DEVICE` | — | `auto` (default) / `cuda` / `cpu` — OCR device for Marker. `auto` detects CUDA at runtime. |
-| `VITE_API_BASE_URL` | — | Default: `http://localhost:8000` |
+| Variable                      | Required | Description                                                                                |
+| ----------------------------- | -------- | ------------------------------------------------------------------------------------------ |
+| `OPENAI_API_KEY`              | ✅       | OpenAI API key                                                                             |
+| `DATABASE_URL`                | ✅       | `postgresql+asyncpg://user:pass@host:5432/dbname`                                          |
+| `JWT_SECRET_KEY`              | ✅       | Long random string for HMAC JWT signing                                                    |
+| `JWT_ALGORITHM`               | —        | Default: `HS256`                                                                           |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | —        | Default: `60`                                                                              |
+| `APP_ENV`                     | —        | `development` or `production`                                                              |
+| `LOG_LEVEL`                   | —        | Default: `INFO`                                                                            |
+| `EMBEDDING_MODEL`             | —        | Default: `text-embedding-3-small`                                                          |
+| `LLM_MODEL`                   | —        | Default: `gpt-4o-mini`                                                                     |
+| `DENSE_RETRIEVAL_TOP_K`       | —        | Default: `25`                                                                              |
+| `RERANKER_TOP_N`              | —        | Default: `5`                                                                               |
+| `REFUSAL_SCORE_THRESHOLD`     | —        | Default: `0.72`                                                                            |
+| `OCR_DEVICE`                  | —        | `auto` (default) / `cuda` / `cpu` — OCR device for Marker. `auto` detects CUDA at runtime. |
+| `VITE_API_BASE_URL`           | —        | Default: `http://localhost:8000`                                                           |
 
 All settings are read through `app.config.Settings`. **Never call `os.environ` directly outside `config.py`.**
 
@@ -371,11 +372,11 @@ python -m app.ingestion.run_ingestion <path/to/pdf> <tenant_id> <department> <do
 OCR (Marker) runs on **GPU if available, CPU otherwise** — no manual config needed.
 Set `OCR_DEVICE` in your `.env` to override:
 
-| `OCR_DEVICE` | Behaviour |
-|---|---|
+| `OCR_DEVICE`     | Behaviour                                     |
+| ---------------- | --------------------------------------------- |
 | `auto` (default) | CUDA if `torch.cuda.is_available()`, else CPU |
-| `cuda` | Force GPU (fails if CUDA is not available) |
-| `cpu` | Force CPU (slower, works everywhere) |
+| `cuda`           | Force GPU (fails if CUDA is not available)    |
+| `cpu`            | Force CPU (slower, works everywhere)          |
 
 ### After ingestion — embed chunks (P3)
 
@@ -441,15 +442,16 @@ mypy app/
 <type>/<person-tag>/<short-description>
 ```
 
-| Type | When to use |
-|---|---|
-| `feat` | New functionality |
-| `fix` | Bug fix |
+| Type    | When to use                     |
+| ------- | ------------------------------- |
+| `feat`  | New functionality               |
+| `fix`   | Bug fix                         |
 | `chore` | Tooling, deps, config, refactor |
-| `test` | Adding or fixing tests |
-| `docs` | Documentation only |
+| `test`  | Adding or fixing tests          |
+| `docs`  | Documentation only              |
 
 **Examples:**
+
 ```
 feat/p1/heading-aware-chunker
 feat/p2/dense-retrieval-endpoint
@@ -489,6 +491,7 @@ main  ←─── protected; requires PR + review
 ```
 
 **Examples:**
+
 ```
 feat(ingestion): add heading-aware chunker with section_path output
 fix(retrieval): correct pgvector cosine similarity direction
@@ -500,19 +503,19 @@ chore(deps): pin sqlalchemy to 2.0.30
 
 ## 13. Naming Conventions
 
-| Category | Convention | Example |
-|---|---|---|
-| Python files | `snake_case` | `dense_retrieval.py` |
-| Python functions / variables | `snake_case` | `retrieve_chunks()`, `top_k` |
-| Python classes / Pydantic models | `PascalCase` | `ChunkResult`, `RewriteResult` |
-| Python constants | `UPPER_SNAKE_CASE` | `REFUSAL_SCORE_THRESHOLD` |
-| TypeScript files | `PascalCase` (components), `camelCase` (utils) | `ChatPage.tsx`, `client.ts` |
-| TypeScript types / interfaces | `PascalCase` | `ChunkResult`, `FinalEvent` |
-| Git branches | `<type>/<p-tag>/<kebab-case>` | `feat/p2/hybrid-retrieval` |
-| Commit messages | Conventional Commits format | `feat(gen): add conflict detection` |
-| DB tables | `snake_case`, plural | `chunks`, `enterprises`, `queries` |
-| DB columns | `snake_case` | `tenant_id`, `version_status` |
-| API endpoints | `kebab-case`, versioned if needed | `/auth/login`, `/retrieve`, `/chat` |
+| Category                         | Convention                                     | Example                             |
+| -------------------------------- | ---------------------------------------------- | ----------------------------------- |
+| Python files                     | `snake_case`                                   | `dense_retrieval.py`                |
+| Python functions / variables     | `snake_case`                                   | `retrieve_chunks()`, `top_k`        |
+| Python classes / Pydantic models | `PascalCase`                                   | `ChunkResult`, `RewriteResult`      |
+| Python constants                 | `UPPER_SNAKE_CASE`                             | `REFUSAL_SCORE_THRESHOLD`           |
+| TypeScript files                 | `PascalCase` (components), `camelCase` (utils) | `ChatPage.tsx`, `client.ts`         |
+| TypeScript types / interfaces    | `PascalCase`                                   | `ChunkResult`, `FinalEvent`         |
+| Git branches                     | `<type>/<p-tag>/<kebab-case>`                  | `feat/p2/hybrid-retrieval`          |
+| Commit messages                  | Conventional Commits format                    | `feat(gen): add conflict detection` |
+| DB tables                        | `snake_case`, plural                           | `chunks`, `enterprises`, `queries`  |
+| DB columns                       | `snake_case`                                   | `tenant_id`, `version_status`       |
+| API endpoints                    | `kebab-case`, versioned if needed              | `/auth/login`, `/retrieve`, `/chat` |
 
 ---
 
@@ -547,23 +550,23 @@ Full interactive docs: `http://localhost:8000/docs`
 
 ### Authentication
 
-| Method | Endpoint | Owner | Description |
-|---|---|---|---|
-| `POST` | `/auth/login` | P6 | Login → `{ access_token, tenant_id, user_id, role }` |
-| `GET` | `/auth/me` | P6 | Current user identity |
-| `POST` | `/feedback` | P6 (P2) | Thumbs up/down feedback |
+| Method | Endpoint      | Owner   | Description                                          |
+| ------ | ------------- | ------- | ---------------------------------------------------- |
+| `POST` | `/auth/login` | P6      | Login → `{ access_token, tenant_id, user_id, role }` |
+| `GET`  | `/auth/me`    | P6      | Current user identity                                |
+| `POST` | `/feedback`   | P6 (P2) | Thumbs up/down feedback                              |
 
 ### Retrieval
 
-| Method | Endpoint | Owner | Description |
-|---|---|---|---|
-| `POST` | `/retrieve` | P2 | Retrieve top-k chunks for a query |
+| Method | Endpoint    | Owner | Description                       |
+| ------ | ----------- | ----- | --------------------------------- |
+| `POST` | `/retrieve` | P2    | Retrieve top-k chunks for a query |
 
 ### Generation
 
-| Method | Endpoint | Owner | Description |
-|---|---|---|---|
-| `POST` | `/chat` | P4 | Stream grounded answer via SSE |
+| Method | Endpoint | Owner | Description                    |
+| ------ | -------- | ----- | ------------------------------ |
+| `POST` | `/chat`  | P4    | Stream grounded answer via SSE |
 
 ### Error envelope (all endpoints)
 
@@ -612,22 +615,22 @@ Before raising a PR, verify every item applies:
 
 ## 17. Hardware Notes
 
-| Owner | Hardware needed | Why |
-|---|---|---|
+| Owner              | Hardware needed                                               | Why                                                                                                                                             |
+| ------------------ | ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
 | **P1** (Ingestion) | Any machine; NVIDIA GPU optional (4–6 GB VRAM, e.g. RTX 4050) | Marker OCR runs on CPU or GPU. GPU is faster but not required — `OCR_DEVICE=auto` detects and uses CUDA if present, falls back to CPU silently. |
-| **Everyone else** | Any standard machine, no GPU | DB access, embeddings (API), reranking (CPU), LLM calls (API), auth, frontend, eval all run on CPU or go through a network API call. |
+| **Everyone else**  | Any standard machine, no GPU                                  | DB access, embeddings (API), reranking (CPU), LLM calls (API), auth, frontend, eval all run on CPU or go through a network API call.            |
 
 ---
 
 ## Models used
 
-| Component | Model | Notes |
-|---|---|---|
-| LLM (generation, rewriting, routing, confidence) | `gpt-4o-mini` | One model used consistently everywhere |
-| Embeddings | `text-embedding-3-small` | Chunk embeddings, query embeddings, Stage 2a summary-match |
-| Reranker (Priority 2) | `bge-reranker-base` via FlagEmbedding | CPU-only, no GPU needed |
-| OCR / document parsing | Marker (open-source PDF→structured-markdown) | GPU optional (faster); CPU fully supported. Fallback: GOT-OCR2.0 |
+| Component                                        | Model                                        | Notes                                                            |
+| ------------------------------------------------ | -------------------------------------------- | ---------------------------------------------------------------- |
+| LLM (generation, rewriting, routing, confidence) | `gpt-4o-mini`                                | One model used consistently everywhere                           |
+| Embeddings                                       | `text-embedding-3-small`                     | Chunk embeddings, query embeddings, Stage 2a summary-match       |
+| Reranker (Priority 2)                            | `bge-reranker-base` via FlagEmbedding        | CPU-only, no GPU needed                                          |
+| OCR / document parsing                           | Marker (open-source PDF→structured-markdown) | GPU optional (faster); CPU fully supported. Fallback: GOT-OCR2.0 |
 
 ---
 
-*This README is the team's single operational reference.  If something in your implementation diverges from the contracts in this document or in the engineering spec (`docs/spec/engineering_spec_v1.pdf`), open an issue or raise it in the team channel before merging.*
+_This README is the team's single operational reference. If something in your implementation diverges from the contracts in this document or in the engineering spec (`docs/spec/engineering_spec_v1.pdf`), open an issue or raise it in the team channel before merging._
