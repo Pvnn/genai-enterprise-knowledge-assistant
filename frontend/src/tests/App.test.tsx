@@ -6,6 +6,7 @@
  *   - Unauthenticated user navigating to /chat is redirected to /login and sees Login component
  *   - Unauthenticated user navigating to /upload is redirected to /login and sees Login component
  *   - Unauthenticated user on /login sees Login component
+ *   - Unauthenticated user on /register sees Register component (public route)
  *   - Authenticated user on /chat sees ChatPage
  *   - Authenticated admin user on /upload sees UploadPage
  *   - Authenticated non-admin user on /upload sees Access Restricted
@@ -26,6 +27,10 @@ vi.mock("../upload/UploadPage", () => ({
 
 vi.mock("../auth/Login", () => ({
   default: () => <div data-testid="login-page">Login Page Component</div>,
+}));
+
+vi.mock("../auth/Register", () => ({
+  default: () => <div data-testid="register-page">Register Page Component</div>,
 }));
 
 describe("App.tsx Auth Guard & Routing", () => {
@@ -62,6 +67,17 @@ describe("App.tsx Auth Guard & Routing", () => {
     render(<App />);
 
     expect(screen.getByTestId("login-page")).toBeInTheDocument();
+  });
+
+  it("renders Register page directly without access_token when path is /register", () => {
+    window.history.pushState({}, "", "/register");
+    const replaceSpy = vi.spyOn(window.history, "replaceState");
+
+    render(<App />);
+
+    expect(replaceSpy).not.toHaveBeenCalled();
+    expect(screen.getByTestId("register-page")).toBeInTheDocument();
+    expect(screen.queryByTestId("login-page")).not.toBeInTheDocument();
   });
 
   it("renders ChatPage for authenticated users on /chat", () => {

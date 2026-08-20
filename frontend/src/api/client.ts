@@ -24,6 +24,10 @@ import {
   FinalEvent,
   LoginRequest,
   LoginResponse,
+  RegisterEnterpriseRequest,
+  RegisterEnterpriseResponse,
+  RegisterUserRequest,
+  RegisterUserResponse,
   TokenEvent,
   UploadResponse,
 } from "../chat/types";
@@ -457,6 +461,71 @@ export async function getMe(): Promise<CurrentUser> {
 
   return response.json();
 }
+
+/**
+ * Register a new enterprise tenant.
+ * POST /auth/register/enterprise
+ */
+export async function registerEnterprise(
+  request: RegisterEnterpriseRequest
+): Promise<RegisterEnterpriseResponse> {
+  const response = await fetch(`${API_BASE}/auth/register/enterprise`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...getAuthHeader(),
+    },
+    body: JSON.stringify(request),
+  });
+
+  if (!response.ok) {
+    let errorData: ErrorResponse;
+    try {
+      errorData = await response.json();
+    } catch {
+      errorData = {
+        error: "registration_failed",
+        detail: `Enterprise registration failed with status ${response.status}`,
+      };
+    }
+    throw new Error(errorData.detail || errorData.error);
+  }
+
+  return response.json();
+}
+
+/**
+ * Register a new user under an enterprise tenant.
+ * POST /auth/register/user
+ */
+export async function registerUser(
+  request: RegisterUserRequest
+): Promise<RegisterUserResponse> {
+  const response = await fetch(`${API_BASE}/auth/register/user`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...getAuthHeader(),
+    },
+    body: JSON.stringify(request),
+  });
+
+  if (!response.ok) {
+    let errorData: ErrorResponse;
+    try {
+      errorData = await response.json();
+    } catch {
+      errorData = {
+        error: "registration_failed",
+        detail: `User registration failed with status ${response.status}`,
+      };
+    }
+    throw new Error(errorData.detail || errorData.error);
+  }
+
+  return response.json();
+}
+
 
 /**
  * Upload a PDF document for ingestion (Admin only).

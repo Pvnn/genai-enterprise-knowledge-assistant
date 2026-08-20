@@ -62,10 +62,17 @@ export const ChatPage: React.FC<ChatPageProps> = ({
   // Sidebar mobile toggle
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Tenant state
-  const [tenantId, setTenantId] = useState<string>(
-    () => localStorage.getItem("tenant_id") || FALLBACK_TENANT_ID
-  );
+  // Tenant state - dynamically read from localStorage on mount and route changes
+  const [tenantId, setTenantId] = useState<string>(() => {
+    return localStorage.getItem("tenant_id") || FALLBACK_TENANT_ID;
+  });
+
+  useEffect(() => {
+    const stored = localStorage.getItem("tenant_id");
+    if (stored && stored !== tenantId) {
+      setTenantId(stored);
+    }
+  }, [tenantId]);
 
   // Conversations state
   const [conversations, setConversations] = useState<Conversation[]>(() => {

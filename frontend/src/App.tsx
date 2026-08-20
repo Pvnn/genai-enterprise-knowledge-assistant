@@ -6,6 +6,7 @@
 import React, { useState, useEffect } from "react";
 import ChatPage from "./chat/ChatPage";
 import Login from "./auth/Login";
+import Register from "./auth/Register";
 import UploadPage from "./upload/UploadPage";
 
 export const App: React.FC = () => {
@@ -31,13 +32,36 @@ export const App: React.FC = () => {
     setCurrentPath("/login");
   };
 
-  if (currentPath !== "/login" && !localStorage.getItem("access_token")) {
+  // Auth guard: /login and /register are public; all other routes require access_token
+  if (currentPath !== "/login" && currentPath !== "/register" && !localStorage.getItem("access_token")) {
     window.history.replaceState({}, "", "/login");
     return <Login />;
   }
 
   if (currentPath === "/login") {
-    return <Login />;
+    return (
+      <Login
+        onNavigateRegister={() => {
+          window.history.pushState({}, "", "/register");
+          setCurrentPath("/register");
+        }}
+        onLoginSuccess={() => {
+          window.history.pushState({}, "", "/chat");
+          setCurrentPath("/chat");
+        }}
+      />
+    );
+  }
+
+  if (currentPath === "/register") {
+    return (
+      <Register
+        onNavigateLogin={() => {
+          window.history.pushState({}, "", "/login");
+          setCurrentPath("/login");
+        }}
+      />
+    );
   }
 
   if (currentPath === "/upload") {
