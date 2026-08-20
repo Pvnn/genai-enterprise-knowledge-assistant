@@ -137,7 +137,7 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
           )}
 
           {/* Standard Text or Grounded Answer */}
-          {(!message.final?.conflict || message.final?.refused) &&
+          {(!message.final?.conflict && !message.final?.refused && !message.clarify) &&
             message.content && (
               <div className="text-sm text-ink leading-relaxed break-words prose dark:prose-invert max-w-none">
                 <ReactMarkdown>

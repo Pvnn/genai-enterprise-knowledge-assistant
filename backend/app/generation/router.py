@@ -164,21 +164,34 @@ async def chat(
     async def event_stream():
         final_payload: dict | None = None
         async for event in generate_answer(request, db):
-            if event.get("type") == "final":
+            if event.get("type") == "final" or event.get("type") == "clarify":
                 final_payload = event
             yield f"data: {json.dumps(event)}\n\n"
 
         if final_payload is not None:
-            await _save_message(
-                db,
-                conversation,
-                current_user.tenant_id,
-                role="assistant",
-                content=final_payload.get("answer", ""),
-                citations=final_payload.get("citations"),
-                confidence=final_payload.get("confidence"),
-                refused=final_payload.get("refused", False),
-                refusal_reason=final_payload.get("refusal_reason"),
-            )
+            if final_payload.get("type") == "clarify":
+                await _save_message(
+                    db,
+                    conversation,
+                    current_user.tenant_id,
+                    role="assistant",
+                    content=final_payload.get("question", ""),
+                    confidence=-1.0,
+                )
+            else:
+                is_refused = final_payload.get("refused", False)
+                content_to_save = final_payload.get("refusal_reason") if is_refused else final_payload.get("answer", "")
+                
+                await _save_message(
+                    db,
+                    conversation,
+                    current_user.tenant_id,
+                    role="assistant",
+                    content=content_to_save,
+                    citations=final_payload.get("citations"),
+                    confidence=final_payload.get("confidence"),
+                    refused=is_refused,
+                    refusal_reason=None,
+                )
 
     return StreamingResponse(event_stream(), media_type="text/event-stream")

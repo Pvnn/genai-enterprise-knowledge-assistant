@@ -176,20 +176,27 @@ export const ChatPage: React.FC<ChatPageProps> = ({
              try {
                const detail = await fetchConversationDetail(activeConvId);
                if (!isMounted) return;
-               const mapped = (detail.messages || []).map((m: unknown) => ({
-                 ...m,
-                 status: "done",
-                 timestamp: m.created_at,
-                 final: m.role === "assistant" ? {
-                   type: "final",
-                   answer: m.content,
-                   citations: m.citations || [],
-                   confidence: m.confidence || 1.0,
-                   refused: m.refused || false,
-                   refusal_reason: m.refusal_reason,
-                   conflict: false,
-                 } : undefined
-               }));
+               const mapped = (detail.messages || []).map((m: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
+                  const isClarify = m.role === "assistant" && m.confidence === -1.0;
+                  return {
+                    ...m,
+                    status: "done",
+                    timestamp: m.created_at,
+                    clarify: isClarify ? {
+                      type: "clarify",
+                      question: m.content
+                    } : undefined,
+                    final: (m.role === "assistant" && !isClarify) ? {
+                      type: "final",
+                      answer: m.content,
+                      citations: m.citations || [],
+                      confidence: m.confidence ?? 1.0,
+                      refused: m.refused ?? false,
+                      refusal_reason: m.refusal_reason,
+                      conflict: false,
+                    } : undefined
+                  };
+                });
                setConversations(prev => prev.map(c => c.id === activeConvId ? { ...c, messages: mapped } : c));
              } catch (err) {
                console.error("Detail fetch failed", err);
@@ -246,20 +253,27 @@ export const ChatPage: React.FC<ChatPageProps> = ({
     
     try {
       const detail = await fetchConversationDetail(id);
-      const mapped = (detail.messages || []).map((m: unknown) => ({
-        ...m,
-        status: "done",
-        timestamp: m.created_at,
-        final: m.role === "assistant" ? {
-          type: "final",
-          answer: m.content,
-          citations: m.citations || [],
-          confidence: m.confidence || 1.0,
-          refused: m.refused || false,
-          refusal_reason: m.refusal_reason,
-          conflict: false,
-        } : undefined
-      }));
+      const mapped = (detail.messages || []).map((m: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
+                  const isClarify = m.role === "assistant" && m.confidence === -1.0;
+                  return {
+                    ...m,
+                    status: "done",
+                    timestamp: m.created_at,
+                    clarify: isClarify ? {
+                      type: "clarify",
+                      question: m.content
+                    } : undefined,
+                    final: (m.role === "assistant" && !isClarify) ? {
+                      type: "final",
+                      answer: m.content,
+                      citations: m.citations || [],
+                      confidence: m.confidence ?? 1.0,
+                      refused: m.refused ?? false,
+                      refusal_reason: m.refusal_reason,
+                      conflict: false,
+                    } : undefined
+                  };
+                });
       setConversations(prev => prev.map(c => c.id === id ? { ...c, messages: mapped } : c));
     } catch (err) {
       console.error("Failed to fetch conversation details", err);
