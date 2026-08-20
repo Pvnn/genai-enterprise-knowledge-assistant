@@ -7,28 +7,21 @@
  * until ingestion_status reaches "done" or "failed".
  *
  * Only rendered for users with role === "admin"; non-admins are redirected
- * to the chat page.  Role check uses the CurrentUser returned by GET /auth/me
- * — no new auth logic added here.
+ * to the chat page.
  */
 import React, { useCallback, useRef, useState } from "react";
-import { API_BASE } from "../api/client";
+import { uploadDocument, getDocumentStatus } from "../api/client";
+import { DocumentStatusResponse, UploadResponse } from "../chat/types";
 
 type IngestionStatus = "idle" | "pending" | "processing" | "done" | "failed";
 
-interface UploadResponse {
-  document_id: string;
-  ingestion_status: string;
-}
-
-interface StatusResponse {
-  document_id: string;
-  ingestion_status: string;
-  detail?: string;
-}
-
 const POLL_INTERVAL_MS = 3000;
 
-const UploadPage: React.FC = () => {
+interface UploadPageProps {
+  onNavigateBack?: () => void;
+}
+
+const UploadPage: React.FC<UploadPageProps> = ({ onNavigateBack }) => {
   const fileRef = useRef<HTMLInputElement>(null);
   const [department, setDepartment] = useState("");
   const [docType, setDocType] = useState("");
@@ -36,19 +29,19 @@ const UploadPage: React.FC = () => {
   const [documentId, setDocumentId] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const pollStatus = useCallback((docId: string, token: string) => {
+  const handleBack = () => {
+    if (onNavigateBack) {
+      onNavigateBack();
+    } else {
+      window.history.pushState({}, "", "/chat");
+      window.dispatchEvent(new PopStateEvent("popstate"));
+    }
+  };
+
+  const pollStatus = useCallback((docId: string) => {
     const interval = setInterval(async () => {
       try {
-        const res = await fetch(`${API_BASE}/documents/${docId}/status`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!res.ok) {
-          clearInterval(interval);
-          setStatus("failed");
-          setErrorMsg(`Status check failed: ${res.status}`);
-          return;
-        }
-        const data: StatusResponse = await res.json();
+        const data: DocumentStatusResponse = await getDocumentStatus(docId);
         if (data.ingestion_status === "done" || data.ingestion_status === "failed") {
           clearInterval(interval);
           setStatus(data.ingestion_status as IngestionStatus);
@@ -58,10 +51,12 @@ const UploadPage: React.FC = () => {
         } else {
           setStatus(data.ingestion_status as IngestionStatus);
         }
-      } catch {
+      } catch (err: unknown) {
         clearInterval(interval);
         setStatus("failed");
-        setErrorMsg("Network error while polling status.");
+        setErrorMsg(
+          err instanceof Error ? err.message : "Status check failed."
+        );
       }
     }, POLL_INTERVAL_MS);
   }, []);
@@ -72,55 +67,59 @@ const UploadPage: React.FC = () => {
       setErrorMsg(null);
 
       const file = fileRef.current?.files?.[0];
-      if (!file) { setErrorMsg("Please select a PDF file."); return; }
-      if (!department.trim()) { setErrorMsg("Department is required."); return; }
-      if (!docType.trim()) { setErrorMsg("Document type is required."); return; }
-
-      // TODO P7: retrieve token from your auth store/context
-      const token = localStorage.getItem("access_token") ?? "";
-
-      const form = new FormData();
-      form.append("file", file);
-      form.append("department", department.trim());
-      form.append("doc_type", docType.trim());
+      if (!file) {
+        setErrorMsg("Please select a PDF file.");
+        return;
+      }
+      if (!department.trim()) {
+        setErrorMsg("Department is required.");
+        return;
+      }
+      if (!docType.trim()) {
+        setErrorMsg("Document type is required.");
+        return;
+      }
 
       setStatus("pending");
 
       try {
-        const res = await fetch(`${API_BASE}/documents/upload`, {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
-          body: form,
-        });
-
-        if (res.status === 403) {
-          setStatus("failed");
-          setErrorMsg("Only admin users can upload documents.");
-          return;
-        }
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          setStatus("failed");
-          setErrorMsg(err.detail ?? `Upload failed (${res.status}).`);
-          return;
-        }
-
-        const data: UploadResponse = await res.json();
+        const data: UploadResponse = await uploadDocument(
+          file,
+          department.trim(),
+          docType.trim()
+        );
         setDocumentId(data.document_id);
         setStatus("processing");
-        pollStatus(data.document_id, token);
-      } catch {
+        pollStatus(data.document_id);
+      } catch (err: unknown) {
         setStatus("failed");
-        setErrorMsg("Network error during upload.");
+        setErrorMsg(err instanceof Error ? err.message : "Upload failed.");
       }
     },
     [department, docType, pollStatus]
   );
 
   return (
-    <div style={{ maxWidth: 480, margin: "2rem auto", fontFamily: "sans-serif" }}>
-      <h1>Upload Document</h1>
-      <p style={{ color: "#666", fontSize: 14 }}>
+    <div style={{ maxWidth: 480, margin: "2rem auto", fontFamily: "sans-serif", padding: "0 1rem" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1rem" }}>
+        <h1>Upload Document</h1>
+        <button
+          type="button"
+          onClick={handleBack}
+          style={{
+            padding: "6px 12px",
+            fontSize: 12,
+            borderRadius: 8,
+            border: "1px solid #ccc",
+            background: "transparent",
+            cursor: "pointer",
+          }}
+        >
+          &larr; Back to Workspace
+        </button>
+      </div>
+
+      <p style={{ color: "#666", fontSize: 14, marginBottom: "1.5rem" }}>
         Admin only. PDF files only. Ingestion runs in the background.
       </p>
 
@@ -136,8 +135,8 @@ const UploadPage: React.FC = () => {
             type="text"
             value={department}
             onChange={(e) => setDepartment(e.target.value)}
-            placeholder="e.g. HR"
-            style={{ display: "block", width: "100%", marginTop: 4 }}
+            placeholder="e.g. Human Resources"
+            style={{ display: "block", width: "100%", marginTop: 4, padding: "6px 8px", boxSizing: "border-box" }}
           />
         </label>
 
@@ -147,36 +146,53 @@ const UploadPage: React.FC = () => {
             type="text"
             value={docType}
             onChange={(e) => setDocType(e.target.value)}
-            placeholder="e.g. policy"
-            style={{ display: "block", width: "100%", marginTop: 4 }}
+            placeholder="e.g. Policy"
+            style={{ display: "block", width: "100%", marginTop: 4, padding: "6px 8px", boxSizing: "border-box" }}
           />
         </label>
 
-        <button type="submit" disabled={status === "pending" || status === "processing"}>
+        <button
+          type="submit"
+          disabled={status === "pending" || status === "processing"}
+          style={{
+            marginTop: 8,
+            padding: "8px 16px",
+            backgroundColor: "#2563eb",
+            color: "white",
+            border: "none",
+            borderRadius: 6,
+            cursor: status === "pending" || status === "processing" ? "not-allowed" : "pointer",
+          }}
+        >
           {status === "pending" || status === "processing" ? "Uploading…" : "Upload"}
         </button>
       </form>
 
-      {status !== "idle" && (
-        <div style={{ marginTop: 16 }}>
-          <strong>Status:</strong>{" "}
-          <span
-            style={{
-              color:
-                status === "done" ? "green" :
-                status === "failed" ? "red" :
-                "#b07800",
-            }}
-          >
-            {status}
-          </span>
+      {(status !== "idle" || errorMsg) && (
+        <div style={{ marginTop: 16, padding: "12px", borderRadius: 8, backgroundColor: "#f8fafc", border: "1px solid #e2e8f0" }}>
+          {status !== "idle" && (
+            <div>
+              <strong>Status:</strong>{" "}
+              <span
+                style={{
+                  color:
+                    status === "done" ? "#16a34a" :
+                    status === "failed" ? "#dc2626" :
+                    "#b45309",
+                  fontWeight: 600,
+                }}
+              >
+                {status}
+              </span>
+            </div>
+          )}
           {documentId && (
-            <div style={{ fontSize: 12, color: "#888", marginTop: 4 }}>
+            <div style={{ fontSize: 12, color: "#64748b", marginTop: 4 }}>
               Document ID: {documentId}
             </div>
           )}
           {errorMsg && (
-            <div style={{ color: "red", marginTop: 8, fontSize: 13 }}>{errorMsg}</div>
+            <div style={{ color: "#dc2626", marginTop: status !== "idle" ? 8 : 0, fontSize: 13 }}>{errorMsg}</div>
           )}
         </div>
       )}

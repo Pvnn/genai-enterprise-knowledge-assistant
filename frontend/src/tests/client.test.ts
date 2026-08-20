@@ -9,7 +9,14 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { submitFeedback, streamChat } from "../api/client";
+import {
+  submitFeedback,
+  streamChat,
+  uploadDocument,
+  getDocumentStatus,
+  registerEnterprise,
+  registerUser,
+} from "../api/client";
 import { ClarifyEvent, FinalEvent, TokenEvent } from "../chat/types";
 
 describe("api/client.ts", () => {
@@ -217,4 +224,187 @@ describe("api/client.ts", () => {
       expect(onFinal).toHaveBeenCalledTimes(1);
     });
   });
+
+  describe("uploadDocument", () => {
+    it("sends FormData to POST /documents/upload with Authorization header", async () => {
+      localStorage.setItem("access_token", "admin-jwt-token");
+
+      const mockResponse = {
+        document_id: "doc-123-uuid",
+        ingestion_status: "pending",
+      };
+
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => mockResponse,
+      });
+      globalThis.fetch = mockFetch;
+
+      const file = new File(["fake-pdf-content"], "hr_policy.pdf", { type: "application/pdf" });
+      const result = await uploadDocument(file, "Human Resources", "Policy");
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      const [url, options] = mockFetch.mock.calls[0];
+      expect(url).toContain("/documents/upload");
+      expect(options.method).toBe("POST");
+      expect(options.headers.Authorization).toBe("Bearer admin-jwt-token");
+      expect(options.body).toBeInstanceOf(FormData);
+
+      const formData = options.body as FormData;
+      expect(formData.get("file")).toBe(file);
+      expect(formData.get("department")).toBe("Human Resources");
+      expect(formData.get("doc_type")).toBe("Policy");
+
+      expect(result).toEqual(mockResponse);
+    });
+
+    it("throws a descriptive error on non-ok server response", async () => {
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 403,
+        statusText: "Forbidden",
+        json: async () => ({ error: "forbidden", detail: "Only admin users may upload documents." }),
+      });
+
+      const file = new File(["dummy"], "doc.pdf", { type: "application/pdf" });
+      await expect(uploadDocument(file, "HR", "policy")).rejects.toThrow(
+        "Only admin users may upload documents."
+      );
+    });
+  });
+
+  describe("getDocumentStatus", () => {
+    it("sends GET request to /documents/{documentId}/status with Authorization header", async () => {
+      localStorage.setItem("access_token", "user-jwt-token");
+
+      const mockResponse = {
+        document_id: "doc-456-uuid",
+        ingestion_status: "done",
+        detail: null,
+      };
+
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => mockResponse,
+      });
+      globalThis.fetch = mockFetch;
+
+      const result = await getDocumentStatus("doc-456-uuid");
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      const [url, options] = mockFetch.mock.calls[0];
+      expect(url).toContain("/documents/doc-456-uuid/status");
+      expect(options.method).toBe("GET");
+      expect(options.headers.Authorization).toBe("Bearer user-jwt-token");
+
+      expect(result).toEqual(mockResponse);
+    });
+
+    it("throws a descriptive error when status check fails", async () => {
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 404,
+        json: async () => ({ error: "not_found", detail: "Document not found." }),
+      });
+
+      await expect(getDocumentStatus("non-existent-id")).rejects.toThrow("Document not found.");
+    });
+  });
+
+  describe("registerEnterprise", () => {
+    it("sends POST /auth/register/enterprise with JSON payload", async () => {
+      const mockResponse = {
+        tenant_id: "tenant-uuid-111",
+        name: "Acme Global",
+        message: "Enterprise created",
+      };
+
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => mockResponse,
+      });
+      globalThis.fetch = mockFetch;
+
+      const payload = {
+        name: "Acme Global",
+        admin_email: "admin@acmeglobal.com",
+        admin_password: "supersecretpass",
+      };
+
+      const result = await registerEnterprise(payload);
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      const [url, options] = mockFetch.mock.calls[0];
+      expect(url).toContain("/auth/register/enterprise");
+      expect(options.method).toBe("POST");
+      expect(options.headers["Content-Type"]).toBe("application/json");
+      expect(JSON.parse(options.body)).toEqual(payload);
+      expect(result).toEqual(mockResponse);
+    });
+
+    it("throws a descriptive error when enterprise registration fails", async () => {
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 400,
+        json: async () => ({ error: "duplicate_name", detail: "Enterprise name already registered." }),
+      });
+
+      await expect(
+        registerEnterprise({ name: "Existing University" })
+      ).rejects.toThrow("Enterprise name already registered.");
+    });
+  });
+
+  describe("registerUser", () => {
+    it("sends POST /auth/register/user with JSON payload", async () => {
+      const mockResponse = {
+        user_id: "user-uuid-222",
+        tenant_id: "tenant-uuid-111",
+        email: "user@acme.com",
+        role: "member",
+        message: "User registered",
+      };
+
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => mockResponse,
+      });
+      globalThis.fetch = mockFetch;
+
+      const payload = {
+        email: "user@acme.com",
+        password: "userpassword123",
+        tenant_code: "Acme Global",
+        role: "member",
+      };
+
+      const result = await registerUser(payload);
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      const [url, options] = mockFetch.mock.calls[0];
+      expect(url).toContain("/auth/register/user");
+      expect(options.method).toBe("POST");
+      expect(options.headers["Content-Type"]).toBe("application/json");
+      expect(JSON.parse(options.body)).toEqual(payload);
+      expect(result).toEqual(mockResponse);
+    });
+
+    it("throws a descriptive error when user registration fails", async () => {
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 400,
+        json: async () => ({ error: "user_exists", detail: "Email already registered for this tenant." }),
+      });
+
+      await expect(
+        registerUser({
+          email: "duplicate@acme.com",
+          password: "pass",
+          tenant_code: "Acme Global",
+        })
+      ).rejects.toThrow("Email already registered for this tenant.");
+    });
+  });
 });
+
+

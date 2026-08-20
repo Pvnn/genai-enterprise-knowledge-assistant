@@ -34,6 +34,14 @@ class Settings(BaseSettings):
         "gemini-embedding-001", description="Gemini embedding model name"
     )
     llm_model: str = Field("gpt-4o-mini", description="OpenAI chat model name")
+    openai_base_url: str | None = Field(
+        default=None,
+        description=(
+            "Override for AsyncOpenAI's base_url. None = OpenAI's real default "
+            "endpoint (production). Set to Groq's OpenAI-compatible endpoint "
+            "for local testing with a Groq key instead of a real OpenAI key."
+        ),
+    )
 
     # ── Database (Neon serverless Postgres + pgvector) ────────────────────────
     database_url: str = Field(
@@ -87,7 +95,7 @@ class Settings(BaseSettings):
     )
     dense_retrieval_top_k: int = Field(25)
     reranker_top_n: int = Field(5)
-    refusal_score_threshold: float = Field(0.72)
+    refusal_score_threshold: float = Field(0.5)
 
     # ── Frontend ─────────────────────────────────────────────────────────────
     vite_api_base_url: str = Field("http://localhost:8000")

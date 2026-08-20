@@ -3,7 +3,7 @@
  * Owner: P7
  *
  * Provides conversation thread history, view switching, tenant scope, theme toggling, and logout UI hook.
- * Styled with Claude-inspired Civic Indigo, Warm Paper, Deep Slate, and Seal Gold palette.
+ * Branded for NODI with Grounded enterprise knowledge.
  */
 
 import React from "react";
@@ -13,12 +13,12 @@ import {
   Trash,
   Sun,
   Moon,
-  Buildings,
   Files,
   X,
   SignOut,
 } from "@phosphor-icons/react";
 import { Conversation } from "./types";
+import NodiLogo from "./NodiLogo";
 
 interface ChatSidebarProps {
   conversations: Conversation[];
@@ -63,23 +63,23 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
       )}
 
       <aside
-        className={`fixed md:static inset-y-0 left-0 z-40 w-72 flex flex-col justify-between border-r border-hairline bg-surface-muted backdrop-blur-md transition-transform duration-200 ease-in-out ${
+        className={`fixed md:static inset-y-0 left-0 z-40 w-72 flex flex-col justify-between border-r border-hairline bg-surface-muted text-ink transition-transform duration-200 ease-in-out ${
           isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         }`}
       >
-        {/* Header */}
+        {/* Header with NODI Logo */}
         <div className="p-4 border-b border-hairline space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-primary-brand flex items-center justify-center text-white shadow-xs">
-                <Buildings size={18} weight="bold" />
+              <div className="w-8 h-8 rounded-xl bg-surface border border-hairline flex items-center justify-center text-primary-brand shadow-2xs shrink-0">
+                <NodiLogo size={22} className="text-primary-brand" />
               </div>
               <div>
                 <h2 className="text-sm font-bold text-ink tracking-tight">
-                  Policy Assistant
+                  NODI
                 </h2>
                 <p className="text-[11px] text-ink-muted">
-                  Grounded Enterprise RAG
+                  Grounded enterprise knowledge
                 </p>
               </div>
             </div>
@@ -99,10 +99,10 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
               onNewConversation();
               onCloseMobile();
             }}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2.5 text-xs font-medium rounded-xl bg-surface hover:opacity-90 border border-hairline text-ink shadow-2xs transition-all active:scale-[0.98]"
+            className="w-full flex items-center justify-center gap-2 px-3 py-2.5 text-xs font-medium rounded-xl bg-surface hover:bg-surface-elevated border border-hairline text-ink shadow-2xs transition-all active:scale-[0.98]"
           >
             <Plus size={14} weight="bold" className="text-accent-gold" />
-            <span>New Policy Query</span>
+            <span>New Chat</span>
           </button>
         </div>
 
@@ -119,10 +119,13 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
               className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs transition-colors ${
                 currentView === "chat"
                   ? "bg-surface text-ink font-semibold border border-hairline shadow-2xs"
-                  : "text-ink-muted hover:text-ink hover:bg-surface/50"
+                  : "text-ink-muted hover:text-ink hover:bg-surface"
               }`}
             >
-              <ChatCircleText size={16} className={currentView === "chat" ? "text-primary-brand" : "text-ink-muted"} />
+              <ChatCircleText
+                size={16}
+                className={currentView === "chat" ? "text-primary-brand" : "text-ink-muted"}
+              />
               <span>Chat Workspace</span>
             </button>
 
@@ -135,10 +138,13 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
               className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs transition-colors ${
                 currentView === "documents"
                   ? "bg-surface text-ink font-semibold border border-hairline shadow-2xs"
-                  : "text-ink-muted hover:text-ink hover:bg-surface/50"
+                  : "text-ink-muted hover:text-ink hover:bg-surface"
               }`}
             >
-              <Files size={16} className={currentView === "documents" ? "text-accent-gold" : "text-ink-muted"} />
+              <Files
+                size={16}
+                className={currentView === "documents" ? "text-accent-gold" : "text-ink-muted"}
+              />
               <span>Document Library</span>
             </button>
           </div>
@@ -167,7 +173,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                       className={`group flex items-center justify-between px-3 py-2 rounded-xl text-xs cursor-pointer transition-colors ${
                         isActive
                           ? "bg-surface text-ink font-semibold border border-hairline shadow-2xs"
-                          : "text-ink-muted hover:text-ink hover:bg-surface/50 border border-transparent"
+                          : "text-ink-muted hover:text-ink hover:bg-surface border border-transparent"
                       }`}
                     >
                       <div className="flex items-center gap-2 min-w-0">
@@ -209,10 +215,14 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
           <button
             type="button"
             onClick={onToggleDarkMode}
-            className="w-full flex items-center justify-between px-3 py-2 rounded-xl border border-hairline bg-surface text-ink hover:opacity-90 transition-colors shadow-2xs"
+            className="w-full flex items-center justify-between px-3 py-2 rounded-xl border border-hairline bg-surface text-ink hover:bg-surface-elevated transition-colors shadow-2xs"
           >
             <span className="flex items-center gap-2">
-              {darkMode ? <Moon size={15} className="text-accent-gold" /> : <Sun size={15} className="text-accent-gold" />}
+              {darkMode ? (
+                <Moon size={15} className="text-accent-gold" />
+              ) : (
+                <Sun size={15} className="text-accent-gold" />
+              )}
               <span>{darkMode ? "Dark Mode" : "Light Mode"}</span>
             </span>
             <span className="text-[11px] text-ink-muted font-mono font-medium">

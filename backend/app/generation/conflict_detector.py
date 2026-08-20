@@ -51,7 +51,8 @@ async def check_conflict(top_chunks: list[ChunkResult]) -> ConflictResult:
         
     prompt = (
         "You are an expert policy analyst. Review the following excerpts from current policy documents.\n"
-        "Determine if any of these excerpts directly contradict each other regarding the same topic.\n\n"
+        "Determine if any of these excerpts directly contradict each other regarding the same topic.\n"
+        "Respond in JSON format with a single key 'has_contradiction' mapping to a boolean.\n\n"
         f"{chunk_texts}"
     )
     
@@ -66,17 +67,28 @@ async def check_conflict(top_chunks: list[ChunkResult]) -> ConflictResult:
 
     # Retry with binary exponential backoff on transient failures.
     MAX_RETRIES = 2
-    client = AsyncOpenAI(api_key=settings.openai_api_key)
+    # Construct client — honour an optional openai_base_url override so that
+    # Groq / local-compatible endpoints work during local development without
+    # code changes (just set OPENAI_BASE_URL in .env). Read via settings, not
+    # os.getenv() directly — pydantic-settings loads .env into settings.*,
+    # it never touches the real OS environment, so os.getenv() here would
+    # silently see nothing and fall back to real OpenAI's default endpoint.
+    client = AsyncOpenAI(
+        api_key=settings.openai_api_key,
+        base_url=settings.openai_base_url,
+    )
     result = None
     for attempt in range(MAX_RETRIES + 1):
         try:
-            response = await client.responses.parse(
+            response = await client.chat.completions.create(
                 model=settings.llm_model,
-                input=[{"role": "user", "content": prompt}],
-                text_format=ConflictLLMResponse,
+                messages=[{"role": "user", "content": prompt}],
+                response_format={"type": "json_object"},
                 temperature=0.0,
             )
-            result = response.output_parsed
+            import json
+            data = json.loads(response.choices[0].message.content)
+            result = ConflictLLMResponse(**data)
             break
         except TRANSIENT_ERRORS as e:
             wait_seconds = 2 ** attempt  # 1s, 2s

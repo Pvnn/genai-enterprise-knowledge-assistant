@@ -27,7 +27,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.deps import CurrentUserDep, DbDep
 from app.ingestion.run_ingestion import ingest_document
-from app.schemas import DocumentStatusResponse, UploadResponse
+from app.schemas import DocumentStatusResponse, UploadResponse, DocumentItem
 
 logger = logging.getLogger(__name__)
 
@@ -218,6 +218,43 @@ async def get_document_content(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to retrieve document content from storage."
         )
+
+
+@documents_router.get("", response_model=list[DocumentItem])
+async def list_documents(
+    db: DbDep,
+    current_user: CurrentUserDep,
+    tenant_id: UUID | None = None,
+) -> list[DocumentItem]:
+    """List all documents for the current tenant.
+    
+    The tenant_id query param is accepted for frontend compatibility but is
+    ignored in favor of current_user.tenant_id to ensure tenant isolation.
+    """
+    from sqlalchemy import select
+    from app.models import Document
+    
+    result = await db.execute(
+        select(Document).where(Document.tenant_id == current_user.tenant_id).order_by(Document.title)
+    )
+    docs = result.scalars().all()
+    
+    return [
+        DocumentItem(
+            id=doc.id,
+            tenant_id=doc.tenant_id,
+            title=doc.title,
+            department=doc.department,
+            doc_type=doc.doc_type,
+            effective_date=doc.effective_date,
+            version_status=doc.version_status,
+            source_path=doc.source_path,
+            summary=doc.summary,
+            chunk_count=None,
+            ingestion_status=doc.ingestion_status
+        )
+        for doc in docs
+    ]
 
 
 @glossary_router.get("")

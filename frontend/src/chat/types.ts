@@ -114,6 +114,46 @@ export interface CurrentUser {
 }
 
 /**
+ * Enterprise registration request.
+ */
+export interface RegisterEnterpriseRequest {
+  name: string;
+  admin_email?: string;
+  admin_password?: string;
+}
+
+/**
+ * Enterprise registration response.
+ */
+export interface RegisterEnterpriseResponse {
+  tenant_id: string;
+  name: string;
+  message?: string;
+}
+
+/**
+ * User registration request.
+ */
+export interface RegisterUserRequest {
+  email: string;
+  password: string;
+  tenant_code: string;
+  role?: string;
+}
+
+/**
+ * User registration response.
+ */
+export interface RegisterUserResponse {
+  user_id: string;
+  tenant_id: string;
+  email: string;
+  role: string;
+  message?: string;
+}
+
+
+/**
  * Institutional document representation for the Document Library view.
  * Matches Section 4 documents schema.
  */
@@ -129,6 +169,23 @@ export interface DocumentItem {
   summary?: string | null;
   chunk_count?: number;
   ingestion_status?: "done" | "processing" | "pending" | "failed";
+}
+
+/**
+ * Ingestion upload response (Section 5 addendum).
+ */
+export interface UploadResponse {
+  document_id: string;
+  ingestion_status: string;
+}
+
+/**
+ * Document ingestion status response (Section 5 addendum).
+ */
+export interface DocumentStatusResponse {
+  document_id: string;
+  ingestion_status: string;
+  detail?: string | null;
 }
 
 /**
@@ -156,3 +213,4 @@ export interface Conversation {
   createdAt: string;
   updatedAt: string;
 }
+

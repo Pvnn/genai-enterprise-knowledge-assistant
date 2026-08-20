@@ -6,6 +6,7 @@
 import React, { useState, useEffect } from "react";
 import ChatPage from "./chat/ChatPage";
 import Login from "./auth/Login";
+import Register from "./auth/Register";
 import UploadPage from "./upload/UploadPage";
 
 export const App: React.FC = () => {
@@ -25,12 +26,42 @@ export const App: React.FC = () => {
     localStorage.removeItem("access_token");
     localStorage.removeItem("tenant_id");
     localStorage.removeItem("user_role");
+    localStorage.removeItem("user_id");
+    localStorage.removeItem("genai_assistant_conversations");
     window.history.pushState({}, "", "/login");
     setCurrentPath("/login");
   };
 
-  if (currentPath === "/login") {
+  // Auth guard: /login and /register are public; all other routes require access_token
+  if (currentPath !== "/login" && currentPath !== "/register" && !localStorage.getItem("access_token")) {
+    window.history.replaceState({}, "", "/login");
     return <Login />;
+  }
+
+  if (currentPath === "/login") {
+    return (
+      <Login
+        onNavigateRegister={() => {
+          window.history.pushState({}, "", "/register");
+          setCurrentPath("/register");
+        }}
+        onLoginSuccess={() => {
+          window.history.pushState({}, "", "/chat");
+          setCurrentPath("/chat");
+        }}
+      />
+    );
+  }
+
+  if (currentPath === "/register") {
+    return (
+      <Register
+        onNavigateLogin={() => {
+          window.history.pushState({}, "", "/login");
+          setCurrentPath("/login");
+        }}
+      />
+    );
   }
 
   if (currentPath === "/upload") {
@@ -56,10 +87,26 @@ export const App: React.FC = () => {
         </div>
       );
     }
-    return <UploadPage />;
+    return (
+      <UploadPage
+        onNavigateBack={() => {
+          window.history.pushState({}, "", "/chat");
+          setCurrentPath("/chat");
+        }}
+      />
+    );
   }
 
-  return <ChatPage onLogout={handleLogout} />;
+  return (
+    <ChatPage
+      onLogout={handleLogout}
+      userRole={currentUserRole}
+      onNavigateUpload={() => {
+        window.history.pushState({}, "", "/upload");
+        setCurrentPath("/upload");
+      }}
+    />
+  );
 };
 
 export default App;

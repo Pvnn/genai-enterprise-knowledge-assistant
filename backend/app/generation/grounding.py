@@ -33,11 +33,12 @@ class ConfidenceLLMResponse(BaseModel):
     confidence: ConfidenceLevel = Field(
         description="How well the retrieved passages support the drafted answer."
     )
-    refusal_reason: str | None = Field(
-        default=None,
+    refusal_reason: str = Field(
         description=(
-            "If confidence is low, provide a user-facing refusal reason explaining why the passages "
-            "do not answer the question and suggesting where to look. If confidence is high or medium, leave null."
+            "A user-facing explanation of why the retrieved passages do or do not support the answer. "
+            "If confidence is 'low', explain specifically why the passages are insufficient for this query "
+            "and suggest where the user might look for the answer. "
+            "If confidence is 'high' or 'medium', return an empty string."
         ),
     )
 
@@ -93,7 +94,16 @@ async def decide_refusal(
     # Priority 1: LLM self-rate confidence
     # Retry with binary exponential backoff on transient failures.
     MAX_RETRIES = 2
-    client = AsyncOpenAI(api_key=settings.openai_api_key)
+    # Construct client — honour an optional openai_base_url override so that
+    # Groq / local-compatible endpoints work during local development without
+    # code changes (just set OPENAI_BASE_URL in .env). Read via settings, not
+    # os.getenv() directly — pydantic-settings loads .env into settings.*,
+    # it never touches the real OS environment, so os.getenv() here would
+    # silently see nothing and fall back to real OpenAI's default endpoint.
+    client = AsyncOpenAI(
+        api_key=settings.openai_api_key,
+        base_url=settings.openai_base_url,
+    )
     chunk_texts = "\n\n".join([f"Chunk: {c.text}" for c in top_chunks[:5]])
     
     prompt = (
@@ -102,7 +112,7 @@ async def decide_refusal(
         f"Retrieved passages:\n{chunk_texts}\n\n"
         f"Drafted Answer:\n{draft_answer}\n\n"
         "If confidence is 'low', provide a helpful refusal reason explaining that the passages do not contain "
-        "sufficient information to answer the query directly and suggest where or what to check."
+        "sufficient information to answer the query directly and suggest where or what to check. Respond in JSON format with keys 'confidence' (high, medium, low) and 'refusal_reason' (string)."
     )
     
     TRANSIENT_ERRORS = (
@@ -118,20 +128,23 @@ async def decide_refusal(
     llm_refusal_reason = None
     for attempt in range(MAX_RETRIES + 1):
         try:
-            response = await client.responses.parse(
+            response = await client.chat.completions.create(
                 model=settings.llm_model,
-                input=[{"role": "user", "content": prompt}],
-                text_format=ConfidenceLLMResponse,
+                messages=[{"role": "user", "content": prompt}],
+                response_format={"type": "json_object"},
                 temperature=0.0,
             )
-            result = response.output_parsed
+            import json
+            data = json.loads(response.choices[0].message.content)
+            result = ConfidenceLLMResponse(**data)
             if result.confidence == ConfidenceLevel.high:
                 confidence_val = 1.0
             elif result.confidence == ConfidenceLevel.medium:
                 confidence_val = 0.5
             else:
                 confidence_val = 0.0
-                llm_refusal_reason = result.refusal_reason
+                # Model always provides refusal_reason (required str); use it directly.
+                llm_refusal_reason = result.refusal_reason or None
             break
         except TRANSIENT_ERRORS as e:
             wait_seconds = 2 ** attempt  # 1s, 2s
@@ -157,9 +170,7 @@ async def decide_refusal(
 
 
     refused = confidence_val == 0.0
-    reason = None
-    if refused:
-        reason = llm_refusal_reason or default_refusal_reason
+    reason = llm_refusal_reason if refused else None
     
     return RefusalDecision(
         refused=refused,

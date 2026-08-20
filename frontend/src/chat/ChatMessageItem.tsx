@@ -9,7 +9,6 @@
 import React, { useState } from "react";
 import {
   User,
-  Robot,
   Copy,
   Check,
   ThumbsUp,
@@ -22,6 +21,7 @@ import RefusalBanner from "./RefusalBanner";
 import ConflictAlert from "./ConflictAlert";
 import ClarifyPrompt from "./ClarifyPrompt";
 import FeedbackModal from "./FeedbackModal";
+import NodiLogo from "./NodiLogo";
 
 interface ChatMessageItemProps {
   message: ChatMessage;
@@ -66,13 +66,13 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
           className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
             isUser
               ? "bg-surface-elevated text-ink border border-hairline"
-              : "bg-primary-brand text-white shadow-xs"
+              : "bg-surface border border-hairline text-primary-brand shadow-xs"
           }`}
         >
           {isUser ? (
             <User size={15} weight="bold" />
           ) : (
-            <Robot size={15} weight="bold" />
+            <NodiLogo size={18} className="text-primary-brand" />
           )}
         </div>
 
@@ -81,7 +81,7 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
           {/* Header row */}
           <div className="flex items-center justify-between gap-2">
             <span className="text-xs font-semibold text-ink">
-              {isUser ? "You" : "Institutional Policy Assistant"}
+              {isUser ? "You" : "NODI"}
             </span>
             <span className="text-[11px] text-ink-muted font-mono">
               {new Date(message.timestamp).toLocaleTimeString([], {

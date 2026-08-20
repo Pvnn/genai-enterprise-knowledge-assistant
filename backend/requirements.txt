@@ -12,6 +12,7 @@ pgvector>=0.2.5
 # ── Auth ───────────────────────────────────────────────────────────────────────
 python-jose[cryptography]>=3.3.0
 passlib[bcrypt]>=1.7.4
+bcrypt==4.0.1
 python-multipart>=0.0.9
 
 # ── Config ─────────────────────────────────────────────────────────────────────
@@ -28,10 +29,10 @@ docling>=2.0.0          # Docling: PDF → structured markdown
 # GOT-OCR2_0            # Fallback OCR model (install separately if needed)
 
 # ── Reranker (P3 – CPU-only) ──────────────────────────────────────────────────
-FlagEmbedding>=1.2.0    # bge-reranker-base cross-encoder (secondary fallback; sentence-transformers CrossEncoder is primary)
 sentence-transformers>=2.7.0
-sentencepiece>=0.2.0
-transformers>=4.40.0   # upper-bound removed: CrossEncoder backend no longer calls prepare_for_model
+FlagEmbedding>=1.2.0         # bge-reranker-base cross-encoder
+sentencepiece>=0.2.0         # required by XLMRobertaTokenizer in bge-reranker-base
+transformers>=4.46.0 # Required for docling layout heron model (rt_detr_v2)
 
 # ── Testing ───────────────────────────────────────────────────────────────────
 pytest>=8.2.0
