@@ -44,6 +44,7 @@ async def upload_document(
     file: UploadFile = File(..., description="PDF file to ingest"),
     department: str = Form(..., description="Department tag, e.g. HR"),
     doc_type: str = Form(..., description="Document type tag, e.g. policy"),
+    effective_date: str = Form(..., description="Effective date, e.g. YYYY-MM-DD"),
 ) -> UploadResponse:
     """Upload a PDF and trigger async ingestion (admin only).
 
@@ -58,6 +59,7 @@ async def upload_document(
         file: The uploaded PDF file.
         department: Department metadata tag.
         doc_type: Document type metadata tag.
+        effective_date: Effective date metadata tag.
 
     Returns:
         UploadResponse: { document_id, ingestion_status: "pending" }
@@ -95,6 +97,7 @@ async def upload_document(
         title=file.filename,
         department=department,
         doc_type=doc_type,
+        effective_date=effective_date,
         ingestion_status=IngestionStatus.PENDING.value
     )
     db.add(doc)
@@ -107,7 +110,8 @@ async def upload_document(
         document_id=document_id,
         tenant_id=current_user.tenant_id,
         department=department,
-        doc_type=doc_type
+        doc_type=doc_type,
+        effective_date=effective_date
     )
     
     return UploadResponse(

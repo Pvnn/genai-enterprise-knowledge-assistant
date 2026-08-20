@@ -28,7 +28,7 @@ import {
   Scales,
 } from "@phosphor-icons/react";
 import { ChatMessage, Conversation } from "./types";
-import { streamChat } from "../api/client";
+import { streamChat, fetchConversations, fetchConversationDetail, deleteConversationApi } from "../api/client";
 import ChatSidebar from "./ChatSidebar";
 import ChatMessageItem from "./ChatMessageItem";
 import DocumentsLibrary from "./DocumentsLibrary";
@@ -123,6 +123,72 @@ export const ChatPage: React.FC<ChatPageProps> = ({
     }
   }, [darkMode]);
 
+  const [isLoadingDetail, setIsLoadingDetail] = useState(false);
+
+  // Background sync for chat history
+  useEffect(() => {
+    let isMounted = true;
+    const syncConversations = async () => {
+      try {
+        const list = await fetchConversations();
+        if (!isMounted) return;
+        
+        if (list.length > 0) {
+          setConversations(prev => {
+            const newConvs = [...prev];
+            list.forEach((remoteC: any) => {
+              const existingIndex = newConvs.findIndex(c => c.id === remoteC.id);
+              if (existingIndex >= 0) {
+                newConvs[existingIndex] = {
+                  ...newConvs[existingIndex],
+                  title: remoteC.title,
+                  updatedAt: remoteC.updated_at,
+                };
+              } else {
+                newConvs.push({
+                  id: remoteC.id,
+                  title: remoteC.title,
+                  messages: [],
+                  createdAt: remoteC.created_at,
+                  updatedAt: remoteC.updated_at,
+                });
+              }
+            });
+            return newConvs.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+          });
+          
+          if (activeConvId) {
+             try {
+               const detail = await fetchConversationDetail(activeConvId);
+               if (!isMounted) return;
+               const mapped = (detail.messages || []).map((m: any) => ({
+                 ...m,
+                 status: "done",
+                 timestamp: m.created_at,
+                 final: m.role === "assistant" ? {
+                   type: "final",
+                   answer: m.content,
+                   citations: m.citations || [],
+                   confidence: m.confidence || 1.0,
+                   refused: m.refused || false,
+                   refusal_reason: m.refusal_reason,
+                   conflict: false,
+                 } : undefined
+               }));
+               setConversations(prev => prev.map(c => c.id === activeConvId ? { ...c, messages: mapped } : c));
+             } catch (err) {
+               console.error("Detail fetch failed", err);
+             }
+          }
+        }
+      } catch (err) {
+        console.error("Failed to sync conversations", err);
+      }
+    };
+    syncConversations();
+    return () => { isMounted = false; };
+  }, []);
+
   // Persist conversations to localStorage
   useEffect(() => {
     localStorage.setItem(
@@ -152,6 +218,41 @@ export const ChatPage: React.FC<ChatPageProps> = ({
   const currentConversation =
     conversations.find((c) => c.id === activeConvId) || conversations[0];
 
+  const handleSelectConversation = async (id: string) => {
+    setActiveConvId(id);
+    if (window.innerWidth < 1024) {
+      setSidebarOpen(false);
+    }
+    
+    const conv = conversations.find(c => c.id === id);
+    if (conv && conv.messages.length === 0) {
+      setIsLoadingDetail(true);
+    }
+    
+    try {
+      const detail = await fetchConversationDetail(id);
+      const mapped = (detail.messages || []).map((m: any) => ({
+        ...m,
+        status: "done",
+        timestamp: m.created_at,
+        final: m.role === "assistant" ? {
+          type: "final",
+          answer: m.content,
+          citations: m.citations || [],
+          confidence: m.confidence || 1.0,
+          refused: m.refused || false,
+          refusal_reason: m.refusal_reason,
+          conflict: false,
+        } : undefined
+      }));
+      setConversations(prev => prev.map(c => c.id === id ? { ...c, messages: mapped } : c));
+    } catch (err) {
+      console.error("Failed to fetch conversation details", err);
+    } finally {
+      setIsLoadingDetail(false);
+    }
+  };
+
   const handleNewConversation = () => {
     const newId = crypto.randomUUID();
     const newConv: Conversation = {
@@ -167,7 +268,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({
     setCurrentView("chat");
   };
 
-  const handleDeleteConversation = (id: string, e: React.MouseEvent) => {
+  const handleDeleteConversation = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setConversations((prev) => {
       const filtered = prev.filter((c) => c.id !== id);
@@ -190,6 +291,13 @@ export const ChatPage: React.FC<ChatPageProps> = ({
       if (remaining.length > 0) {
         setActiveConvId(remaining[0].id);
       }
+    }
+    
+    // Fire and forget delete API
+    try {
+      await deleteConversationApi(id);
+    } catch (err) {
+      console.error("Failed to delete conversation", err);
     }
   };
 
@@ -412,7 +520,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({
       <ChatSidebar
         conversations={conversations}
         activeId={activeConvId}
-        onSelectConversation={setActiveConvId}
+        onSelectConversation={handleSelectConversation}
         onNewConversation={handleNewConversation}
         onDeleteConversation={handleDeleteConversation}
         currentView={currentView}
@@ -500,7 +608,11 @@ export const ChatPage: React.FC<ChatPageProps> = ({
             <div className="flex-1 overflow-y-auto px-4 sm:px-6 md:px-8 py-6">
               <div className="max-w-3xl mx-auto space-y-5">
                 {/* Empty State with Rich Categorized Starters */}
-                {currentConversation?.messages.length === 0 && (
+                {isLoadingDetail ? (
+                  <div className="flex justify-center items-center h-48">
+                    <div className="w-8 h-8 border-2 border-primary-brand border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                ) : currentConversation?.messages.length === 0 && (
                   <div className="py-8 sm:py-12 text-center space-y-6 animate-in fade-in duration-200">
                     <div className="w-12 h-12 mx-auto rounded-2xl bg-surface border border-hairline flex items-center justify-center shadow-xs">
                       <NodiLogo size={28} className="text-primary-brand" />
