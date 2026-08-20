@@ -28,10 +28,10 @@ docling>=2.0.0          # Docling: PDF → structured markdown
 # GOT-OCR2_0            # Fallback OCR model (install separately if needed)
 
 # ── Reranker (P3 – CPU-only) ──────────────────────────────────────────────────
-FlagEmbedding>=1.2.0    # bge-reranker-base cross-encoder
+FlagEmbedding>=1.2.0    # bge-reranker-base cross-encoder (secondary fallback; sentence-transformers CrossEncoder is primary)
 sentence-transformers>=2.7.0
 sentencepiece>=0.2.0
-transformers>=4.40.0,<4.46.0
+transformers>=4.40.0   # upper-bound removed: CrossEncoder backend no longer calls prepare_for_model
 
 # ── Testing ───────────────────────────────────────────────────────────────────
 pytest>=8.2.0

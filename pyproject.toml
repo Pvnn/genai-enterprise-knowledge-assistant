@@ -34,3 +34,8 @@ markers = [
     "priority1: Priority 1 (core) tests",
     "priority2: Priority 2 (differentiator) tests",
 ]
+# Suppress HuggingFace tokenizer fork-safety warning when subprocess tests run.
+# Requires pytest-env (see backend/requirements-dev.txt).
+env = [
+    "TOKENIZERS_PARALLELISM=false",
+]
