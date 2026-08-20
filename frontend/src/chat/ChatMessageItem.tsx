@@ -7,6 +7,7 @@
  */
 
 import React, { useState } from "react";
+import ReactMarkdown from "react-markdown";
 import {
   User,
   Copy,
@@ -136,11 +137,10 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
           {/* Standard Text or Grounded Answer */}
           {(!message.final?.conflict || message.final?.refused) &&
             message.content && (
-              <div className="text-sm text-ink leading-relaxed whitespace-pre-wrap break-words">
-                {message.content}
-                {message.status === "streaming" && (
-                  <span className="inline-block w-2 h-4 ml-1 bg-accent-gold animate-cursor-pulse align-middle" />
-                )}
+              <div className="text-sm text-ink leading-relaxed break-words prose dark:prose-invert max-w-none">
+                <ReactMarkdown>
+                  {message.content + (message.status === "streaming" ? " ▊" : "")}
+                </ReactMarkdown>
               </div>
             )}
 
