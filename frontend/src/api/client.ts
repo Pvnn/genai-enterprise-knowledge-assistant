@@ -456,7 +456,7 @@ export async function deleteConversationApi(id: string) {
   return response.json();
 }
 
-export async function appendMessageApi(conversationId: string, message: any) {
+export async function appendMessageApi(conversationId: string, message: unknown) {
   const response = await fetch(`${API_BASE}/conversations/${conversationId}/messages`, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...getAuthHeader() },
@@ -469,3 +469,24 @@ export async function appendMessageApi(conversationId: string, message: any) {
 
 export { API_BASE };
 
+
+/**
+ * Fetch the full markdown content of a document.
+ */
+export async function getDocumentContent(documentId: string): Promise<string> {
+  const response = await fetch(`${API_BASE}/documents/${documentId}/content`, {
+    headers: {
+      ...getAuthHeader(),
+    },
+  });
+
+  if (response.status === 401) {
+    window.dispatchEvent(new Event("auth_error"));
+  }
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch document content");
+  }
+
+  return response.text();
+}

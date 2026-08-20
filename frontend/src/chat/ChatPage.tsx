@@ -30,6 +30,7 @@ import {
 import { ChatMessage, Conversation } from "./types";
 import { streamChat, fetchConversations, fetchConversationDetail, deleteConversationApi } from "../api/client";
 import ChatSidebar from "./ChatSidebar";
+import DocumentSidePanel from "./DocumentSidePanel";
 import ChatMessageItem from "./ChatMessageItem";
 import DocumentsLibrary from "./DocumentsLibrary";
 import NodiLogo from "./NodiLogo";
@@ -81,7 +82,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({
       if (raw) {
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed.map((c: Conversation) => ({
+          return parsed.map((c: unknown) => ({
             ...c,
             title: c.title === "New Policy Inquiry" ? "New Chat" : c.title,
           }));
@@ -107,6 +108,20 @@ export const ChatPage: React.FC<ChatPageProps> = ({
   });
 
   const [inputQuery, setInputQuery] = useState("");
+
+  const [activeCitationDocId, setActiveCitationDocId] = useState<string | null>(null);
+  const [activeCitationText, setActiveCitationText] = useState<string | null>(null);
+  
+  const handleOpenCitation = (docId: string, text: string) => {
+    setActiveCitationDocId(docId);
+    setActiveCitationText(text);
+  };
+  
+  const handleCloseCitation = () => {
+    setActiveCitationDocId(null);
+    setActiveCitationText(null);
+  };
+
   const [isStreaming, setIsStreaming] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -136,7 +151,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({
         if (list.length > 0) {
           setConversations(prev => {
             const newConvs = [...prev];
-            list.forEach((remoteC: any) => {
+            list.forEach((remoteC: unknown) => {
               const existingIndex = newConvs.findIndex(c => c.id === remoteC.id);
               if (existingIndex >= 0) {
                 newConvs[existingIndex] = {
@@ -161,7 +176,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({
              try {
                const detail = await fetchConversationDetail(activeConvId);
                if (!isMounted) return;
-               const mapped = (detail.messages || []).map((m: any) => ({
+               const mapped = (detail.messages || []).map((m: unknown) => ({
                  ...m,
                  status: "done",
                  timestamp: m.created_at,
@@ -231,7 +246,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({
     
     try {
       const detail = await fetchConversationDetail(id);
-      const mapped = (detail.messages || []).map((m: any) => ({
+      const mapped = (detail.messages || []).map((m: unknown) => ({
         ...m,
         status: "done",
         timestamp: m.created_at,
@@ -594,8 +609,10 @@ export const ChatPage: React.FC<ChatPageProps> = ({
           </div>
         </header>
 
-        {/* View Switch */}
-        {currentView === "documents" ? (
+        <div className="flex-1 flex flex-row min-w-0 overflow-hidden relative">
+          <div className={`flex flex-col h-full transition-all duration-300 min-w-0 ${activeCitationDocId ? 'w-7/12' : 'w-full'} relative`}>
+            {/* View Switch */}
+            {currentView === "documents" ? (
           <DocumentsLibrary
             tenantId={tenantId}
             onAskAboutDocument={handleAskAboutDoc}
@@ -684,8 +701,9 @@ export const ChatPage: React.FC<ChatPageProps> = ({
                 {/* Render Messages */}
                 {currentConversation?.messages.map((message) => (
                   <ChatMessageItem
-                    key={message.id}
-                    message={message}
+                      key={message.id}
+                      message={message}
+                      onCitationClick={handleOpenCitation}
                     onClarifyRespond={(reply) => handleSendMessage(reply)}
                     onFeedbackUpdate={handleFeedbackUpdate}
                   />
@@ -741,9 +759,20 @@ export const ChatPage: React.FC<ChatPageProps> = ({
                 </div>
               </div>
             </div>
-          </>
-        )}
-      </main>
+            </>
+          )}
+          </div>
+          {activeCitationDocId && (
+            <div className="w-5/12 h-full z-10 shrink-0 border-l border-hairline bg-surface">
+              <DocumentSidePanel
+                documentId={activeCitationDocId}
+                citationText={activeCitationText}
+                onClose={handleCloseCitation}
+              />
+            </div>
+          )}
+        </div>
+        </main>
     </div>
   );
 };

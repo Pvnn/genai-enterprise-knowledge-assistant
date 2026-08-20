@@ -16,9 +16,10 @@ import { Citation } from "./types";
 
 interface CitationCardProps {
   citations: Citation[];
+  onCitationClick?: (docId: string, text: string) => void;
 }
 
-export const CitationCard: React.FC<CitationCardProps> = ({ citations }) => {
+export const CitationCard: React.FC<CitationCardProps> = ({ citations, onCitationClick }) => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   if (!citations || citations.length === 0) return null;
@@ -53,7 +54,8 @@ export const CitationCard: React.FC<CitationCardProps> = ({ citations }) => {
           return (
             <div
               key={cite.chunk_id || index}
-              className="group relative flex flex-col justify-between p-2.5 rounded-xl border border-hairline bg-surface hover:border-accent-gold/50 transition-colors shadow-2xs"
+              onClick={() => onCitationClick && onCitationClick(cite.document_id, cite.text)}
+              className="group relative flex flex-col justify-between p-2.5 rounded-xl border border-hairline bg-surface hover:border-accent-gold/50 transition-colors shadow-2xs cursor-pointer"
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="flex items-center gap-1.5 min-w-0">
