@@ -225,6 +225,20 @@ class DocumentStatusResponse(BaseModel):
     detail: str | None = None  # human-readable note, e.g. failure reason
 
 
+class DocumentItem(BaseModel):
+    id: UUID
+    tenant_id: UUID
+    title: str
+    department: str | None = None
+    doc_type: str | None = None
+    effective_date: str | None = None
+    version_status: str | None = None
+    source_path: str | None = None
+    summary: str | None = None
+    chunk_count: int | None = None
+    ingestion_status: str | None = None
+
+
 # ── Conversation threads & messages ──────────────────────────────────────────
 
 class MessageCreate(BaseModel):
