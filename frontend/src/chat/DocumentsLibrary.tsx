@@ -21,6 +21,7 @@ import {
 } from "@phosphor-icons/react";
 import { DocumentItem } from "./types";
 import { fetchDocuments } from "../api/client";
+import UploadModal from "../upload/UploadModal";
 
 interface DocumentsLibraryProps {
   tenantId: string;
@@ -39,20 +40,25 @@ export const DocumentsLibrary: React.FC<DocumentsLibraryProps> = ({
   const currentUserRole = userRole || localStorage.getItem("user_role") || "member";
   const isAdmin = currentUserRole === "admin";
 
-  const handleUploadClick = () => {
-    if (onNavigateUpload) {
-      onNavigateUpload();
-    } else {
-      window.history.pushState({}, "", "/upload");
-      window.dispatchEvent(new PopStateEvent("popstate"));
-    }
-  };
-
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDept, setSelectedDept] = useState("All");
   const [selectedStatus, setSelectedStatus] = useState("All");
   const [loading, setLoading] = useState(true);
+
+  const refreshDocuments = () => {
+    fetchDocuments(tenantId).then((docs) => {
+      setDocuments(docs);
+    });
+  };
+
+  const handleUploadClick = () => {
+    setIsUploadModalOpen(true);
+    if (onNavigateUpload) {
+      onNavigateUpload();
+    }
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -268,6 +274,14 @@ export const DocumentsLibrary: React.FC<DocumentsLibraryProps> = ({
             })}
           </div>
         )}
+        {/* Upload Modal (In-place modal experience for Admins) */}
+        <UploadModal
+          isOpen={isUploadModalOpen}
+          onClose={() => setIsUploadModalOpen(false)}
+          onUploadSuccess={() => {
+            refreshDocuments();
+          }}
+        />
       </div>
     </div>
   );
