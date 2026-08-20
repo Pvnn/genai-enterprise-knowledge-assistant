@@ -8,14 +8,13 @@
  */
 
 import React, { useState, useEffect } from "react";
-import { Eye, EyeSlash, BuildingOffice, EnvelopeSimple, LockSimple, ArrowRight, WarningCircle } from "@phosphor-icons/react";
+import { Eye, EyeSlash, EnvelopeSimple, LockSimple, ArrowRight, WarningCircle } from "@phosphor-icons/react";
 import { login } from "../api/client";
 import { Register } from "./Register";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
 interface FormState {
-  tenant_code: string;
   email: string;
   password: string;
 }
@@ -25,7 +24,6 @@ interface FormState {
 const Login: React.FC = () => {
   const [view, setView] = useState<"login" | "register">("login");
   const [form, setForm] = useState<FormState>({
-    tenant_code: "",
     email: "",
     password: "",
   });
@@ -53,7 +51,7 @@ const Login: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.tenant_code.trim() || !form.email.trim() || !form.password) {
+    if (!form.email.trim() || !form.password) {
       setError("All fields are required.");
       return;
     }
@@ -65,7 +63,6 @@ const Login: React.FC = () => {
       const resp = await login({
         email: form.email.trim(),
         password: form.password,
-        tenant_code: form.tenant_code.trim(),
       });
 
       // Persist auth state — keys match what App.tsx and ChatPage.tsx read
@@ -118,29 +115,7 @@ const Login: React.FC = () => {
 
           <form onSubmit={handleSubmit} noValidate className="space-y-4">
 
-            {/* Institution field */}
-            <div>
-              <label htmlFor="tenant_code" className="block text-xs font-medium text-ink-muted mb-1.5">
-                Institution
-              </label>
-              <div className="relative">
-                <BuildingOffice
-                  size={15}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none"
-                />
-                <input
-                  id="tenant_code"
-                  name="tenant_code"
-                  type="text"
-                  autoComplete="organization"
-                  placeholder="Acme University"
-                  value={form.tenant_code}
-                  onChange={handleChange}
-                  disabled={loading}
-                  className="w-full pl-9 pr-3 py-2.5 text-sm rounded-xl border border-hairline bg-canvas text-ink placeholder:text-ink-muted/60 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-brand)] focus:border-transparent disabled:opacity-50 transition-shadow"
-                />
-              </div>
-            </div>
+            
 
             {/* Email field */}
             <div>
