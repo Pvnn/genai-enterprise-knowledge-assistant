@@ -91,7 +91,7 @@ export interface ErrorResponse {
 export interface LoginRequest {
   email: string;
   password: string;
-  tenant_code: string;
+  tenant_code?: string;
 }
 
 /**
