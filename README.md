@@ -198,6 +198,28 @@ Stage 5 ─ Grounded Generation [P4 + P5]
 - PostgreSQL 15+ with `pgvector` extension
 - NVIDIA GPU with 4–6 GB VRAM (P1 only, for Marker OCR)
 
+### Using a Local PostgreSQL Database (Docker)
+
+If you prefer to run PostgreSQL locally instead of using Neon, you can quickly spin up a container with the \pgvector\ extension pre-installed using the provided \docker-compose.yml\.
+
+1. **Start the database container:**
+   \\ash
+   docker compose up -d
+   \   This will start a local database exposed on port ţ3\ (to avoid conflicts with native PostgreSQL installations).
+
+2. **Update your \.env\ file:**
+   Change your \DATABASE_URL\ to point to the local instance:
+   \\env
+   DATABASE_URL=postgresql+asyncpg://local_user:local_password@localhost:5433/local_db
+   \
+3. **Initialize the vector extension & run migrations:**
+   Before running the app, ensure the \ector\ extension is enabled and the schema is created:
+   \\ash
+   docker exec genai-postgres psql -U local_user -d local_db -c "CREATE EXTENSION IF NOT EXISTS vector;"
+   cd backend
+   alembic upgrade head
+   \
+
 ### Backend setup
 
 ```bash
