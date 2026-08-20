@@ -27,6 +27,7 @@ async def ingest_document(
     tenant_id: UUID,
     department: str | None,
     doc_type: str | None,
+    effective_date: str | None = None,
 ) -> None:
     """Orchestrate the end-to-end ingestion pipeline for a single document.
     
