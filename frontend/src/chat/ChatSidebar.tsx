@@ -6,7 +6,8 @@
  * Branded for NODI with Grounded enterprise knowledge.
  */
 
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { getMe } from "../api/client";
 import {
   Plus,
   ChatCircleText,
@@ -28,7 +29,7 @@ interface ChatSidebarProps {
   onDeleteConversation: (id: string, e: React.MouseEvent) => void;
   currentView: "chat" | "documents";
   onSelectView: (view: "chat" | "documents") => void;
-  tenantId: string;
+  
   onTenantChange: (newTenant: string) => void;
   darkMode: boolean;
   onToggleDarkMode: () => void;
@@ -45,13 +46,26 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
   onDeleteConversation,
   currentView,
   onSelectView,
-  tenantId,
+  
   darkMode,
   onToggleDarkMode,
   isOpen,
   onCloseMobile,
   onLogout,
 }) => {
+  const [email, setEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    getMe().then(user => {
+      if (user && user.email) {
+        setEmail(user.email);
+      }
+    }).catch(err => console.error("Failed to fetch user email", err));
+  }, []);
+
+  const username = email ? email.split("@")[0] : "User";
+  const organization = email ? email.split("@")[1].split(".")[0] : "Organization";
+
   return (
     <>
       {/* Mobile backdrop */}
@@ -205,10 +219,12 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
 
         {/* Footer info, theme toggle, and logout */}
         <div className="p-3 border-t border-hairline space-y-2 text-xs">
-          <div className="px-2 py-1.5 rounded-lg bg-surface flex items-center justify-between border border-hairline text-ink-muted">
-            <span className="text-[11px]">Tenant Scope:</span>
-            <span className="font-mono text-[11px] text-ink truncate max-w-[120px]" title={tenantId}>
-              {tenantId.slice(0, 8)}...
+          <div className="px-2 py-1.5 rounded-lg bg-surface flex flex-col justify-center border border-hairline text-ink-muted">
+            <span className="text-[11px] font-semibold text-ink truncate" title={email || ""}>
+              {username}
+            </span>
+            <span className="text-[10px] uppercase tracking-wider truncate" title={email || ""}>
+              {organization}
             </span>
           </div>
 
