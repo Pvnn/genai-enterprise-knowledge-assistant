@@ -6,20 +6,11 @@
 import React, { useState, useEffect } from "react";
 import ChatPage from "./chat/ChatPage";
 import Login from "./auth/Login";
-import Register from "./auth/Register";
+import { Register } from "./auth/Register";
 import UploadPage from "./upload/UploadPage";
 
 export const App: React.FC = () => {
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
-
-  useEffect(() => {
-    const handlePopState = () => setCurrentPath(window.location.pathname);
-    window.addEventListener("popstate", handlePopState);
-    return () => window.removeEventListener("popstate", handlePopState);
-  }, []);
-
-  // TODO: confirm with P6 whether auth/* already exposes these via a hook or context.
-  const currentUserRole = localStorage.getItem("user_role") || "member";
 
   const handleLogout = () => {
     // TODO: Delegate to P6 auth module (e.g. useAuth().logout()) once P6 exposes a logout function/hook.
@@ -31,6 +22,22 @@ export const App: React.FC = () => {
     window.history.pushState({}, "", "/login");
     setCurrentPath("/login");
   };
+
+  useEffect(() => {
+    const handlePopState = () => setCurrentPath(window.location.pathname);
+    window.addEventListener("popstate", handlePopState);
+
+    const handleAuthError = () => handleLogout();
+    window.addEventListener("auth_error", handleAuthError);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+      window.removeEventListener("auth_error", handleAuthError);
+    };
+  }, []); // handleLogout only uses stable setCurrentPath
+
+  // TODO: confirm with P6 whether auth/* already exposes these via a hook or context.
+  const currentUserRole = localStorage.getItem("user_role") || "member";
 
   // Auth guard: /login and /register are public; all other routes require access_token
   if (currentPath !== "/login" && currentPath !== "/register" && !localStorage.getItem("access_token")) {

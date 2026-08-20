@@ -40,124 +40,6 @@ function getAuthHeader(): Record<string, string> {
   return { Authorization: `Bearer ${token}` };
 }
 
-/**
- * Stream simulated responses for offline testing and demo presentations.
- */
-async function streamMockResponse(
-  request: ChatRequest,
-  callbacks: {
-    onToken?: (event: TokenEvent) => void;
-    onClarify?: (event: ClarifyEvent) => void;
-    onFinal?: (event: FinalEvent) => void;
-    onError?: (error: ErrorResponse | Error) => void;
-  },
-  signal?: AbortSignal
-): Promise<void> {
-  const lower = request.query.toLowerCase();
-
-  // 1. Clarification Scenario
-  if (lower.includes("clarify") || lower.includes("leave entitlement") || lower.includes("who is eligible")) {
-    await new Promise((resolve) => setTimeout(resolve, 400));
-    if (signal?.aborted) return;
-    callbacks.onClarify?.({
-      type: "clarify",
-      question: "Are you inquiring as teaching faculty, administrative staff, or a full-time research scholar?",
-    });
-    return;
-  }
-
-  // 2. Conflict Scenario
-  if (lower.includes("conflict") || lower.includes("dispute") || lower.includes("attendance requirement")) {
-    const tokens = [
-      "There appear to be two conflicting versions on file regarding attendance requirements:\n\n",
-      "- Academic Ordinance 2021 (effective 2021-07-01) states minimum 75% attendance.\n",
-      "- Academic Circular 2024 (effective 2024-01-15) states minimum 80% attendance with 5% medical condonation.\n\n",
-      "Please confirm which applies to your program or flag this to the registrar.",
-    ];
-
-    for (const token of tokens) {
-      if (signal?.aborted) return;
-      await new Promise((resolve) => setTimeout(resolve, 80));
-      callbacks.onToken?.({ type: "token", content: token });
-    }
-
-    callbacks.onFinal?.({
-      type: "final",
-      answer: "There appear to be two conflicting versions on file:\n- Academic Ordinance 2021 (effective 2021-07-01) states 75% minimum attendance.\n- Academic Circular 2024 (effective 2024-01-15) states 80% minimum attendance.\nPlease confirm with the academic dean.",
-      citations: [
-        {
-          chunk_id: "c-ordinance-2021-01",
-          document_id: "doc-ordinance-2021",
-          section_path: "Academic Regulations / Section 4.2 Attendance",
-          source_path: "Academic_Ordinance_2021.pdf",
-        },
-        {
-          chunk_id: "c-circular-2024-08",
-          document_id: "doc-circular-2024",
-          section_path: "Executive Circulars / Circular 12 Clause 3",
-          source_path: "Circular_2024_Attendance.pdf",
-        },
-      ],
-      confidence: 0.88,
-      refused: false,
-      refusal_reason: null,
-      conflict: true,
-    });
-    return;
-  }
-
-  // 3. Refusal Scenario (Low confidence)
-  if (lower.includes("parking") || lower.includes("gym") || lower.includes("unknown") || lower.includes("refusal")) {
-    await new Promise((resolve) => setTimeout(resolve, 350));
-    callbacks.onFinal?.({
-      type: "final",
-      answer: "I could not find a passage in the current policy documents that directly answers this. You may want to check with General Administration or rephrase your question.",
-      citations: [],
-      confidence: 0.38,
-      refused: true,
-      refusal_reason: "I could not find a passage in the current policy documents that directly answers this. You may want to check with General Administration or rephrase your question.",
-      conflict: false,
-    });
-    return;
-  }
-
-  // 4. Standard Grounded Answer Scenario
-  const chunks = [
-    "Under the Institutional Leave Policy 2025 (Section 3.2.2), permanent faculty members are entitled to ",
-    "30 days of earned leave and 15 days of casual leave per calendar year. ",
-    "Maternity leave of 180 days is fully paid upon completion of one year of continuous service.\n\n",
-    "Applications must be submitted through the enterprise ERP portal at least 14 days in advance.",
-  ];
-
-  for (const chunk of chunks) {
-    if (signal?.aborted) return;
-    await new Promise((resolve) => setTimeout(resolve, 90));
-    callbacks.onToken?.({ type: "token", content: chunk });
-  }
-
-  callbacks.onFinal?.({
-    type: "final",
-    answer: "Under the Institutional Leave Policy 2025 (Section 3.2.2), permanent faculty members are entitled to 30 days of earned leave and 15 days of casual leave per calendar year. Maternity leave of 180 days is fully paid upon completion of one year of continuous service.\n\nApplications must be submitted through the enterprise ERP portal at least 14 days in advance.",
-    citations: [
-      {
-        chunk_id: "chk-leave-301",
-        document_id: "doc-leave-policy-2025",
-        section_path: "Leave Policy 2025 / Section 3.2.2 Maternity Entitlement",
-        source_path: "Institutional_Leave_Rules_2025.pdf",
-      },
-      {
-        chunk_id: "chk-admin-proc-104",
-        document_id: "doc-admin-handbook-v2",
-        section_path: "Administrative Procedures / Clause 8 ERP Submissions",
-        source_path: "Admin_Procedures_Handbook.pdf",
-      },
-    ],
-    confidence: 0.94,
-    refused: false,
-    refusal_reason: null,
-    conflict: false,
-  });
-}
 
 /**
  * Stream a chat completion from POST /chat using Server-Sent Events.
@@ -186,6 +68,9 @@ export async function streamChat(
     });
 
     if (!response.ok) {
+      if (response.status === 401) {
+        window.dispatchEvent(new Event("auth_error"));
+      }
       let errorData: ErrorResponse;
       try {
         errorData = await response.json();
@@ -267,10 +152,7 @@ export async function streamChat(
     if (err instanceof DOMException && err.name === "AbortError") {
       return;
     }
-
-    // If backend connection fails (e.g. backend not yet started), provide realistic demo stream
-    console.info("Live backend unreachable, activating interactive demo simulation.");
-    await streamMockResponse(request, callbacks, signal);
+    callbacks.onError?.({ error: "http_error", detail: "Backend unreachable" });
   }
 }
 
@@ -306,103 +188,40 @@ export async function submitFeedback(
   return response.json();
 }
 
+let cachedDocuments: DocumentItem[] | null = null;
+let lastTenantId: string | null = null;
+
+export function invalidateDocumentsCache() {
+  cachedDocuments = null;
+}
+
 /**
  * Fetch list of indexed documents for the institutional knowledge library.
  */
-export async function fetchDocuments(tenant_id: string): Promise<DocumentItem[]> {
-  try {
-    const response = await fetch(`${API_BASE}/documents?tenant_id=${tenant_id}`, {
-      headers: {
-        ...getAuthHeader(),
-      },
-    });
-    if (response.ok) {
-      return await response.json();
-    }
-  } catch {
-    // Fall back to institutional policy documents catalog
+export async function fetchDocuments(tenant_id: string, forceRefetch = false): Promise<DocumentItem[]> {
+  if (!forceRefetch && cachedDocuments && lastTenantId === tenant_id) {
+    return cachedDocuments;
   }
 
-  return [
-    {
-      id: "doc-leave-policy-2025",
-      tenant_id,
-      title: "Institutional Leave Rules and Guidelines 2025",
-      department: "Human Resources",
-      doc_type: "Policy",
-      effective_date: "2025-01-01",
-      version_status: "current",
-      source_path: "uploads/hr/Institutional_Leave_Rules_2025.pdf",
-      summary: "Comprehensive leave entitlements covering casual leave, earned leave, maternity, paternity, and sabbatical provisions.",
-      chunk_count: 42,
-      ingestion_status: "done",
+  const response = await fetch(`${API_BASE}/documents?tenant_id=${tenant_id}`, {
+    headers: {
+      ...getAuthHeader(),
     },
-    {
-      id: "doc-travel-reimburse-2024",
-      tenant_id,
-      title: "Official Travel, DA and Per Diem Regulations",
-      department: "Finance & Accounts",
-      doc_type: "Regulation",
-      effective_date: "2024-04-01",
-      version_status: "current",
-      source_path: "uploads/finance/Travel_DA_Regulations_2024.pdf",
-      summary: "Prescribes travel allowances, hotel caps, daily allowance per diem, and conference travel claim workflows.",
-      chunk_count: 28,
-      ingestion_status: "done",
-    },
-    {
-      id: "doc-academic-ordinance-2024",
-      tenant_id,
-      title: "Academic Ordinance for Semester Grading and Evaluation",
-      department: "Academic Affairs",
-      doc_type: "Ordinance",
-      effective_date: "2024-08-01",
-      version_status: "current",
-      source_path: "uploads/academic/Academic_Ordinance_Grading_2024.pdf",
-      summary: "Governs letter grading scale, SGPA/CGPA calculations, re-evaluation petitions, and minimum attendance thresholds.",
-      chunk_count: 56,
-      ingestion_status: "done",
-    },
-    {
-      id: "doc-procurement-guidelines-2023",
-      tenant_id,
-      title: "Departmental Purchase and Procurement Manual",
-      department: "Procurement",
-      doc_type: "Manual",
-      effective_date: "2023-11-15",
-      version_status: "current",
-      source_path: "uploads/procurement/Purchase_Manual_2023.pdf",
-      summary: "Financial delegation thresholds, tender bidding procedures, single-quotation limits, and audit protocols.",
-      chunk_count: 64,
-      ingestion_status: "done",
-    },
-    {
-      id: "doc-research-grant-policy-2024",
-      tenant_id,
-      title: "Inter-Departmental Research Seed Grant Scheme",
-      department: "Research & Development",
-      doc_type: "Scheme",
-      effective_date: "2024-06-01",
-      version_status: "current",
-      source_path: "uploads/rnd/Research_Seed_Grant_2024.pdf",
-      summary: "Funding guidelines for interdisciplinary research proposals, equipment procurement, and research assistant stipends.",
-      chunk_count: 35,
-      ingestion_status: "done",
-    },
-    {
-      id: "doc-ordinance-2021-archived",
-      tenant_id,
-      title: "Academic Ordinance 2021 (Superseded)",
-      department: "Academic Affairs",
-      doc_type: "Ordinance",
-      effective_date: "2021-07-01",
-      version_status: "superseded",
-      source_path: "uploads/archive/Academic_Ordinance_2021.pdf",
-      summary: "Previous grading and attendance regulations (superseded by 2024 revision).",
-      chunk_count: 52,
-      ingestion_status: "done",
-    },
-  ];
+  });
+
+  if (response.status === 401) {
+    window.dispatchEvent(new Event("auth_error"));
+    throw new Error("Unauthorized");
+  }
+
+  if (response.ok) {
+    const data = await response.json();
+    cachedDocuments = data;
+    lastTenantId = tenant_id;
+    return data;
+  }
+
+  throw new Error("Failed to fetch documents");
 }
 
 /**
@@ -562,6 +381,7 @@ export async function uploadDocument(
     throw new Error(errorData.detail || errorData.error);
   }
 
+  invalidateDocumentsCache();
   return response.json();
 }
 
@@ -592,6 +412,56 @@ export async function getDocumentStatus(
     throw new Error(errorData.detail || errorData.error);
   }
 
+  return response.json();
+}
+
+export async function fetchConversations() {
+  const response = await fetch(`${API_BASE}/conversations`, {
+    headers: { ...getAuthHeader() },
+  });
+  if (response.status === 401) window.dispatchEvent(new Event("auth_error"));
+  if (!response.ok) throw new Error("Failed to fetch conversations");
+  return response.json();
+}
+
+export async function fetchConversationDetail(id: string) {
+  const response = await fetch(`${API_BASE}/conversations/${id}`, {
+    headers: { ...getAuthHeader() },
+  });
+  if (response.status === 401) window.dispatchEvent(new Event("auth_error"));
+  if (!response.ok) throw new Error("Failed to fetch conversation");
+  return response.json();
+}
+
+export async function createConversation(title: string) {
+  const response = await fetch(`${API_BASE}/conversations`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...getAuthHeader() },
+    body: JSON.stringify({ title }),
+  });
+  if (response.status === 401) window.dispatchEvent(new Event("auth_error"));
+  if (!response.ok) throw new Error("Failed to create conversation");
+  return response.json();
+}
+
+export async function deleteConversationApi(id: string) {
+  const response = await fetch(`${API_BASE}/conversations/${id}`, {
+    method: "DELETE",
+    headers: { ...getAuthHeader() },
+  });
+  if (response.status === 401) window.dispatchEvent(new Event("auth_error"));
+  if (!response.ok) throw new Error("Failed to delete conversation");
+  return response.json();
+}
+
+export async function appendMessageApi(conversationId: string, message: any) {
+  const response = await fetch(`${API_BASE}/conversations/${conversationId}/messages`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...getAuthHeader() },
+    body: JSON.stringify(message),
+  });
+  if (response.status === 401) window.dispatchEvent(new Event("auth_error"));
+  if (!response.ok) throw new Error("Failed to append message");
   return response.json();
 }
 
