@@ -18,6 +18,7 @@ import {
   Buildings,
   Tag,
   ArrowClockwise,
+  CalendarDotsIcon,
 } from "@phosphor-icons/react";
 import { uploadDocument, getDocumentStatus } from "../api/client";
 import { DocumentStatusResponse, UploadResponse } from "../chat/types";
@@ -41,6 +42,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [department, setDepartment] = useState("");
   const [docType, setDocType] = useState("");
+  const [effectiveDate, setEffectiveDate] = useState("");
   const [status, setStatus] = useState<IngestionStatus>("idle");
   const [documentId, setDocumentId] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -50,6 +52,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
     setSelectedFile(null);
     setDepartment("");
     setDocType("");
+    setEffectiveDate("");
     setStatus("idle");
     setDocumentId(null);
     setErrorMsg(null);
@@ -123,6 +126,10 @@ export const UploadModal: React.FC<UploadModalProps> = ({
         setErrorMsg("Document type is required.");
         return;
       }
+      if (!effectiveDate.trim()) {
+        setErrorMsg("Effective date is required.");
+        return;
+      }
 
       setStatus("pending");
 
@@ -130,7 +137,8 @@ export const UploadModal: React.FC<UploadModalProps> = ({
         const data: UploadResponse = await uploadDocument(
           file,
           department.trim(),
-          docType.trim()
+          docType.trim(),
+          effectiveDate.trim()
         );
         setDocumentId(data.document_id);
         setStatus("processing");
@@ -140,7 +148,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
         setErrorMsg(err instanceof Error ? err.message : "Upload failed.");
       }
     },
-    [selectedFile, department, docType, pollStatus]
+    [selectedFile, department, docType, effectiveDate, pollStatus]
   );
 
   if (!isOpen) return null;
@@ -372,6 +380,24 @@ export const UploadModal: React.FC<UploadModalProps> = ({
                   </button>
                 ))}
               </div>
+            </div>
+
+            {/* Effective Date Field */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label htmlFor="effectivedate-input" className="font-medium text-ink-muted flex items-center gap-1.5">
+                  <CalendarDotsIcon size={14} />
+                  <span>Effective Date</span>
+                </label>
+              </div>
+              <input
+                id="effectivedate-input"
+                type="date"
+                value={effectiveDate}
+                onChange={(e) => setEffectiveDate(e.target.value)}
+                disabled={status === "pending" || status === "processing"}
+                className="w-full px-3 py-2 text-xs rounded-xl border border-hairline bg-surface text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-primary-brand/30 shadow-2xs"
+              />
             </div>
 
             {/* Actions */}

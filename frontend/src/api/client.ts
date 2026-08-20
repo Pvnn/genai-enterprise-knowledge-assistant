@@ -353,12 +353,14 @@ export async function registerUser(
 export async function uploadDocument(
   file: File,
   department: string,
-  docType: string
+  docType: string,
+  effectiveDate: string
 ): Promise<UploadResponse> {
   const formData = new FormData();
   formData.append("file", file);
   formData.append("department", department.trim());
   formData.append("doc_type", docType.trim());
+  formData.append("effective_date", effectiveDate.trim());
 
   const response = await fetch(`${API_BASE}/documents/upload`, {
     method: "POST",
