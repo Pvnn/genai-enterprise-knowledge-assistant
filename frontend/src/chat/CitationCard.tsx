@@ -32,15 +32,23 @@ export const CitationCard: React.FC<CitationCardProps> = ({ citations }) => {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  const uniqueCitations = citations.reduce((acc, current) => {
+    const key = `${current.document_id}-${current.section_path}`;
+    if (!acc.some(item => `${item.document_id}-${item.section_path}` === key)) {
+      acc.push(current);
+    }
+    return acc;
+  }, [] as Citation[]);
+
   return (
     <div className="mt-4 pt-3 border-t border-hairline">
       <div className="flex items-center gap-1.5 text-xs font-semibold text-accent-gold mb-2">
         <BookmarkSimple size={14} weight="bold" />
-        <span>Grounded Sources ({citations.length})</span>
+        <span>Grounded Sources ({uniqueCitations.length})</span>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-        {citations.map((cite, index) => {
+        {uniqueCitations.map((cite, index) => {
           const isCopied = copiedId === cite.chunk_id;
           return (
             <div

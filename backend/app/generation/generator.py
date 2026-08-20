@@ -1,4 +1,4 @@
-﻿"""Stage 5 – Grounded answer generation and full pipeline orchestration.
+"""Stage 5 – Grounded answer generation and full pipeline orchestration.
 
 Owner: P4  |  Priority: 1
 This file is the single orchestration point for the entire query pipeline.
@@ -134,7 +134,7 @@ async def generate_answer(
             )
 
         # --- Step 5 (done here, before rerank — see docstring note 1): merge ---
-        merged = _dedupe_by_chunk_id(all_chunks)
+        merged = _dedupe_chunks(all_chunks)
 
         # --- Step 4: rerank the merged pool (or trim to top N if unavailable) ---
         top_chunks = await _rerank_or_take_top_n(expanded_query, merged)
@@ -240,13 +240,14 @@ async def _retrieve_for_subquery(
     )
 
 
-def _dedupe_by_chunk_id(chunks: list[ChunkResult]) -> list[ChunkResult]:
-    """Merges chunks pulled from multiple sub-queries, keeping the highest score per chunk."""
-    best: dict[UUID, ChunkResult] = {}
+def _dedupe_chunks(chunks: list[ChunkResult]) -> list[ChunkResult]:
+    """Merges chunks pulled from multiple sub-queries, keeping the highest score per unique text."""
+    best: dict[str, ChunkResult] = {}
     for c in chunks:
-        existing = best.get(c.chunk_id)
+        text_key = c.text.strip()
+        existing = best.get(text_key)
         if existing is None or c.score > existing.score:
-            best[c.chunk_id] = c
+            best[text_key] = c
     return sorted(best.values(), key=lambda c: c.score, reverse=True)
 
 
