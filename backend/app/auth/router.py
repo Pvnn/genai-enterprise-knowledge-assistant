@@ -59,14 +59,10 @@ async def login(request: LoginRequest, session: DbDep) -> LoginResponse:
         HTTPException 400: Unknown tenant_code.
         HTTPException 401: Wrong email or password.
     """
-    # Step 1 — resolve tenant (raises 400 if unknown)
-    tenant_id = await resolve_tenant(request.tenant_code, session)
-
-    # Step 2 — look up user by email, scoped to this tenant
+    # Step 1 - look up user by email directly
     result = await session.execute(
         select(User).where(
             User.email == request.email,
-            User.tenant_id == tenant_id,
         )
     )
     user: User | None = result.scalar_one_or_none()
@@ -76,7 +72,7 @@ async def login(request: LoginRequest, session: DbDep) -> LoginResponse:
     # leaking whether the email exists via timing differences.
     if user is None or not _pwd_context.verify(request.password, user.password_hash):
         logger.warning(
-            "Failed login attempt for email=%r tenant_id=%s", request.email, tenant_id
+            "Failed login attempt for email=%r ", request.email
         )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

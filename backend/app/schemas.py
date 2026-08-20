@@ -29,7 +29,6 @@ class ErrorResponse(BaseModel):
 class LoginRequest(BaseModel):
     email: str
     password: str
-    tenant_code: str
 
 
 class LoginResponse(BaseModel):
