@@ -179,15 +179,8 @@ async def test_summarize_document() -> None:
 @pytest.mark.asyncio
 async def test_build_glossary() -> None:
     from app.ingestion.glossary_builder import build_glossary
-    from app.config import get_settings
-    settings = get_settings()
-    original_key = settings.openai_api_key
-    settings.openai_api_key = None
-    
-    try:
-        await build_glossary("tenant1", [{"text": "NASA is great"}])
-        assert False, "Should raise ValueError without API key"
-    except ValueError:
-        pass
-    finally:
-        settings.openai_api_key = original_key
+
+    chunks = [{"text": "The National Aeronautics and Space Administration (NASA) manages aerospace research."}]
+    entries = await build_glossary("tenant1", chunks)
+    assert len(entries) >= 1
+    assert any(e["term"] == "NASA" for e in entries)

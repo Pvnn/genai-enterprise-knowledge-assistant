@@ -17,6 +17,7 @@ import {
   Files,
   X,
   SignOut,
+  ShieldCheck,
 } from "@phosphor-icons/react";
 import { Conversation } from "./types";
 import NodiLogo from "./NodiLogo";
@@ -161,6 +162,26 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
               />
               <span>Document Library</span>
             </button>
+
+            {(localStorage.getItem("user_role") || "member") === "admin" && (
+              <button
+                type="button"
+                onClick={() => {
+                  window.history.pushState({}, "", "/admin");
+                  window.dispatchEvent(new PopStateEvent("popstate"));
+                  onCloseMobile();
+                }}
+                className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs text-ink-muted hover:text-ink hover:bg-surface/50 transition-colors"
+              >
+                <span className="flex items-center gap-2.5">
+                  <ShieldCheck size={16} className="text-accent-gold" weight="bold" />
+                  <span>Admin Dashboard</span>
+                </span>
+                <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-accent-gold/10 text-accent-gold">
+                  Admin
+                </span>
+              </button>
+            )}
           </div>
 
           {/* Active / Past Conversation Threads */}

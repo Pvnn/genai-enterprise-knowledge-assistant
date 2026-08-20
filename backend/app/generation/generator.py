@@ -55,6 +55,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import get_settings
 from app.generation.grounding import decide_refusal  # P5 — required Priority 1 dependency
 from app.generation.prompts import GROUNDED_ANSWER_SYSTEM, grounded_answer_user
+from app.llm import get_llm_client, get_llm_model
 from app.retrieval.dense_retrieval import retrieve_chunks  # P2 — required Priority 1 dependency
 from app.retrieval.embeddings import embed_text  # P3 — required Priority 1 dependency
 from app.schemas import (
@@ -69,8 +70,7 @@ from app.schemas import (
 
 logger = logging.getLogger(__name__)
 
-settings = get_settings()
-_client = AsyncOpenAI(api_key=settings.openai_api_key, base_url=settings.openai_base_url)
+_client = get_llm_client()
 
 # --- Optional Priority 2 dependencies -- each falls back to the Priority 1
 # behavior described in the module docstring if missing or if it raises.
@@ -255,7 +255,8 @@ async def _rerank_or_take_top_n(query: str, chunks: list[ChunkResult]) -> list[C
     """Step 4: reranks if reranker.py is available, else takes the first top_n as-is."""
     if _rerank is not None and chunks:
         try:
-            return _rerank(query, chunks, top_n=settings.reranker_top_n)
+            import asyncio
+            return await asyncio.to_thread(_rerank, query, chunks, settings.reranker_top_n)
         except Exception:
             logger.exception("reranker.rerank raised — falling back to retrieval order")
     return chunks[: settings.reranker_top_n]
@@ -263,12 +264,13 @@ async def _rerank_or_take_top_n(query: str, chunks: list[ChunkResult]) -> list[C
 
 async def _draft_answer(query: str, chunks: list[ChunkResult]) -> str:
     """Step 6: drafts the grounded answer from the top chunks, using P4's own prompts.py."""
+    model = get_llm_model()
     messages = [
         {"role": "system", "content": GROUNDED_ANSWER_SYSTEM},
         {"role": "user", "content": grounded_answer_user(query, _format_passages(chunks))},
     ]
     response = await _client.chat.completions.create(
-        model=settings.llm_model,
+        model=model,
         messages=messages,
     )
     return response.choices[0].message.content or ""

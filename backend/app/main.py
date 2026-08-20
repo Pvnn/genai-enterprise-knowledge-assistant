@@ -21,6 +21,7 @@ from app.retrieval.router import router as retrieval_router  # P2
 from app.generation.router import router as generation_router  # P4
 from app.ingestion.router import router as ingestion_router  # P1
 from app.conversations.router import router as conversations_router  # P2
+from app.admin.router import router as admin_router          # Admin Dashboard
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -60,6 +61,7 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
 
 # ── Router registration ───────────────────────────────────────────────────────
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
+app.include_router(admin_router, prefix="/admin", tags=["admin"])
 app.include_router(retrieval_router, tags=["retrieval"])
 app.include_router(generation_router, tags=["generation"])
 app.include_router(ingestion_router, tags=["ingestion"])

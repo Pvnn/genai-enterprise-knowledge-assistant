@@ -99,6 +99,7 @@ export interface LoginRequest {
  */
 export interface LoginResponse {
   access_token: string;
+  token_type?: string;
   tenant_id: string;
   user_id: string;
   role: string;

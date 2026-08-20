@@ -1,4 +1,4 @@
-﻿"""Stage 1, Priority 2 – Query rewriting.
+"""Stage 1, Priority 2 – Query rewriting.
 
 Owner: P4  |  Priority: 2
 Performs acronym expansion (from the glossary table), metadata predicate
@@ -37,19 +37,17 @@ import json
 import logging
 from uuid import UUID
 
-from openai import AsyncOpenAI
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.config import get_settings
 from app.generation.prompts import QUERY_REWRITER_SYSTEM, query_rewriter_user
+from app.llm import get_llm_client, get_llm_model
 from app.models import Document, Glossary
 from app.schemas import MetadataFilters, RewriteResult
 
 logger = logging.getLogger(__name__)
 
-settings = get_settings()
-_client = AsyncOpenAI(api_key=settings.openai_api_key, base_url=settings.openai_base_url)
+_client = get_llm_client()
 
 
 async def rewrite(
@@ -78,8 +76,9 @@ async def rewrite(
         },
     ]
 
+    model = get_llm_model()
     response = await _client.chat.completions.create(
-        model=settings.llm_model,
+        model=model,
         messages=messages,
         response_format={"type": "json_object"},
     )

@@ -19,7 +19,7 @@ import pytest
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
 from jose import jwt
-from passlib.context import CryptContext
+import bcrypt
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import app.models  # noqa: F401 — registers Document ORM so Enterprise mapper resolves
@@ -31,7 +31,8 @@ from app.database import get_db
 from app.main import app
 from tests.conftest import TEST_TENANT_ID, TEST_USER_ID
 
-_pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+def _hash(pw: str) -> str:
+    return bcrypt.hashpw(pw.encode("utf-8")[:72], bcrypt.gensalt()).decode("utf-8")
 
 # ── Test constants ─────────────────────────────────────────────────────────────
 _TENANT_NAME = "Acme University"
@@ -86,7 +87,7 @@ async def _seed(session: AsyncSession) -> tuple[Enterprise, User]:
         id=UUID(TEST_USER_ID),
         tenant_id=enterprise.id,
         email=_EMAIL,
-        password_hash=_pwd_context.hash(_PASSWORD),
+        password_hash=_hash(_PASSWORD),
         role="admin",
     )
     session.add(user)

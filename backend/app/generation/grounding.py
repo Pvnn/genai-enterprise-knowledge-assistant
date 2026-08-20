@@ -8,15 +8,19 @@ Applies the refusal rules from Section 9 of the engineering spec:
 Also calls conflict_detector.check_conflict() if that module is available.
 """
 
-from enum import Enum
+import json
 import logging
-from pydantic import BaseModel, Field
+from enum import Enum
 import openai
 from openai import AsyncOpenAI
 from app.schemas import ChunkResult, RefusalDecision
 from app.config import get_settings
+from app.llm import get_llm_client, get_llm_model
 
 logger = logging.getLogger(__name__)
+
+
+from pydantic import BaseModel, Field
 
 
 class ConfidenceLevel(str, Enum):
@@ -93,17 +97,14 @@ async def decide_refusal(
 
     # Priority 1: LLM self-rate confidence
     # Retry with binary exponential backoff on transient failures.
-    MAX_RETRIES = 2
-    # Construct client — honour an optional openai_base_url override so that
-    # Groq / local-compatible endpoints work during local development without
-    # code changes (just set OPENAI_BASE_URL in .env). Read via settings, not
-    # os.getenv() directly — pydantic-settings loads .env into settings.*,
-    # it never touches the real OS environment, so os.getenv() here would
-    # silently see nothing and fall back to real OpenAI's default endpoint.
-    client = AsyncOpenAI(
-        api_key=settings.openai_api_key,
-        base_url=settings.openai_base_url,
-    )
+    try:
+        client = AsyncOpenAI(api_key=settings.openai_api_key)
+        if type(client).__name__ == "AsyncOpenAI" and settings.openai_api_key and settings.openai_api_key.startswith("gsk_"):
+            client = get_llm_client()
+    except Exception:
+        client = get_llm_client()
+
+    model = get_llm_model()
     chunk_texts = "\n\n".join([f"Chunk: {c.text}" for c in top_chunks[:5]])
     
     prompt = (
@@ -111,8 +112,9 @@ async def decide_refusal(
         f"Query: {query}\n\n"
         f"Retrieved passages:\n{chunk_texts}\n\n"
         f"Drafted Answer:\n{draft_answer}\n\n"
-        "If confidence is 'low', provide a helpful refusal reason explaining that the passages do not contain "
-        "sufficient information to answer the query directly and suggest where or what to check. Respond in JSON format with keys 'confidence' (high, medium, low) and 'refusal_reason' (string)."
+        "Return a JSON object with keys:\n"
+        "- \"confidence\": one of \"high\", \"medium\", \"low\"\n"
+        "- \"refusal_reason\": if confidence is \"low\", provide a refusal reason string, else null\n"
     )
     
     TRANSIENT_ERRORS = (
@@ -128,23 +130,37 @@ async def decide_refusal(
     llm_refusal_reason = None
     for attempt in range(MAX_RETRIES + 1):
         try:
-            response = await client.chat.completions.create(
-                model=settings.llm_model,
-                messages=[{"role": "user", "content": prompt}],
-                response_format={"type": "json_object"},
-                temperature=0.0,
-            )
-            import json
-            data = json.loads(response.choices[0].message.content)
-            result = ConfidenceLLMResponse(**data)
-            if result.confidence == ConfidenceLevel.high:
-                confidence_val = 1.0
-            elif result.confidence == ConfidenceLevel.medium:
-                confidence_val = 0.5
+            if hasattr(client, "responses") and hasattr(client.responses, "parse"):
+                response = await client.responses.parse(
+                    model=model,
+                    input=[{"role": "user", "content": prompt}],
+                    text_format=ConfidenceLLMResponse,
+                    temperature=0.0,
+                )
+                result = response.output_parsed
+                if result.confidence == ConfidenceLevel.high:
+                    confidence_val = 1.0
+                elif result.confidence == ConfidenceLevel.medium:
+                    confidence_val = 0.5
+                else:
+                    confidence_val = 0.0
+                    llm_refusal_reason = result.refusal_reason
             else:
-                confidence_val = 0.0
-                # Model always provides refusal_reason (required str); use it directly.
-                llm_refusal_reason = result.refusal_reason or None
+                response = await client.chat.completions.create(
+                    model=model,
+                    messages=[{"role": "user", "content": prompt}],
+                    response_format={"type": "json_object"},
+                    temperature=0.0,
+                )
+                data = json.loads(response.choices[0].message.content)
+                conf_str = str(data.get("confidence", "high")).lower().strip()
+                if conf_str == "high":
+                    confidence_val = 1.0
+                elif conf_str == "medium":
+                    confidence_val = 0.5
+                else:
+                    confidence_val = 0.0
+                    llm_refusal_reason = data.get("refusal_reason")
             break
         except TRANSIENT_ERRORS as e:
             wait_seconds = 2 ** attempt  # 1s, 2s

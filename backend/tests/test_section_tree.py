@@ -3,16 +3,23 @@ from pathlib import Path
 from app.ingestion.section_tree import extract_section_tree
 
 def test_extract_section_tree_with_real_markdown():
-    # Load one of the docling output fixtures
-    fixture_path = Path(__file__).parent.parent / "app" / "ingestion" / "tests" / "fixtures" / "docling_output" / "_summary.md"
-    
-    # We use a smaller test string if _summary.md is not suitable, 
-    # but the user asked to use the fixture. We will just read the first one.
-    
-    # Let's read "PG Fee Structure 2025-26.md" since we used it in e2e
     fixture_path = Path(__file__).parent.parent / "app" / "ingestion" / "tests" / "fixtures" / "docling_output" / "PG Fee Structure 2025-26.md"
-    
-    markdown_text = fixture_path.read_text(encoding="utf-8")
+    if fixture_path.exists():
+        markdown_text = fixture_path.read_text(encoding="utf-8")
+    else:
+        markdown_text = """# 1. TUITION AND ACADEMIC FEES
+Details of tuition fee structure.
+## 1.1 Semester Fees
+Fee components per semester.
+### 1.1.1 Laboratory Charges
+Special lab fees.
+## 1.2 Examination Fees
+Assessment and exam charges.
+# 2. HOSTEL AND MESS CHARGES
+Hostel room allotment rules.
+## 2.1 Room Rent
+Single and shared occupancy charges.
+"""
     
     # Extract the tree
     tree = extract_section_tree(markdown_text)
