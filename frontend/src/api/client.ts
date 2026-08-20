@@ -17,6 +17,7 @@ import {
   ClarifyEvent,
   CurrentUser,
   DocumentItem,
+  DocumentStatusResponse,
   ErrorResponse,
   FeedbackRequest,
   FeedbackResponse,
@@ -24,6 +25,7 @@ import {
   LoginRequest,
   LoginResponse,
   TokenEvent,
+  UploadResponse,
 } from "../chat/types";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
@@ -456,4 +458,73 @@ export async function getMe(): Promise<CurrentUser> {
   return response.json();
 }
 
+/**
+ * Upload a PDF document for ingestion (Admin only).
+ * Strictly calls POST /documents/upload using FormData per Section 5 addendum.
+ */
+export async function uploadDocument(
+  file: File,
+  department: string,
+  docType: string
+): Promise<UploadResponse> {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("department", department.trim());
+  formData.append("doc_type", docType.trim());
+
+  const response = await fetch(`${API_BASE}/documents/upload`, {
+    method: "POST",
+    headers: {
+      ...getAuthHeader(),
+    },
+    body: formData,
+  });
+
+  if (!response.ok) {
+    let errorData: ErrorResponse;
+    try {
+      errorData = await response.json();
+    } catch {
+      errorData = {
+        error: "upload_failed",
+        detail: `Upload failed with status ${response.status}: ${response.statusText}`,
+      };
+    }
+    throw new Error(errorData.detail || errorData.error);
+  }
+
+  return response.json();
+}
+
+/**
+ * Check / poll ingestion status for a document.
+ * Strictly calls GET /documents/{documentId}/status per Section 5 addendum.
+ */
+export async function getDocumentStatus(
+  documentId: string
+): Promise<DocumentStatusResponse> {
+  const response = await fetch(`${API_BASE}/documents/${documentId}/status`, {
+    method: "GET",
+    headers: {
+      ...getAuthHeader(),
+    },
+  });
+
+  if (!response.ok) {
+    let errorData: ErrorResponse;
+    try {
+      errorData = await response.json();
+    } catch {
+      errorData = {
+        error: "status_check_failed",
+        detail: `Status check failed with status ${response.status}`,
+      };
+    }
+    throw new Error(errorData.detail || errorData.error);
+  }
+
+  return response.json();
+}
+
 export { API_BASE };
+

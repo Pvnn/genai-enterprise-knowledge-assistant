@@ -19,7 +19,6 @@ import {
   Stop,
   List,
   ShieldCheck,
-  Sparkle,
   ArrowClockwise,
   Files,
   ChatCircleText,
@@ -33,6 +32,7 @@ import { streamChat } from "../api/client";
 import ChatSidebar from "./ChatSidebar";
 import ChatMessageItem from "./ChatMessageItem";
 import DocumentsLibrary from "./DocumentsLibrary";
+import NodiLogo from "./NodiLogo";
 
 const DEFAULT_TENANT_ID =
   localStorage.getItem("tenant_id") || "00000000-0000-0000-0000-000000000001";
@@ -41,9 +41,15 @@ const STORAGE_KEY_THEME = "genai_assistant_theme";
 
 interface ChatPageProps {
   onLogout?: () => void;
+  userRole?: string;
+  onNavigateUpload?: () => void;
 }
 
-export const ChatPage: React.FC<ChatPageProps> = ({ onLogout }) => {
+export const ChatPage: React.FC<ChatPageProps> = ({
+  onLogout,
+  userRole,
+  onNavigateUpload,
+}) => {
   // Theme state
   const [darkMode, setDarkMode] = useState<boolean>(() => {
     const saved = localStorage.getItem(STORAGE_KEY_THEME);
@@ -66,7 +72,12 @@ export const ChatPage: React.FC<ChatPageProps> = ({ onLogout }) => {
       const raw = localStorage.getItem(STORAGE_KEY_CONVERSATIONS);
       if (raw) {
         const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.map((c: Conversation) => ({
+            ...c,
+            title: c.title === "New Policy Inquiry" ? "New Chat" : c.title,
+          }));
+        }
       }
     } catch {
       // Fall through to initial state
@@ -75,7 +86,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ onLogout }) => {
     return [
       {
         id: initialId,
-        title: "New Policy Inquiry",
+        title: "New Chat",
         messages: [],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -137,7 +148,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ onLogout }) => {
     const newId = crypto.randomUUID();
     const newConv: Conversation = {
       id: newId,
-      title: "New Policy Inquiry",
+      title: "New Chat",
       messages: [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -157,7 +168,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ onLogout }) => {
         return [
           {
             id: freshId,
-            title: "New Policy Inquiry",
+            title: "New Chat",
             messages: [],
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
@@ -424,7 +435,9 @@ export const ChatPage: React.FC<ChatPageProps> = ({ onLogout }) => {
               <h1 className="text-sm font-semibold text-ink truncate">
                 {currentView === "documents"
                   ? "Institutional Knowledge Base"
-                  : currentConversation?.title || "Knowledge Assistant"}
+                  : !currentConversation || currentConversation.title === "New Chat" || currentConversation.title === "New Policy Inquiry"
+                  ? "NODI"
+                  : currentConversation.title}
               </h1>
             </div>
           </div>
@@ -460,7 +473,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ onLogout }) => {
 
             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface border border-hairline text-ink-muted font-medium text-[11px]">
               <span className="w-2 h-2 rounded-full bg-accent-gold animate-pulse" />
-              <span>Grounded Assistant</span>
+              <span>NODI Grounded</span>
             </div>
           </div>
         </header>
@@ -470,6 +483,8 @@ export const ChatPage: React.FC<ChatPageProps> = ({ onLogout }) => {
           <DocumentsLibrary
             tenantId={tenantId}
             onAskAboutDocument={handleAskAboutDoc}
+            userRole={userRole}
+            onNavigateUpload={onNavigateUpload}
           />
         ) : (
           <>
@@ -479,12 +494,12 @@ export const ChatPage: React.FC<ChatPageProps> = ({ onLogout }) => {
                 {/* Empty State with Rich Categorized Starters */}
                 {currentConversation?.messages.length === 0 && (
                   <div className="py-8 sm:py-12 text-center space-y-6 animate-in fade-in duration-200">
-                    <div className="w-12 h-12 mx-auto rounded-2xl bg-surface border border-hairline flex items-center justify-center text-accent-gold shadow-xs">
-                      <Sparkle size={24} weight="bold" />
+                    <div className="w-12 h-12 mx-auto rounded-2xl bg-surface border border-hairline flex items-center justify-center shadow-xs">
+                      <NodiLogo size={28} className="text-primary-brand" />
                     </div>
                     <div className="space-y-1.5 max-w-lg mx-auto">
                       <h3 className="text-lg sm:text-xl font-bold text-ink tracking-tight">
-                        Institutional Knowledge Assistant
+                        NODI Knowledge Assistant
                       </h3>
                       <p className="text-xs sm:text-sm text-ink-muted leading-relaxed">
                         Search verified circulars, leave rules, academic ordinances, and procurement procedures with strict citation tracing.

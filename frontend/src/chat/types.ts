@@ -132,6 +132,23 @@ export interface DocumentItem {
 }
 
 /**
+ * Ingestion upload response (Section 5 addendum).
+ */
+export interface UploadResponse {
+  document_id: string;
+  ingestion_status: string;
+}
+
+/**
+ * Document ingestion status response (Section 5 addendum).
+ */
+export interface DocumentStatusResponse {
+  document_id: string;
+  ingestion_status: string;
+  detail?: string | null;
+}
+
+/**
  * Message state within the frontend Chat UI.
  */
 export interface ChatMessage {
@@ -156,3 +173,4 @@ export interface Conversation {
   createdAt: string;
   updatedAt: string;
 }
+
