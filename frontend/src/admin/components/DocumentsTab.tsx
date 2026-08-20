@@ -322,14 +322,18 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({
       {/* Delete Confirmation Modal */}
       {confirmDeleteDoc && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="w-full max-w-sm bg-surface border border-hairline rounded-3xl p-6 shadow-xl space-y-4">
+          <div className="w-full max-w-md bg-surface border border-hairline rounded-3xl p-6 shadow-xl space-y-4 overflow-hidden">
             <div className="w-10 h-10 rounded-2xl bg-rose-500/10 text-rose-500 flex items-center justify-center">
               <Trash size={20} weight="bold" />
             </div>
-            <div>
+            <div className="min-w-0">
               <h3 className="text-sm font-bold text-ink">Delete Document</h3>
-              <p className="text-xs text-ink-muted mt-1">
-                Are you sure you want to permanently delete <strong className="text-ink">"{confirmDeleteDoc.title}"</strong> and all its {confirmDeleteDoc.chunk_count} indexed chunks? This cannot be undone.
+              <p className="text-xs text-ink-muted mt-1.5 leading-relaxed break-words [overflow-wrap:anywhere]">
+                Are you sure you want to permanently delete{" "}
+                <strong className="text-ink font-semibold break-all">
+                  "{confirmDeleteDoc.title}"
+                </strong>{" "}
+                and all its {confirmDeleteDoc.chunk_count} indexed chunks? This cannot be undone.
               </p>
             </div>
             <div className="flex items-center justify-end gap-2 pt-2">
