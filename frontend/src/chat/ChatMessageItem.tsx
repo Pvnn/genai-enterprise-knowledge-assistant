@@ -31,6 +31,14 @@ interface ChatMessageItemProps {
   onFeedbackUpdate?: (messageId: string, vote: "up" | "down") => void;
 }
 
+const cleanInlineCitations = (text: string) => {
+  if (!text) return "";
+  return text
+    .replace(/\[\s*doc=[0-9a-fA-F-]{36},?\s*(?:section=)?/gi, "[")
+    .replace(/\[\s*document=[0-9a-fA-F-]{36},?\s*(?:section=)?/gi, "[")
+    .replace(/\[\s*doc=[^,\]]+,\s*/gi, "[");
+};
+
 export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
   onCitationClick,
   message,
@@ -141,7 +149,7 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
             message.content && (
               <div className="text-sm text-ink leading-relaxed break-words prose dark:prose-invert max-w-none">
                 <ReactMarkdown>
-                  {message.content + (message.status === "streaming" ? " ▊" : "")}
+                  {cleanInlineCitations(message.content) + (message.status === "streaming" ? " ▊" : "")}
                 </ReactMarkdown>
               </div>
             )}

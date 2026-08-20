@@ -284,7 +284,7 @@ def _format_passages(chunks: list[ChunkResult]) -> str:
     if not chunks:
         return "(no passages retrieved)"
     return "\n\n".join(
-        f"[doc={c.document_id} section={c.section_path}]\n{c.text}" for c in chunks
+        f"[Section: {c.section_path or 'General'}]\n{c.text}" for c in chunks
     )
 
 
