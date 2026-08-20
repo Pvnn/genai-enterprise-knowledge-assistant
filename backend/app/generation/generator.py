@@ -69,7 +69,7 @@ from app.schemas import (
 )
 
 logger = logging.getLogger(__name__)
-
+settings = get_settings()
 _client = get_llm_client()
 
 # --- Optional Priority 2 dependencies -- each falls back to the Priority 1
@@ -240,15 +240,18 @@ async def _retrieve_for_subquery(
     )
 
 
-def _dedupe_chunks(chunks: list[ChunkResult]) -> list[ChunkResult]:
-    """Merges chunks pulled from multiple sub-queries, keeping the highest score per unique text."""
-    best: dict[str, ChunkResult] = {}
+def _dedupe_by_chunk_id(chunks: list[ChunkResult]) -> list[ChunkResult]:
+    """Merges chunks pulled from multiple sub-queries, keeping the highest score per unique chunk_id."""
+    best: dict[UUID | str, ChunkResult] = {}
     for c in chunks:
-        text_key = c.text.strip()
-        existing = best.get(text_key)
+        key = c.chunk_id if c.chunk_id else c.text.strip()
+        existing = best.get(key)
         if existing is None or c.score > existing.score:
-            best[text_key] = c
+            best[key] = c
     return sorted(best.values(), key=lambda c: c.score, reverse=True)
+
+
+_dedupe_chunks = _dedupe_by_chunk_id
 
 
 async def _rerank_or_take_top_n(query: str, chunks: list[ChunkResult]) -> list[ChunkResult]:

@@ -75,6 +75,9 @@ class ScopedSection(BaseModel):
     document_id: UUID
     section_path: str
 
+    def __getitem__(self, item: str):
+        return getattr(self, item)
+
 
 class RetrieveRequest(BaseModel):
     query: str

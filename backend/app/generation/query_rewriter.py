@@ -177,13 +177,16 @@ def _match_known_value(candidate: str | None, known_values: list[str] | None) ->
     Returns:
         The matching real value (in its real stored casing), or None.
     """
-    if not candidate or not known_values:
+    if not candidate:
         return None
-    candidate_lower = candidate.strip().lower()
+    candidate_str = str(candidate).strip()
+    if not known_values:
+        return candidate_str
+    candidate_lower = candidate_str.lower()
     for real_value in known_values:
         if real_value.strip().lower() == candidate_lower:
             return real_value
-    return None
+    return candidate_str
 
 
 def _passthrough(raw_query: str) -> RewriteResult:

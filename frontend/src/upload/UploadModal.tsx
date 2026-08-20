@@ -126,20 +126,12 @@ export const UploadModal: React.FC<UploadModalProps> = ({
         setErrorMsg("Document type is required.");
         return;
       }
-      if (!effectiveDate.trim()) {
-        setErrorMsg("Effective date is required.");
-        return;
-      }
-
       setStatus("pending");
 
       try {
-        const data: UploadResponse = await uploadDocument(
-          file,
-          department.trim(),
-          docType.trim(),
-          effectiveDate.trim()
-        );
+        const data: UploadResponse = effectiveDate.trim()
+          ? await uploadDocument(file, department.trim(), docType.trim(), effectiveDate.trim())
+          : await uploadDocument(file, department.trim(), docType.trim());
         setDocumentId(data.document_id);
         setStatus("processing");
         pollStatus(data.document_id);

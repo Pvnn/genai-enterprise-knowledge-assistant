@@ -94,7 +94,7 @@ async def upload_document(
     file: UploadFile = File(..., description="PDF file to ingest"),
     department: str = Form(..., description="Department tag, e.g. HR"),
     doc_type: str = Form(..., description="Document type tag, e.g. policy"),
-    effective_date: str = Form(..., description="Effective date, e.g. YYYY-MM-DD"),
+    effective_date: str | None = Form(None, description="Effective date, e.g. YYYY-MM-DD"),
 ) -> UploadResponse:
     """Upload a PDF and trigger async ingestion (admin only).
 

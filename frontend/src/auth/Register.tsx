@@ -240,3 +240,5 @@ const BuildingsIcon = () => (
     <path d="M9 21V12H15V21" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
 );
+
+export default Register;

@@ -1,11 +1,7 @@
-/**
- * Root application component. Wires routing between Auth, Chat, Admin Dashboard, and Upload.
- */
-
 import React, { useState, useEffect } from "react";
 import ChatPage from "./chat/ChatPage";
 import Login from "./auth/Login";
-import { Register } from "./auth/Register";
+import Register from "./auth/Register";
 import UploadPage from "./upload/UploadPage";
 import AdminDashboard from "./admin/AdminDashboard";
 import { ShieldCheck } from "@phosphor-icons/react";
@@ -114,7 +110,7 @@ export const App: React.FC = () => {
               <ShieldCheck size={24} weight="bold" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-ink">Administrative Access Restricted</h2>
+              <h2 className="text-base font-bold text-ink">Access Restricted</h2>
               <p className="text-xs text-ink-muted mt-1">
                 Document ingestion and upload is restricted to administrators.
               </p>

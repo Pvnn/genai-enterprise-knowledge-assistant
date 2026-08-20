@@ -37,12 +37,13 @@ class ConfidenceLLMResponse(BaseModel):
     confidence: ConfidenceLevel = Field(
         description="How well the retrieved passages support the drafted answer."
     )
-    refusal_reason: str = Field(
+    refusal_reason: str | None = Field(
+        default=None,
         description=(
             "A user-facing explanation of why the retrieved passages do or do not support the answer. "
             "If confidence is 'low', explain specifically why the passages are insufficient for this query "
             "and suggest where the user might look for the answer. "
-            "If confidence is 'high' or 'medium', return an empty string."
+            "If confidence is 'high' or 'medium', return an empty string or null."
         ),
     )
 
@@ -97,6 +98,7 @@ async def decide_refusal(
 
     # Priority 1: LLM self-rate confidence
     # Retry with binary exponential backoff on transient failures.
+    MAX_RETRIES = 2
     try:
         client = AsyncOpenAI(api_key=settings.openai_api_key)
         if type(client).__name__ == "AsyncOpenAI" and settings.openai_api_key and settings.openai_api_key.startswith("gsk_"):
