@@ -21,5 +21,5 @@ def load_gold_set() -> list[dict]:
         list[dict]: List of QA pairs, each with keys: question, answer,
                     document_id, section_path, tenant_id.
     """
-    with GOLD_QA_PATH.open("r", encoding="utf-8") as f:
+    with GOLD_QA_PATH.open("r", encoding="utf-8-sig") as f:
         return json.load(f)
